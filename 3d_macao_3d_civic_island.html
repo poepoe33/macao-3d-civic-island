@@ -6673,37 +6673,71 @@
 
       const lrtCurve = new THREE.CatmullRomCurve3(lrtPoints, false, "catmullrom", 0.25);
 
-      const lrtTrainGroup = new THREE.Group();
-      const carMat = new THREE.MeshStandardMaterial({ color: 0xfff8f4, roughness: 0.55 });
-      const stripeMat = new THREE.MeshStandardMaterial({ color: 0x007562, roughness: 0.5 });
-      const winMat = new THREE.MeshStandardMaterial({
-        color: 0xa8d8d6,
-        emissive: 0xffc777,
-        emissiveIntensity: 0.4,
-        roughness: 0.3
-      });
+      function buildLrtTrain() {
+        const g = new THREE.Group();
+        const carMat = new THREE.MeshStandardMaterial({ color: 0xfff8f4, roughness: 0.55 });
+        const stripeMat = new THREE.MeshStandardMaterial({ color: 0x007562, roughness: 0.5 });
+        const winMat = new THREE.MeshStandardMaterial({
+          color: 0xa8d8d6,
+          emissive: 0xffc777,
+          emissiveIntensity: 0.4,
+          roughness: 0.3
+        });
 
-      for (let c = -1; c <= 1; c += 2) {
-        const car = new THREE.Mesh(kitGeos.rbox, carMat);
-        car.scale.set(0.18, 0.13, 0.34);
-        car.position.set(0, 0.07, c * 0.20);
-        car.castShadow = true;
-        car.userData = { isLrtTrain: true };
-        lrtTrainGroup.add(car);
+        for (let c = -1; c <= 1; c += 2) {
+          const car = new THREE.Mesh(kitGeos.rbox, carMat);
+          car.scale.set(0.18, 0.13, 0.34);
+          car.position.set(0, 0.07, c * 0.20);
+          car.castShadow = true;
+          car.userData = { isLrtTrain: true };
+          g.add(car);
 
-        const stripe = new THREE.Mesh(kitGeos.box, stripeMat);
-        stripe.scale.set(0.19, 0.035, 0.35);
-        stripe.position.set(0, 0.05, c * 0.20);
-        stripe.userData = { isLrtTrain: true };
-        lrtTrainGroup.add(stripe);
+          const stripe = new THREE.Mesh(kitGeos.box, stripeMat);
+          stripe.scale.set(0.19, 0.035, 0.35);
+          stripe.position.set(0, 0.05, c * 0.20);
+          stripe.userData = { isLrtTrain: true };
+          g.add(stripe);
 
-        const win = new THREE.Mesh(kitGeos.box, winMat);
-        win.scale.set(0.192, 0.04, 0.28);
-        win.position.set(0, 0.09, c * 0.20);
-        win.userData = { isLrtTrain: true };
-        lrtTrainGroup.add(win);
+          const win = new THREE.Mesh(kitGeos.box, winMat);
+          win.scale.set(0.192, 0.04, 0.28);
+          win.position.set(0, 0.09, c * 0.20);
+          win.userData = { isLrtTrain: true };
+          g.add(win);
+        }
+        return g;
       }
+
+      const lrtTrainGroup = buildLrtTrain();
+      lrtCurve.getPointAt(0, lrtTrainGroup.position);
       scene.add(lrtTrainGroup);
+
+      // 澳門輕軌三條營運路線：氹仔線（媽閣—氹仔碼頭）、橫琴線（蓮花—橫琴）、石排灣線（蓮花—石排灣）
+      const lrtLines = [{ curve: lrtCurve, group: lrtTrainGroup, speed: 0.022, phase: 0 }];
+      const lotusBridge = bridgeMap.get("bridge-lotus");
+      const addLrtBranch = (points, speed, phase) => {
+        const curve = new THREE.CatmullRomCurve3(points, false, "catmullrom", 0.2);
+        const group = buildLrtTrain();
+        curve.getPointAt(0, group.position);
+        scene.add(group);
+        lrtLines.push({ curve, group, speed, phase });
+      };
+      const tourismIsl = islandMap.get("tourism");
+      const youthIsl = islandMap.get("youth");
+      const environmentIsl = islandMap.get("environment");
+      if (tourismIsl && youthIsl) {
+        const pts = [new THREE.Vector3(tourismIsl.worldPos.x, TOP + 0.14, tourismIsl.worldPos.z + 0.15)];
+        if (lotusBridge && lotusBridge.curve) {
+          pts.push(lotusBridge.curve.getPoint(0.5).clone().add(new THREE.Vector3(0, 0.06, 0)));
+        }
+        pts.push(new THREE.Vector3(youthIsl.worldPos.x, TOP + 0.14, youthIsl.worldPos.z + 0.15));
+        addLrtBranch(pts, 0.05, 0.55);
+      }
+      if (tourismIsl && environmentIsl) {
+        addLrtBranch([
+          new THREE.Vector3(tourismIsl.worldPos.x, TOP + 0.14, tourismIsl.worldPos.z + 0.15),
+          new THREE.Vector3(environmentIsl.worldPos.x, TOP + 0.14, environmentIsl.worldPos.z + 0.15)
+        ], 0.045, 1.35);
+      }
 
       // =====================================================================
       // 互動 2：澳門旅遊塔國際煙花匯演 3D 粒子系統
@@ -6855,15 +6889,18 @@
       const bvTan = new THREE.Vector3();
 
       function updateInteractiveLandmarks(dt, elapsedTime, waterMat, tideLevelM) {
-        // 1. 澳門輕軌列車沿氹仔線往返行駛（媽閣 ⇄ 氹仔碼頭）
-        const lrtCycle = (elapsedTime * 0.022) % 2;
-        const lrtForward = lrtCycle <= 1;
-        const lrtU = lrtForward ? lrtCycle : 2 - lrtCycle;
-        lrtCurve.getPointAt(lrtU, lrtPos);
-        lrtCurve.getTangentAt(lrtU, lrtTan);
-        if (!lrtForward) lrtTan.negate();
-        lrtTrainGroup.position.copy(lrtPos);
-        lrtTrainGroup.rotation.y = Math.atan2(lrtTan.x, lrtTan.z);
+        // 1. 澳門輕軌三線列車往返行駛（氹仔線／橫琴線／石排灣線）
+        for (let i = 0; i < lrtLines.length; i++) {
+          const line = lrtLines[i];
+          const lrtCycle = (elapsedTime * line.speed + line.phase) % 2;
+          const lrtForward = lrtCycle <= 1;
+          const lrtU = lrtForward ? lrtCycle : 2 - lrtCycle;
+          line.curve.getPointAt(lrtU, lrtPos);
+          line.curve.getTangentAt(lrtU, lrtTan);
+          if (!lrtForward) lrtTan.negate();
+          line.group.position.copy(lrtPos);
+          line.group.rotation.y = Math.atan2(lrtTan.x, lrtTan.z);
+        }
 
         // 2. 四條跨海大橋上的雙向穿梭巴士與車流
         for (let i = 0; i < bridgeVehicles.length; i++) {
