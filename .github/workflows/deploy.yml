@@ -32,6 +32,7 @@ jobs:
             git clean -fd -e server/node_modules
             cd server
             npm ci --omit=dev --no-audit --no-fund
+            export DATABASE_URL="$(sudo -n grep '^DATABASE_URL=' /etc/macao-city.env | cut -d= -f2-)"
             npm run seed
             sudo -n systemctl restart macao-city
             sudo -n systemctl is-active --quiet macao-city
