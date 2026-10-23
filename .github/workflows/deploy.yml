@@ -30,6 +30,8 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
             git clean -fd -e server/node_modules
+            REV=$(git rev-parse --short HEAD)
+            sed -i "s|social.js?v=dev|social.js?v=$REV|; s|social.css?v=dev|social.css?v=$REV|" 3d_macao_3d_civic_island.html
             cd server
             npm ci --omit=dev --no-audit --no-fund
             export DATABASE_URL="$(sudo -n grep '^DATABASE_URL=' /etc/macao-city.env | cut -d= -f2-)"
