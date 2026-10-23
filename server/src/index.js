@@ -655,6 +655,32 @@ app.get('/api/city', wrap(async (req, res) => {
   });
 }));
 
+// ---------- 3D 場景中的真實市民 ----------
+app.get('/api/citizens', wrap(async (req, res) => {
+  const { rows } = await query(
+    `SELECT u.id, u.nickname, u.name, u.level, u.district_id,
+            (SELECT count(*)::int FROM user_buildings b WHERE b.user_id = u.id) AS buildings,
+            EXISTS (
+              SELECT 1 FROM events e
+               WHERE e.user_id = u.id AND e.created_at > now() - interval '30 minutes'
+            ) AS online
+       FROM users u
+      WHERE u.onboarded AND u.district_id IS NOT NULL
+      ORDER BY online DESC, u.level DESC, u.id
+      LIMIT 60`
+  );
+  res.json({
+    citizens: rows.map((c) => ({
+      id: c.id,
+      nickname: c.nickname || c.name || '市民',
+      level: c.level,
+      districtId: c.district_id,
+      buildings: c.buildings,
+      online: c.online,
+    })),
+  });
+}));
+
 // ---------- 好友與社團 ----------
 app.use('/api', communityRouter);
 

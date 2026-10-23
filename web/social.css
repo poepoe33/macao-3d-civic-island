@@ -17,9 +17,9 @@
 /* ---- 浮動入口按鈕 ---- */
 #mc-fab {
   position: fixed;
-  left: 14px;
-  top: 50%;
-  transform: translateY(-50%);
+  left: 15px;
+  top: 108px;
+  transform: none;
   z-index: 60;
   display: flex;
   flex-direction: column;
@@ -36,7 +36,7 @@
   color: var(--mc-ink);
   transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
-#mc-fab:hover { transform: translateY(-50%) scale(1.04); }
+#mc-fab:hover { transform: scale(1.04); }
 #mc-fab .mc-fab-icon { font-size: 21px; line-height: 1; }
 #mc-fab .mc-fab-label { font-size: 10px; font-weight: 700; letter-spacing: 0.02em; }
 #mc-fab .mc-fab-dot {
@@ -528,8 +528,8 @@
 @media (max-width: 720px) {
   #mc-fab {
     left: 10px;
-    top: auto;
-    bottom: 132px;
+    top: 74px;
+    bottom: auto;
     transform: none;
     width: 50px;
     padding: 8px 5px;

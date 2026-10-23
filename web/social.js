@@ -396,6 +396,54 @@
     toast('已帶你到分區，可查看你的建設');
   }
 
+  // 市民與分區活力同步到 3D 場景
+  function pushCitizens3D(list) {
+    const apply = () => {
+      if (window.macaoBridge && typeof window.macaoBridge.renderCitizens === 'function') {
+        window.macaoBridge.renderCitizens(list);
+        return true;
+      }
+      return false;
+    };
+    if (apply()) return;
+    let tries = 0;
+    const timer = setInterval(() => {
+      tries += 1;
+      if (apply() || tries > 40) clearInterval(timer);
+    }, 250);
+  }
+
+  function pushVitality3D(districts) {
+    const apply = () => {
+      if (window.macaoBridge && typeof window.macaoBridge.renderVitalityRings === 'function') {
+        window.macaoBridge.renderVitalityRings(districts);
+        return true;
+      }
+      return false;
+    };
+    if (apply()) return;
+    let tries = 0;
+    const timer = setInterval(() => {
+      tries += 1;
+      if (apply() || tries > 40) clearInterval(timer);
+    }, 250);
+  }
+
+  async function refreshWorld() {
+    try {
+      const [overview, citizens] = await Promise.all([
+        api('/api/sandbox/overview'),
+        api('/api/citizens'),
+      ]);
+      state.city = state.city || {};
+      state.city.districts = overview.districts;
+      pushVitality3D(overview.districts || []);
+      pushCitizens3D(citizens.citizens || []);
+    } catch {
+      /* 3D 疊加屬非必要 */
+    }
+  }
+
   function slotGrid(slots, interactive) {
     return `<div class="mc-slot-grid">${slots.map((s) => (s.type
       ? `<button class="mc-slot mc-slot-filled" data-slot="${s.slot}" type="button" ${interactive ? '' : 'disabled'}>
@@ -527,6 +575,9 @@
             b.disabled = true;
             try {
               const r = await api('/api/sandbox/build', { method: 'POST', body: JSON.stringify({ slot: sel, type }) });
+              if (window.macaoBridge && window.macaoBridge.celebrateSlot && sb.district) {
+                window.macaoBridge.celebrateSlot(sb.district.id, sel);
+              }
               state.sandboxSlot = null;
               if (r.tasks) state.me.tasks = r.tasks;
               toast(`🏗 已建成，活力 +${r.building.vitality}`);
@@ -1224,6 +1275,7 @@
         } catch { /* 沙盤非必要 */ }
       }
     }
+    refreshWorld();
     if (state.tab === 'atlas' || state.tab === 'proposals') state.landmarks = null;
   }
 
@@ -1276,6 +1328,15 @@
 
   window.addEventListener('macao:landmark', onLandmark);
   window.addEventListener('macao:island', onIsland);
+  // 點擊 3D 場景中的市民小人 → 打開他的沙盤
+  window.addEventListener('macao:citizen', (ev) => {
+    const d = ev.detail || {};
+    if (!d.userId) return;
+    if (!state.me || !state.me.authenticated) { flashDot(); return; }
+    state.sandboxVisit = Number(d.userId);
+    state.sandboxSlot = null;
+    openPanel('sandbox');
+  });
   // 在 3D 場景點擊自己的建設，直接打開沙盤對應格子
   window.addEventListener('macao:sandbox-slot', (ev) => {
     const d = ev.detail || {};
