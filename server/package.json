@@ -1,0 +1,19 @@
+{
+  "name": "macao-city",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "澳門城市島 · 會員與社區 API",
+  "scripts": {
+    "start": "node src/index.js",
+    "migrate": "node src/migrate.js",
+    "seed": "node src/migrate.js --seed"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "pg": "^8.13.1"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

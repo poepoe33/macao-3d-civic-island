@@ -1363,6 +1363,7 @@
       }
     }
   </style>
+  <link rel="stylesheet" href="./social.css">
 </head>
 <body>
   <div id="app">
@@ -8077,6 +8078,7 @@
           flyToPose(camPos, target);
           renderIslandDetailCard(isl);
           syncMobileSheetState();
+          window.dispatchEvent(new CustomEvent("macao:island", { detail: { id: isl.id, name: isl.name } }));
         }
 
         function selectItem(itemId) {
@@ -8101,7 +8103,13 @@
           flyToPose(camPos, target);
           renderItemDetailCard(item);
           syncMobileSheetState();
+          window.dispatchEvent(new CustomEvent("macao:landmark", {
+            detail: { id: item.id, name: item.name, districtId: item.islandId }
+          }));
         }
+
+        // 供市民中心（社交層）從圖鑑直接飛往地標
+        window.macaoBridge = { selectItem, selectIsland };
 
         function selectBridge(bridgeId) {
           const bm = worldData.bridgeMap.get(bridgeId);
@@ -9397,5 +9405,6 @@
 
     initPolicyIslandApp();
   </script>
+  <script src="./social.js" defer></script>
 </body>
 </html>

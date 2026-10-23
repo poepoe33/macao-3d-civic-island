@@ -1,0 +1,2142 @@
+{
+  "districts": [
+    {
+      "id": "ilahverde",
+      "code": "01",
+      "name": "青洲山、青茂口岸及跨境工業區（花地瑪堂西北）",
+      "name_en": "Ilha Verde & Qingmao Port (NW Peninsula)",
+      "parish": "花地瑪堂區（西北青洲片區）",
+      "macro_region": "澳門半島（11 個細分地理區）",
+      "macro_region_en": "Macau Peninsula (11 Sub-Zones)",
+      "landmass": "peninsula",
+      "icon": "🚆",
+      "color": "#4f8a96",
+      "population": "4.8 萬人",
+      "area_km2": "0.82 km²",
+      "summary": "位於澳門半島最西北端，涵蓋 24 小時運作並直連廣珠城軌珠海站之「青茂口岸」、青洲坊公共房屋群、青洲山生態保育古樹群及珠澳跨境工業區。",
+      "summary_en": "Northwesternmost tip of Macau Peninsula housing the 24-hour Qingmao Port (linked to Zhuhai High-Speed Rail), Ilha Verde public housing, and Ilha Verde Hill.",
+      "lat": 22.2128,
+      "lng": 113.5385
+    },
+    {
+      "id": "portascerco",
+      "code": "02",
+      "name": "關閘口岸、紀念孫中山公園及台山區（花地瑪堂中北）",
+      "name_en": "Border Gate & Tamagnini Barbosa (North Center)",
+      "parish": "花地瑪堂區（中北關閘台山片區）",
+      "macro_region": "澳門半島（11 個細分地理區）",
+      "macro_region_en": "Macau Peninsula (11 Sub-Zones)",
+      "landmass": "peninsula",
+      "icon": "⛩️",
+      "color": "#3e7c8c",
+      "population": "8.6 萬人",
+      "area_km2": "0.94 km²",
+      "summary": "澳門半島最北端陸路門戶，矗立 1871 年歷史古蹟關閘拱門與現代化邊檢大樓，連接鴨涌河紀念孫中山市政公園、台山平民新邨與輕軌東線 ES1 關閘站。",
+      "summary_en": "Northern gateway of Macao featuring the 1871 historic Border Gate Arch, underground Bus Terminal, Sun Yat Sen Municipal Park, and LRT East Line ES1 station.",
+      "lat": 22.2145,
+      "lng": 113.5491
+    },
+    {
+      "id": "transport",
+      "code": "03",
+      "name": "黑沙環、祐漢及東方明珠區（花地瑪堂東北）",
+      "name_en": "Areia Preta, Iao Hon & Oriental Pearl (NE Peninsula)",
+      "parish": "花地瑪堂區",
+      "macro_region": "澳門半島（11 個細分地理區）",
+      "macro_region_en": "Macau Peninsula (11 Sub-Zones)",
+      "landmass": "peninsula",
+      "icon": "🚌",
+      "color": "#3e7c8c",
+      "population": "11.8 萬人",
+      "area_km2": "1.52 km²",
+      "summary": "澳門人口密度最高之東北濱海片區，涵蓋祐漢七棟樓群都市更新先導計劃、黑沙環政府綜合服務大樓、東方明珠交通樞紐（連接新城 A 區 A1 橋及友誼大橋北口）與黑沙環海濱公園。",
+      "summary_en": "High-density northeastern district encompassing the Iao Hon 7-Block Urban Renewal, Areia Preta Government Services Center, Oriental Pearl Hub, and Waterfront Park.",
+      "lat": 22.2086,
+      "lng": 113.5568
+    },
+    {
+      "id": "faichikei",
+      "code": "04",
+      "name": "筷子基、沙梨頭北灣及林茂塘區（花地瑪堂西南）",
+      "name_en": "Fai Chi Kei & Lam Mau Waterfront (West Peninsula)",
+      "parish": "花地瑪堂區（西南筷子基林茂塘）",
+      "macro_region": "澳門半島（11 個細分地理區）",
+      "macro_region_en": "Macau Peninsula (11 Sub-Zones)",
+      "landmass": "peninsula",
+      "icon": "🌊",
+      "color": "#58a6a6",
+      "population": "6.2 萬人",
+      "area_km2": "0.68 km²",
+      "summary": "環繞筷子基北灣與南灣之高密度親水社區，以全天候空中走廊系統串聯綠楊花園、快盈大廈、筷子基社屋及林茂海邊大馬路兒童遊樂設施。",
+      "summary_en": "Waterfront residential district around Fai Chi Kei North/South Bays connected by elevated pedestrian skywalks, social housing, and family parks.",
+      "lat": 22.2052,
+      "lng": 113.5412
+    },
+    {
+      "id": "hortacosta",
+      "code": "05",
+      "name": "高士德大馬路、三盞燈及紅街市區（聖安多尼堂及望德堂西）",
+      "name_en": "Horta e Costa, Three Lamps & Red Market (Central-North)",
+      "parish": "聖安多尼堂區／望德堂區西",
+      "macro_region": "澳門半島（11 個細分地理區）",
+      "macro_region_en": "Macau Peninsula (11 Sub-Zones)",
+      "landmass": "peninsula",
+      "icon": "🏮",
+      "color": "#db6a41",
+      "population": "6.5 萬人",
+      "area_km2": "0.62 km²",
+      "summary": "澳門半島最具生活煙火氣之核心民生走廊，貫穿高士德大馬路百年林蔭商街、1936 年文化遺產提督街市（紅街市）、三盞燈圓形地東南亞美食圈與新橋花園歷史街區。",
+      "summary_en": "Vibrant commercial and residential heart of the Peninsula along Avenida de Horta e Costa, home to the 1936 Red Market heritage building, Three Lamps Rotunda, and San Kio.",
+      "lat": 22.2018,
+      "lng": 113.5476
+    },
+    {
+      "id": "education",
+      "code": "06",
+      "name": "東望洋松山、水塘及外港碼頭區（望德堂東）",
+      "name_en": "Guia Hill, Reservoir & Outer Harbour Ferry (East Peninsula)",
+      "parish": "望德堂區",
+      "macro_region": "澳門半島（11 個細分地理區）",
+      "macro_region_en": "Macau Peninsula (11 Sub-Zones)",
+      "landmass": "peninsula",
+      "icon": "🏮",
+      "color": "#fcea8b",
+      "population": "4.2 萬人",
+      "area_km2": "1.15 km²",
+      "summary": "澳門半島最高點與東部海陸門戶，矗立 1865 年世遺東望洋炮台與燈塔（澳門地理原點）、松山環山健康徑與行人隧道、水塘環湖跑道、澳門格蘭披治大賽車看台及外港客運碼頭。",
+      "summary_en": "Macao Peninsula's highest peak and eastern marine gateway: 1865 UNESCO Guia Fortress & Lighthouse, Guia Hill pedestrian tunnels, Reservoir track, Grand Prix Pit Building, and Outer Harbour Ferry Terminal.",
+      "lat": 22.1978,
+      "lng": 113.5565
+    },
+    {
+      "id": "eldercare",
+      "code": "07",
+      "name": "大三巴、白鴿巢及十月初五街區（花王堂／內港北）",
+      "name_en": "Ruins of St. Paul's, Camões & Rua de Cinco de Outubro (West Heritage)",
+      "parish": "聖安多尼堂區",
+      "macro_region": "澳門半島（11 個細分地理區）",
+      "macro_region_en": "Macau Peninsula (11 Sub-Zones)",
+      "landmass": "peninsula",
+      "icon": "🏛️",
+      "color": "#db6a41",
+      "population": "6.8 萬人",
+      "area_km2": "0.58 km²",
+      "summary": "世界遺產「澳門歷史城區」核心地標與傳統中西交融老街區，坐擁大三巴牌坊、大炮台澳門博物館、白鴿巢公園、鏡湖醫院、十月初五日街及內港北歷史街區。",
+      "summary_en": "Heart of the UNESCO Historic Centre featuring the Ruins of St. Paul's, Mount Fortress, Camões Garden, Kiang Wu Hospital, and historic Rua de Cinco de Outubro.",
+      "lat": 22.1976,
+      "lng": 113.5408
+    },
+    {
+      "id": "senado",
+      "code": "08",
+      "name": "議事亭前地、塔石廣場及瘋堂斜巷區（大堂及望德堂中）",
+      "name_en": "Senado Square, Tap Seac & St. Lazarus (Historic Center)",
+      "parish": "大堂區北／望德堂區南",
+      "macro_region": "澳門半島（11 個細分地理區）",
+      "macro_region_en": "Macau Peninsula (11 Sub-Zones)",
+      "landmass": "peninsula",
+      "icon": "🏛️",
+      "color": "#e07a5f",
+      "population": "4.6 萬人",
+      "area_km2": "0.64 km²",
+      "summary": "澳門中葡歷史建築最密集之城市客廳，以黑白海浪紋葡式碎石路鋪築之世遺「議事亭前地」與市政署大樓為中心，向東延伸至玫瑰堂、大堂、塔石廣場八大紅黃新古典文博建築群及瘋堂斜巷文創區。",
+      "summary_en": "Macao's iconic civic salon centered on the wave-patterned Calçada Portuguesa of Senado Square, IAM Building, St. Dominic's Church, Tap Seac Square neoclassical ensemble, and St. Lazarus creative quarter.",
+      "lat": 22.1936,
+      "lng": 113.5458
+    },
+    {
+      "id": "digital",
+      "code": "09",
+      "name": "新口岸、金蓮花廣場及皇朝科學館區（大堂東岸）",
+      "name_en": "ZAPE, Golden Lotus & NAPE Science Center (SE Peninsula)",
+      "parish": "大堂區",
+      "macro_region": "澳門半島（11 個細分地理區）",
+      "macro_region_en": "Macau Peninsula (11 Sub-Zones)",
+      "landmass": "peninsula",
+      "icon": "🪷",
+      "color": "#007562",
+      "population": "4.2 萬人",
+      "area_km2": "1.42 km²",
+      "summary": "澳門半島東南現代政務、會展與濱海文博走廊，坐落金蓮花廣場、澳門理工大學、大賽車博物館、皇朝公共行政辦公群、澳門文化中心、觀音蓮花苑與貝聿銘設計之澳門科學館（友誼大橋北端起點）。",
+      "summary_en": "Southeastern Peninsula administrative and museum waterfront: Golden Lotus Square, MPU, Grand Prix Museum, NAPE government offices, Cultural Centre, Kun Iam Statue, and I.M. Pei's Macao Science Center (Amizade Bridge North Landing).",
+      "lat": 22.1895,
+      "lng": 113.5562
+    },
+    {
+      "id": "safety",
+      "code": "10",
+      "name": "媽閣廟、下環及西灣澳門旅遊塔區（風順堂西）",
+      "name_en": "A-Ma Temple, Praia do Manduco & Macau Tower (SW Peninsula)",
+      "parish": "風順堂區",
+      "macro_region": "澳門半島（11 個細分地理區）",
+      "macro_region_en": "Macau Peninsula (11 Sub-Zones)",
+      "landmass": "peninsula",
+      "icon": "🗼",
+      "color": "#c5b5a7",
+      "population": "5.5 萬人",
+      "area_km2": "0.88 km²",
+      "summary": "澳門半島西南歷史海港與跨海樞紐，匯聚 1488 年世遺媽閣廟、海事博物館、下環街市市政綜合大樓、內港南防洪排澇泵站、338 公尺高澳門旅遊塔及輕軌媽閣交通樞紐（西灣大橋北端落腳點）。",
+      "summary_en": "Southwestern Peninsula maritime gateway featuring the 1488 UNESCO A-Ma Temple, Barra LRT Multimodal Hub, Inner Harbour South storm-surge pumps, and 338m Macau Tower (Sai Van Bridge North Landing).",
+      "lat": 22.1832,
+      "lng": 113.5338
+    },
+    {
+      "id": "namvan",
+      "code": "11",
+      "name": "南灣湖、政府總部、亞馬喇前地及主教山區（風順堂東）",
+      "name_en": "Nam Van Lake, Gov HQ, Praça Ferreira do Amaral & Penha",
+      "parish": "風順堂區東／大堂區南",
+      "macro_region": "澳門半島（11 個細分地理區）",
+      "macro_region_en": "Macau Peninsula (11 Sub-Zones)",
+      "landmass": "peninsula",
+      "icon": "🏦",
+      "color": "#6f7fb5",
+      "population": "3.4 萬人",
+      "area_km2": "0.95 km²",
+      "summary": "澳門半島南端政經與跨海巴士中樞，環抱南灣人工湖、1849 年葡式粉紅禮賓府（澳門特區政府總部）、立法會與終審法院、西望洋山主教山小堂，以及全澳最大巴士轉乘站「亞馬喇前地」（嘉樂庇總督大橋北端落腳點）。",
+      "summary_en": "Southern Peninsula political, judicial, and transit hub encompassing Nam Van Lake, the 1849 pink Government Headquarters, Penha Hill Chapel, and Praça Ferreira do Amaral Bus Hub (Governador Nobre de Carvalho Bridge North Landing).",
+      "lat": 22.1868,
+      "lng": 113.5425
+    },
+    {
+      "id": "childcare",
+      "code": "12",
+      "name": "新城 A 區北（東區-2 公屋群、學校村與共同管道）",
+      "name_en": "New Urban Zone A North (Public Housing & School Village)",
+      "parish": "新城填海 A 區",
+      "macro_region": "新城 A 區與港珠澳口岸人工島（2 個細分區）",
+      "macro_region_en": "New Urban Zone A & HZMB Port (2 Sub-Zones)",
+      "landmass": "zonea",
+      "icon": "🏗️",
+      "color": "#f2b5c6",
+      "population": "規劃 6.4 萬人",
+      "area_km2": "0.88 km²",
+      "summary": "新城填海 A 區北片區，透過 A1、A2、A3 連接橋與半島黑沙環及外港相連，集中建設東創、東啟等經屋社屋大廈、8 所學校組成之「A 區學校村」、地下共同管道及輕軌東線 ES2–ES3 地底車站。",
+      "summary_en": "Northern half of New Urban Zone A linked to the Peninsula via Bridges A1/A2/A3, featuring public housing towers, the 8-school 'School Village', underground utility tunnels, and LRT East Line stations.",
+      "lat": 22.2065,
+      "lng": 113.5698
+    },
+    {
+      "id": "hzmbport",
+      "code": "13",
+      "name": "港珠澳大橋澳門口岸人工島及 A 區南文化海濱區",
+      "name_en": "HZMB Macao Port Island & Zone A South Cultural Hub",
+      "parish": "新城 A 區南及港珠澳口岸管理區",
+      "macro_region": "新城 A 區與港珠澳口岸人工島（2 個細分區）",
+      "macro_region_en": "New Urban Zone A & HZMB Port (2 Sub-Zones)",
+      "landmass": "zonea",
+      "icon": "🌉",
+      "color": "#d8835b",
+      "population": "口岸日均 7.5 萬人次",
+      "area_km2": "1.22 km²",
+      "summary": "粵港澳大灣區最關鍵之三地陸上交匯點，涵蓋 24 小時通關之港珠澳大橋澳門邊檢大樓、「澳車北上」查驗通道、金巴跨境轉乘總站，並於南端直接銜接第四條跨海通道「澳門大橋」北端落腳點。",
+      "summary_en": "Strategic Greater Bay Area gateway housing the 24-hour Hong Kong-Zhuhai-Macao Bridge (HZMB) Macao Port, 'Northbound Travel for Macao Vehicles' lanes, Golden Bus hub, and the north landing of the 4th Cross-Sea Macau Bridge.",
+      "lat": 22.1982,
+      "lng": 113.5768
+    },
+    {
+      "id": "taipaocean",
+      "code": "14",
+      "name": "氹仔海洋花園、西灣橋口及單車徑區（嘉模堂西）",
+      "name_en": "Taipa Ocean Gardens & Sai Van Bridgehead (West Taipa)",
+      "parish": "嘉模堂區（西端海洋花園片區）",
+      "macro_region": "氹仔島（4 個細分地理區）",
+      "macro_region_en": "Taipa Island (4 Sub-Zones)",
+      "landmass": "taipa_coloane",
+      "icon": "🚴",
+      "color": "#529985",
+      "population": "2.4 萬人",
+      "area_km2": "1.12 km²",
+      "summary": "氹仔島最西端濱海花園社區與跨海門戶，為「西灣大橋」南端落腳點及輕軌氹仔線進入西灣大橋下層跨海往媽閣站之「海洋站」所在地，沿岸綿延 2 公里之氹仔海濱休憩區單車徑與小潭山觀景台。",
+      "summary_en": "Western gateway of Taipa Island serving as the south landing of Sai Van Bridge and LRT Ocean Station, bordered by the 2 km Taipa Waterfront Cycle Track and Pequipa Hill Trail.",
+      "lat": 22.1618,
+      "lng": 113.5432
+    },
+    {
+      "id": "sports",
+      "code": "15",
+      "name": "氹仔中心、奧林匹克體育中心及中央公園區（嘉模堂中）",
+      "name_en": "Taipa Central, Olympic Complex & Central Park (Central Taipa)",
+      "parish": "嘉模堂區（氹仔）",
+      "macro_region": "氹仔島（4 個細分地理區）",
+      "macro_region_en": "Taipa Island (4 Sub-Zones)",
+      "landmass": "taipa_coloane",
+      "icon": "🏟️",
+      "color": "#58a6a6",
+      "population": "5.6 萬人",
+      "area_km2": "1.85 km²",
+      "summary": "氹仔島核心高密度宜居社區與體育中樞，北端蘇利安圓形地直接承接「嘉樂庇總督大橋」（舊大橋）南口，區內匯聚奧林匹克體育中心（運動場及游泳館）、基馬拉斯大馬路空中走廊、氹仔中央公園及湖畔大廈公屋群。",
+      "summary_en": "Taipa's residential and athletic core: south landing of Governador Nobre de Carvalho Bridge at Rotunda Leonel Sousa, Olympic Sports Centre Stadium & Aquatics, Guimarães Skywalk, Central Park, and Lake Building.",
+      "lat": 22.1568,
+      "lng": 113.5532
+    },
+    {
+      "id": "culture",
+      "code": "16",
+      "name": "氹仔舊城（官也街・龍環葡韻・益隆炮竹廠）區（嘉模堂南）",
+      "name_en": "Taipa Village, Rua do Cunha & Taipa Houses (Old Taipa)",
+      "parish": "嘉模堂區（舊城及北安）",
+      "macro_region": "氹仔島（4 個細分地理區）",
+      "macro_region_en": "Taipa Island (4 Sub-Zones)",
+      "landmass": "taipa_coloane",
+      "icon": "🏡",
+      "color": "#b48560",
+      "population": "2.2 萬人",
+      "area_km2": "1.35 km²",
+      "summary": "保存完整中葡傳統風貌之氹仔歷史街區，北側高勵雅馬路承接「友誼大橋」南端引橋，區內坐落五幢 1921 年薄荷綠「龍環葡韻」住宅式博物館、嘉模聖母堂、官也街美食手信步行街、益隆炮竹廠舊址與路氹歷史館。",
+      "summary_en": "Historic Taipa Village connected to the south approach of Amizade Bridge, featuring the 1921 mint-green Taipa Houses Museum, Our Lady of Carmel Church, Rua do Cunha gastronomy street, and Iec Long Firecracker Factory.",
+      "lat": 22.1528,
+      "lng": 113.5608
+    },
+    {
+      "id": "pacon",
+      "code": "17",
+      "name": "氹仔北安碼頭、大潭山氣象台及澳門國際機場區（嘉模堂東）",
+      "name_en": "Pac On Ferry, Taipa Grande SMG & Macau Intl Airport (East Taipa)",
+      "parish": "嘉模堂區（東端北安及國際機場片區）",
+      "macro_region": "氹仔島（4 個細分地理區）",
+      "macro_region_en": "Taipa Island (4 Sub-Zones)",
+      "landmass": "taipa_coloane",
+      "icon": "✈️",
+      "color": "#3d8596",
+      "population": "航空年客量 760 萬+",
+      "area_km2": "3.45 km²",
+      "summary": "氹仔島東部海空聯運門戶與氣象觀測制高點，北端直接承接第四條跨海通道「澳門大橋」南端落腳點，匯聚氹仔北安客運碼頭、出入境事務大樓、大潭山地球物理氣象局總部，以及填海建造之澳門國際機場與輕軌機場站。",
+      "summary_en": "Eastern Taipa air-and-sea gateway serving as the south landing of the 4th Cross-Sea Macau Bridge, home to Taipa Pac On Ferry Terminal, SMG Headquarters atop Taipa Grande Hill, and Macau International Airport.",
+      "lat": 22.1592,
+      "lng": 113.5735
+    },
+    {
+      "id": "youth",
+      "code": "18",
+      "name": "橫琴粵澳深度合作區（澳門大學校區・橫琴口岸）",
+      "name_en": "Hengqin Cooperation Zone (UM Campus & Hengqin Port)",
+      "parish": "澳門大學校區／橫琴口岸澳方口岸區",
+      "macro_region": "路氹填海區與橫琴澳大（3 個細分區）",
+      "macro_region_en": "Cotai Strip & Hengqin UM (3 Sub-Zones)",
+      "landmass": "hengqin",
+      "icon": "🎓",
+      "color": "#6f7fb5",
+      "population": "約 3 萬名澳門師生居民",
+      "area_km2": "1.09 km² (+深合區)",
+      "summary": "隔十字門西水道與路氹城相望，經河底隧道、蓮花大橋及輕軌橫琴線緊密相連，涵蓋實施澳門法律管轄之 1.09 平方公里「澳門大學橫琴校區」（3 大國家重點實驗室）、橫琴口岸及「澳門新街坊」民生社區。",
+      "summary_en": "Located across the Shizimen West Channel and linked to Cotai via the Lotus Bridge, underwater tunnel, and LRT Hengqin Line: home to the 1.09 km² University of Macau campus, Hengqin Port, and Macau New Neighborhood.",
+      "lat": 22.1315,
+      "lng": 113.5458
+    },
+    {
+      "id": "tourism",
+      "code": "19",
+      "name": "路氹城西（金光大道・蓮花站・戶外演出場）區",
+      "name_en": "Cotai West (Cotai Strip, Lotus Hub & Outdoor Venue)",
+      "parish": "路氹填海區",
+      "macro_region": "路氹填海區與橫琴澳大（3 個細分區）",
+      "macro_region_en": "Cotai Strip & Hengqin UM (3 Sub-Zones)",
+      "landmass": "taipa_coloane",
+      "icon": "🎡",
+      "color": "#db6a41",
+      "population": "日均訪客 11 萬+",
+      "area_km2": "3.10 km²",
+      "summary": "路氹填海區西片區與金光大道核心走廊，西側透過「蓮花大橋」與輕軌橫琴線隧道連接橫琴口岸，區內匯聚「澳門戶外表演區」（5 萬人演藝場）、多個綜合旅遊休閒度假村、生態保護區一區（黑臉琵鷺濕地）及輕軌蓮花站／路氹西站。",
+      "summary_en": "Western Cotai Strip hub connected to Hengqin via the Lotus Bridge and LRT Hengqin Line, featuring the 50,000-seat Macao Outdoor Performance Venue, integrated resorts, and the Black-Faced Spoonbill Ecological Zone I.",
+      "lat": 22.1445,
+      "lng": 113.5612
+    },
+    {
+      "id": "cotaieast",
+      "code": "20",
+      "name": "路氹城東（東亞運澳門蛋・國際會展・澳門科技大學）區",
+      "name_en": "Cotai East (Macao Dome, MICE Centers & MUST Campus)",
+      "parish": "路氹填海區（東片區科教體育會展群）",
+      "macro_region": "路氹填海區與橫琴澳大（3 個細分區）",
+      "macro_region_en": "Cotai Strip & Hengqin UM (3 Sub-Zones)",
+      "landmass": "taipa_coloane",
+      "icon": "🏟️",
+      "color": "#d48c46",
+      "population": "師生及會展 4.5 萬人",
+      "area_km2": "2.95 km²",
+      "summary": "路氹填海區東片區，匯聚澳門科技大學（MUST）與月球與行星科學國家重點實驗室、澳門東亞運動會體育館（澳門蛋，全運會澳門賽區主場館）、大型國際綠色會展中心，以及輕軌科大站与東亞運站。",
+      "summary_en": "Eastern Cotai cluster uniting Macau University of Science and Technology (MUST & Lunar/Planetary State Key Lab), Macao East Asian Games Dome ('Macao Egg', 15th National Games venue), MICE centers, and LRT MUST/East Asian Games stations.",
+      "lat": 22.1418,
+      "lng": 113.5698
+    },
+    {
+      "id": "environment",
+      "code": "21",
+      "name": "石排灣公屋群及離島醫療綜合體（北京協和醫院）區",
+      "name_en": "Seac Pai Van Public Housing & PUMCH Medical Complex (North Coloane)",
+      "parish": "路環石排灣區",
+      "macro_region": "路環島（3 個細分地理區）",
+      "macro_region_en": "Coloane Island (3 Sub-Zones)",
+      "landmass": "taipa_coloane",
+      "icon": "🏥",
+      "color": "#8db86f",
+      "population": "4.2 萬人",
+      "area_km2": "2.10 km²",
+      "summary": "路環北端大型民生與高階醫療樞紐，坐落全澳最大規模之「離島醫療綜合體北京協和醫院澳門醫學中心」（設輕軌石排灣線協和醫院站與石排灣站）、石排灣公屋群（業興、安順、居雅、樂群大廈）、石排灣郊野公園大熊貓館及路環再生水站。",
+      "summary_en": "Northern Coloane healthcare and residential hub featuring the PUMCH Macao Medical Center (linked by LRT Seac Pai Van Line), Seac Pai Van public housing estates, Giant Panda Pavilion, and Recycled Water Plant.",
+      "lat": 22.1292,
+      "lng": 113.5625
+    },
+    {
+      "id": "greenspace",
+      "code": "22",
+      "name": "路環市區漁村、十月初五馬路及荔枝碗船廠片區（路環西）",
+      "name_en": "Coloane Village, Largo do Presidente Ramalho Eanes & Lai Chi Vun (West Coloane)",
+      "parish": "聖方濟各堂區（路環）",
+      "macro_region": "路環島（3 個細分地理區）",
+      "macro_region_en": "Coloane Island (3 Sub-Zones)",
+      "landmass": "taipa_coloane",
+      "icon": "🌲",
+      "color": "#71806a",
+      "population": "0.6 萬人",
+      "area_km2": "3.80 km²",
+      "summary": "保存昔日漁村慢活風貌之路環西岸與山林保育區，涵蓋文化遺產「荔枝碗船廠片區」X11–X15 活化藝文空間、路環碼頭、恩尼斯前地（安德魯餅店葡撻發源地）、聖方濟各聖堂、十月初五馬路濱海長廊及疊石塘山媽祖文化村。",
+      "summary_en": "Historic western Coloane fishing village encompassing the revitalized Lai Chi Vun Shipyards (X11–X15), Coloane Pier, Eanes Square, Chapel of St. Francis Xavier, and Alto de Coloane A-Ma Cultural Village.",
+      "lat": 22.1185,
+      "lng": 113.5535
+    },
+    {
+      "id": "hacsa",
+      "code": "23",
+      "name": "黑沙海灘、黑沙青少年活動體驗營及九澳聖母村區（路環東）",
+      "name_en": "Hac Sa Beach, Youth Adventure Camp & Ka Ho Village (East Coloane)",
+      "parish": "聖方濟各堂區（路環東黑沙及九澳片區）",
+      "macro_region": "路環島（3 個細分地理區）",
+      "macro_region_en": "Coloane Island (3 Sub-Zones)",
+      "landmass": "taipa_coloane",
+      "icon": "🏖️",
+      "color": "#64966e",
+      "population": "年接待郊遊 260 萬人次",
+      "area_km2": "3.80 km²",
+      "summary": "路環島東岸與最南端山海生態休閒區，擁有半月形天然海灣「黑沙海灘」、黑沙水庫郊野公園、佔地 10 公頃之「黑沙青少年活動體驗營」、九澳隧道、1966 年九澳七苦聖母小堂與九澳聖母村歷史建築群。",
+      "summary_en": "Eastern and southernmost coastal eco-recreation zone of Coloane featuring the crescent-shaped Hac Sa Beach, Hac Sa Reservoir Country Park, 10-hectare Youth Adventure Camp, Ka Ho Tunnel, and Ka Ho Our Lady Village.",
+      "lat": 22.1195,
+      "lng": 113.5718
+    }
+  ],
+  "landmarks": [
+    {
+      "id": "iv-1",
+      "district_id": "ilahverde",
+      "name": "青茂口岸 24 小時合作查驗自助通關大樓",
+      "name_en": "Qingmao Port 24h Joint Inspection Hub",
+      "description": "全天候實施「合作查驗、一次放行」並無縫對接廣珠城際鐵路珠海站，日設計通關量達 20 萬人次。",
+      "description_en": "24-hour joint-inspection pedestrian border port directly connected to Zhuhai Intercity Rail Station.",
+      "facts": [
+        "配置 100 條合作查驗自助通道（出入境各 50 條），平均 20 秒內完成珠澳雙邊查驗",
+        "透過全天候架空連廊直達廣珠城軌珠海站與青洲坊巴士總站，有效分流關閘口岸逾 25% 客流",
+        "日均通關約 9.8 萬人次，為全澳第二大、全天候不打烊陸路口岸"
+      ],
+      "facts_en": [
+        "100 joint automated e-channels clearing travelers in under 20 seconds",
+        "Direct skybridge to Zhuhai Intercity Rail Station & Ilha Verde Bus Hub",
+        "Handles ~98,000 daily crossings as Macao's 2nd largest land port"
+      ],
+      "model": "busdepot",
+      "schedule": "第 1 年",
+      "sort_order": 1
+    },
+    {
+      "id": "iv-2",
+      "district_id": "ilahverde",
+      "name": "青洲坊大廈社屋經屋與社區市政綜合體",
+      "name_en": "Ilha Verde Public Housing & Civic Complex",
+      "description": "提供逾 3,000 戶社屋與經屋單位，裙樓整合大型巴士總站、衛生站、託兒所及青洲圖書館。",
+      "description_en": "Over 3,000 public housing flats integrated with a bus terminal, clinic, nursery, and library.",
+      "facts": [
+        "青洲坊大廈提供 2,356 個經屋單位及青洲社屋逾 1,200 戶，滿足北區家庭安居需求",
+        "地面層設全天候室內巴士總站，匯聚 12 條跨區及離島快線巴士",
+        "平台花園面積逾 8,500 平方公尺，配備長者健身區與無障礙兒童遊樂場"
+      ],
+      "facts_en": [
+        "2,356 economic housing flats plus 1,200+ social housing units",
+        "Ground-floor indoor bus hub serving 12 cross-district routes",
+        "8,500 m² podium garden with senior fitness and inclusive playgrounds"
+      ],
+      "model": "socialhousing",
+      "schedule": "第 1 年",
+      "sort_order": 2
+    },
+    {
+      "id": "iv-3",
+      "district_id": "ilahverde",
+      "name": "青洲山百年古樹群與修道院保育片區",
+      "name_en": "Ilha Verde Hill Heritage & Ancient Trees",
+      "description": "依據《文化遺產保護法》保育海拔 54.5 公尺青洲山、1828 年修道院遺址與 40 餘棵百年古樹名木。",
+      "description_en": "Conserving the 54.5m Ilha Verde Hill, 1828 monastery site, and 40+ century-old heritage trees.",
+      "facts": [
+        "市政署列管青洲山逾 42 棵古樹名木（含百年假菩提樹與大葉榕），定期進行空洞檢測與復壯",
+        "保留 19 世紀青洲修道院及軍事碉堡歷史遺跡，規劃環山生態教育步道",
+        "毗鄰珠澳跨境工業區澳門園區，推動綠色物流與跨境電商轉型"
+      ],
+      "facts_en": [
+        "42 registered century-old heritage trees maintained by IAM arborists",
+        "Preserves 1828 monastery & military bunker heritage with eco-trails",
+        "Adjacent to Zhuhai-Macao Cross-Border Industrial Zone"
+      ],
+      "model": "park",
+      "schedule": "2–3 年",
+      "sort_order": 3
+    },
+    {
+      "id": "pc-1",
+      "district_id": "portascerco",
+      "name": "關閘邊檢大樓、1871 古拱門與地下巴士總站",
+      "name_en": "Border Gate Plaza, 1871 Arch & Bus Hub",
+      "description": "全澳第一大出入境陸路口岸，地面廣場保留 1871 年凱旋門式關閘拱門，地下設全空調大型公共巴士轉乘樞紐。",
+      "description_en": "Macao's busiest border crossing featuring the 1871 triumphal arch and a climate-controlled underground bus hub.",
+      "facts": [
+        "關閘口岸日均出入境逾 32 萬人次，佔全澳總通關量超過 52%",
+        "地下巴士總站配備天窗自然採光與中央空調，匯聚 24 條核心公共巴士路線",
+        "關閘廣場兩側設置風雨廊與旅遊巴專區，無縫銜接未來輕軌東線 ES1 關閘站"
+      ],
+      "facts_en": [
+        "Over 320,000 daily border crossings (>52% of Macao's total traffic)",
+        "Skylit air-conditioned underground terminal serving 24 bus routes",
+        "Directly connects to the upcoming LRT East Line ES1 station"
+      ],
+      "model": "busdepot",
+      "schedule": "第 1 年",
+      "sort_order": 1
+    },
+    {
+      "id": "pc-2",
+      "district_id": "portascerco",
+      "name": "紀念孫中山市政公園與鴨涌河生態長廊",
+      "name_en": "Dr. Sun Yat Sen Municipal Park & Promenade",
+      "description": "佔地 7 萬平方公尺之北區最大濱水公園，設環園緩跑徑、公共游泳池、溫室花房與觀鳥濕地。",
+      "description_en": "70,000 m² waterfront park along Duck Channel featuring jogging trails, pools, aviary, and greenhouses.",
+      "facts": [
+        "全園面積達 7 萬平方公尺，設有 500 公尺長波浪形中葡友誼長廊與人工湖",
+        "整合戶外標準游泳池、綜合球場、兒童遊樂區及全天候圖書室，年服務逾 180 萬人次",
+        "沿岸紅樹林與鴨涌河水質整治工程顯著提升北區濱水微氣候"
+      ],
+      "facts_en": [
+        "70,000 m² park with a 500m Sino-Portuguese friendship pergola",
+        "Includes public swimming pools, sports courts, and library (1.8M visits/yr)",
+        "Waterfront mangrove restoration along the northern border channel"
+      ],
+      "model": "park",
+      "schedule": "第 1 年",
+      "sort_order": 2
+    },
+    {
+      "id": "pc-3",
+      "district_id": "portascerco",
+      "name": "台山中街公屋、街市市政大樓與市民運動公園",
+      "name_en": "Tamagnini Barbosa Market & Civic Sports Park",
+      "description": "活化台山街市市政大樓與原逸園跑狗場地段，打造北區大型市民運動公園、地下停車場及社區服務中心。",
+      "description_en": "Revitalizing Tamagnini Barbosa Market and transforming the former Canidrome into a major Civic Sports Park.",
+      "facts": [
+        "原跑狗場地段（約 4 萬平方公尺）改建為大型市民運動公園，設標準田徑場、室內體育館及滑板場",
+        "地下空間規劃提供逾 500 個公共泊車位及大型蓄洪池，緩解台山及筷子基暴雨積水",
+        "台山中街公共房屋項目提供逾 500 個社屋單位與長者日間護理中心"
+      ],
+      "facts_en": [
+        "40,000 m² former Canidrome site converted into a multi-sport civic park",
+        "500+ underground parking spaces and storm-water retention tank",
+        "500+ new social housing units and senior day-care center at Toi San"
+      ],
+      "model": "gym",
+      "schedule": "2–3 年",
+      "sort_order": 3
+    },
+    {
+      "id": "tr-1",
+      "district_id": "transport",
+      "name": "關閘及青茂口岸巴士智慧聯運",
+      "name_en": "Border Gate & Qingmao Smart Bus Hub",
+      "description": "結合交通事務局巴士報站數據，動態加密關閘地下總站與青茂口岸跨區快線。",
+      "description_en": "Dynamic bus dispatching at Border Gate and Qingmao Port using live DSAT telemetry.",
+      "facts": [
+        "青茂口岸 24 小時合作查驗，一次排隊最快 20 秒通關",
+        "關閘總站串聯 28 條巴士主幹線，日均疏運逾 38 萬人次",
+        "「巴士報站」APP 與電子站牌實時到站準確率達 97%"
+      ],
+      "facts_en": [
+        "24h Qingmao joint inspection clearing passengers in 20s",
+        "28 trunk bus routes serving 380,000+ daily commuters",
+        "97% real-time ETA accuracy across smart e-paper stops"
+      ],
+      "model": "busstop",
+      "schedule": "第 1 年",
+      "sort_order": 1
+    },
+    {
+      "id": "tr-2",
+      "district_id": "transport",
+      "name": "輕軌東線北段（關閘—新城A區）",
+      "name_en": "LRT East Line North (ES1–ES3)",
+      "description": "由關閘口岸地底延伸經馬場北大馬路海底盾構隧道直通新城 A 區。",
+      "description_en": "Underground LRT shield tunnel connecting Border Gate and New Urban Zone A.",
+      "facts": [
+        "輕軌東線全長約 7.7 公里，共設 6 座地下車站",
+        "開展馬場北大馬路沿線灘塗整治，打造海濱生態綠廊",
+        "通車後由關閘前往氹仔碼頭車程大幅縮短至 18 分鐘"
+      ],
+      "facts_en": [
+        "7.7 km LRT East Line featuring 6 underground stations",
+        "Coastal mudflat restoration creating waterfront greenways",
+        "Border Gate to Taipa Ferry travel time cut to 18 min"
+      ],
+      "model": "lrtstation",
+      "schedule": "2–3 年",
+      "sort_order": 2
+    },
+    {
+      "id": "tr-3",
+      "district_id": "transport",
+      "name": "黑沙環空中走廊與行人天橋網",
+      "name_en": "Areia Preta Elevated Walkway Network",
+      "description": "以全天候無障礙行人天橋與自動步行系統串聯東北大馬路高密度住宅群。",
+      "description_en": "Barrier-free elevated skywalk system along Avenida do Nordeste.",
+      "facts": [
+        "東北大馬路空中走廊全長約 600 公尺，配備 14 組升降機及扶手梯",
+        "人車立體分流使沿線路口行人過路安全率提升 92%",
+        "連結黑沙環公園、慕拉士社屋與政府綜合服務大樓"
+      ],
+      "facts_en": [
+        "600m elevated corridor with 14 elevators and escalators",
+        "92% improvement in pedestrian crossing safety",
+        "Links Areia Preta Park, public housing, and civic hub"
+      ],
+      "model": "riverbridge",
+      "schedule": "2–3 年",
+      "sort_order": 3
+    },
+    {
+      "id": "tr-4",
+      "district_id": "transport",
+      "name": "林茂塘至筷子基空中綠廊",
+      "name_en": "Lam Mau to Fai Chi Kei Sky Promenade",
+      "description": "串聯筷子基北灣休憩區與林茂海邊大馬路，打造遮陽避雨的社區慢行道。",
+      "description_en": "Continuous covered pedestrian link between Fai Chi Kei Bay and Lam Mau.",
+      "facts": [
+        "串聯 7 座跨街連廊，步行 8 分鐘直達紅街市與青茂口岸",
+        "增設沿岸微氣候水霧降溫與長者休憩座椅 45 處",
+        "每日服務北區通勤與學童通學逾 4.2 萬人次"
+      ],
+      "facts_en": [
+        "7 skybridges linking Red Market and Qingmao within 8 min",
+        "45 senior seating bays and mist-cooling nodes",
+        "Serves 42,000+ daily commuters and school children"
+      ],
+      "model": "pavilion",
+      "schedule": "4 年",
+      "sort_order": 4
+    },
+    {
+      "id": "tr-5",
+      "district_id": "transport",
+      "name": "青洲都市化整治與鴨涌河生態慢行廊",
+      "name_en": "Ilha Verde Urban Plan & Canal Slow Greenway",
+      "description": "落實《青洲都市化整治計劃》，串聯青茂口岸、青洲山保育與鴨涌河沿岸單車慢行道。",
+      "description_en": "Implement the Ilha Verde Master Plan linking Qingmao Port, Green Island Hill, and canal bike paths.",
+      "facts": [
+        "《青洲都市化整治計劃（2024）》強化青洲山周邊文化遺產與綠化緩衝帶",
+        "新建跨街行人連廊與無障礙電梯直通青茂口岸大樓",
+        "沿線增設智能公共單車停泊區與社區休憩口袋公園"
+      ],
+      "facts_en": [
+        "Ilha Verde Master Plan protects Green Island Hill heritage buffer",
+        "Direct barrier-free skybridges into Qingmao Port building",
+        "Smart bike parking and pocket parks along the waterfront"
+      ],
+      "model": "bikerack",
+      "schedule": "4 年",
+      "sort_order": 5
+    },
+    {
+      "id": "fc-1",
+      "district_id": "faichikei",
+      "name": "筷子基北灣泵站箱涵與濱海親水綠廊",
+      "name_en": "Fai Chi Kei North Bay Pumping Station & Promenade",
+      "description": "新建大型雨水截流箱涵與排澇泵站，徹底整治內港北及筷子基水浸並打造環灣親水步道。",
+      "description_en": "Major stormwater box-culvert and pumping station eliminating flooding while creating a bayfront promenade.",
+      "facts": [
+        "箱涵總長逾 800 公尺，雨水泵站每秒抽排能力達 18.5 立方公尺，大幅提升十年一遇防洪標準",
+        "同步優化俾若翰街沿岸 650 公尺海濱休憩區，增設遮陽棚、親水觀景台與戶外健身設施",
+        "採用臭氧及生物除臭系統，持續改善筷子基北灣水體溶氧量與氣味"
+      ],
+      "facts_en": [
+        "800m box culvert & 18.5 m³/s stormwater pump station for flood resilience",
+        "650m upgraded bayfront promenade along Rua do Comandante João Belo",
+        "Bio-deodorization and aeration improving bay water quality"
+      ],
+      "model": "waterplant",
+      "schedule": "第 1 年",
+      "sort_order": 1
+    },
+    {
+      "id": "fc-2",
+      "district_id": "faichikei",
+      "name": "林茂海邊大馬路空中走廊與沙梨頭海邊大馬路天橋",
+      "name_en": "Lam Mau Elevated Skywalk & Pedestrian Network",
+      "description": "以無障礙電梯、扶手電梯及有蓋空中連廊貫通筷子基社屋、快富樓、信步閑庭與海濱休憩區。",
+      "description_en": "Barrier-free elevated skywalk network linking Fai Chi Kei estates, schools, clinics, and waterfront parks.",
+      "facts": [
+        "全線配備 14 組無障礙升降機與電動扶梯，實現人車完全分隔之安全步行環境",
+        "串聯筷子基衛生中心、長者社屋及多所中小學，日均服務行人逾 4.5 萬人次",
+        "橋下與林茂塘臨時休憩區活化為兒童自由波地及社區運動場"
+      ],
+      "facts_en": [
+        "14 barrier-free elevators and escalators separating pedestrians from traffic",
+        "Connects Fai Chi Kei Health Center, schools, and senior estates (45,000 daily trips)",
+        "Under-bridge spaces activated as children's courts and playgrounds"
+      ],
+      "model": "footprint",
+      "schedule": "第 1 年",
+      "sort_order": 2
+    },
+    {
+      "id": "fc-3",
+      "district_id": "faichikei",
+      "name": "快盈大廈、快意樓社屋與筷子基衛生中心",
+      "name_en": "Fai Chi Kei Social Housing & Primary Health Hub",
+      "description": "結合長者社屋專棟、家庭醫學門診、中醫針灸及家庭綜合服務中心之一站式民生大樓。",
+      "description_en": "Integrated social housing complex featuring senior flats, family medicine, TCM, and social services.",
+      "facts": [
+        "筷子基社屋群（快意樓、快富樓、快達樓、快盈大廈）合共提供逾 2,100 個公共房屋單位",
+        "筷子基衛生中心年門診量逾 14 萬人次，提供慢性病共同照護與兒童保健疫苗服務",
+        "設有社區長者飯堂與日間護理中心，每日供應逾 400 份營養熱餐"
+      ],
+      "facts_en": [
+        "2,100+ public housing units across Fai Chi Kei social estates",
+        "140,000+ annual outpatient visits at Fai Chi Kei Health Center",
+        "Senior canteen and day-care serving 400+ hot nutritious meals daily"
+      ],
+      "model": "carecenter",
+      "schedule": "2–3 年",
+      "sort_order": 3
+    },
+    {
+      "id": "hc-1",
+      "district_id": "hortacosta",
+      "name": "1936 提督街市（紅街市）文遺修復與空調現代化",
+      "name_en": "1936 Red Market Heritage Restoration & Modernization",
+      "description": "全澳唯一列入不動產文物名錄之街市建築，完成結構加固、全樓中央空調、無障礙升降機與電子支付升級。",
+      "description_en": "Macao's only heritage-listed market building (1936), fully restored with central A/C, elevators, and e-payments.",
+      "facts": [
+        "完整保留 1936 年裝飾藝術風格紅磚外牆、四角鐘樓與中央塔樓歷史風貌",
+        "場內 120 多個鮮活水產、肉類及蔬果攤檔全面導入「街市通」價格透明公示與聚易用電子支付",
+        "外圍小販區重整為整齊規範之防風防雨特色市集步道"
+      ],
+      "facts_en": [
+        "Preserves original 1936 Art Deco red-brick facade and corner clock towers",
+        "120+ stalls equipped with central A/C, price transparency displays & Simple Pay",
+        "Upgraded weather-protected hawker street market along outer alleys"
+      ],
+      "model": "market",
+      "schedule": "第 1 年",
+      "sort_order": 1
+    },
+    {
+      "id": "hc-2",
+      "district_id": "hortacosta",
+      "name": "三盞燈（嘉路米耶圓形地）多元文化社區與新橋花園",
+      "name_en": "Three Lamps Rotunda & San Kio Community Hub",
+      "description": "匯聚緬甸與東南亞華僑特色美食、週末社區文藝展演及新橋蓮溪廟歷史文化街區。",
+      "description_en": "Southeast Asian culinary hub around Rotunda de Carlos da Maia paired with San Kio's historic Lin Kai Temple quarter.",
+      "facts": [
+        "嘉路米耶圓形地以四盞鑄鐵復古路燈聞名，周邊聚集逾 80 間東南亞及地道特色餐飲小店",
+        "新橋區內港雨水截流及渠網擴容工程完成後，暴雨積水消退時間縮短 75%",
+        "每年舉辦「新橋坊眾節」與東南亞文化美食嘉年華，吸引逾 6 萬市民與旅客參與"
+      ],
+      "facts_en": [
+        "Iconic cast-iron lamp rotunda surrounded by 80+ Myanmar & SE Asian eateries",
+        "Upgraded San Kio drainage network cuts storm water clearance time by 75%",
+        "Annual San Kio & SE Asian Cultural Food Carnival draws 60,000+ visitors"
+      ],
+      "model": "foodbank",
+      "schedule": "第 1 年",
+      "sort_order": 2
+    },
+    {
+      "id": "hc-3",
+      "district_id": "hortacosta",
+      "name": "高士德大馬路智慧交通綠波帶與名校走廊",
+      "name_en": "Avenida de Horta e Costa Smart Corridor & Schools",
+      "description": "貫通半島東西向之主幹道，沿線匯聚培正、永援等歷史名校與高士德地下電纜及智慧號誌系統。",
+      "description_en": "East-west arterial boulevard linking historic schools, commercial arcades, and AI-coordinated traffic signals.",
+      "facts": [
+        "全線 7 個主要燈位導入 AI 車流自適應綠波控制，尖峰時段巴士通行速度提升 18%",
+        "沿線聚集逾 12,000 名中小學師生，上下課時段實施智慧行人安全過路語音與地面燈號提示",
+        "兩側保留逾 90 棵陰香與樟樹林蔭大道，串聯松山隧道西口與提督馬路"
+      ],
+      "facts_en": [
+        "AI green-wave traffic signals across 7 intersections boost bus speed by 18%",
+        "Smart pedestrian safety crossings serving 12,000+ students along the avenue",
+        "90+ shade trees linking Guia Tunnel West Portal to Almirante Lacerda"
+      ],
+      "model": "school",
+      "schedule": "2–3 年",
+      "sort_order": 3
+    },
+    {
+      "id": "ed-1",
+      "district_id": "education",
+      "name": "東望洋燈塔世遺景觀與松山漫步系統",
+      "name_en": "Guia Lighthouse Heritage & Hill Trail System",
+      "description": "保育中國沿海最古老現代燈塔（1865年）視廊，並以登山纜車與升降機無縫接駁。",
+      "description_en": "Preserve the 1865 Guia Lighthouse view corridor with cable car and lift access.",
+      "facts": [
+        "海拔 91 公尺東望洋山巔，嚴格管控周邊建築限高保護世遺景觀",
+        "松山行人隧道與自動扶梯系統每日服務逾 1.8 萬晨運及通勤市民",
+        "二龍喉公園登山纜車直達松山市政公園健康徑"
+      ],
+      "facts_en": [
+        "91m Guia peak protected by strict heritage height limits",
+        "Guia pedestrian tunnel & lifts serve 18,000+ daily users",
+        "Flora Garden cable car connects directly to fitness trails"
+      ],
+      "model": "guia",
+      "schedule": "第 1 年",
+      "sort_order": 1
+    },
+    {
+      "id": "ed-2",
+      "district_id": "education",
+      "name": "塔石廣場中葡文化節慶與地下書城",
+      "name_en": "Tap Seac Square Luso-Chinese Cultural Hub",
+      "description": "葡式黑白碎石廣場結合紅黃歷史建築群，定期舉辦塔石藝墟、書市與音樂節。",
+      "description_en": "Calçada Portuguesa plaza hosting Tap Seac Craft Markets and Central Library.",
+      "facts": [
+        "佔地 13,000 平方公尺全步行的葡式碎石廣場，行車改走地下隧道",
+        "活化愛都酒店舊址建設「新中央圖書館」，館藏空間擴增 3 倍",
+        "春秋兩季「塔石藝墟」匯聚逾 220 個文創手作與音樂攤位"
+      ],
+      "facts_en": [
+        "13,000 m² pedestrian Calçada plaza with traffic underpass",
+        "New Central Library at Estoril site triples reading space",
+        "220+ creative booths at semi-annual Tap Seac Craft Fairs"
+      ],
+      "model": "book",
+      "schedule": "2–3 年",
+      "sort_order": 2
+    },
+    {
+      "id": "ed-3",
+      "district_id": "education",
+      "name": "非高等教育 AI 科普與中葡雙語人才基地",
+      "name_en": "AI STEAM & Luso-Chinese Bilingual Education",
+      "description": "推動全澳中小學人工智能課程全覆蓋，強化中葡英三語教學與創客實驗室。",
+      "description_en": "Citywide AI literacy curriculum and Luso-Chinese bilingual maker labs.",
+      "facts": [
+        "15 年免費教育涵蓋幼兒至高中，生均教育經費位居亞洲前列",
+        "全澳逾 70 個校部完成智慧黑板與 AI 創客實驗室升級",
+        "培育中葡雙語專業人才庫，對接中國與葡語國家經貿合作平台"
+      ],
+      "facts_en": [
+        "15-year free education from kindergarten through senior high",
+        "70+ school campuses upgraded with AI & STEAM maker labs",
+        "Bilingual talent pipeline for China-PSC cooperation"
+      ],
+      "model": "classroom",
+      "schedule": "第 1 年",
+      "sort_order": 3
+    },
+    {
+      "id": "ed-4",
+      "district_id": "education",
+      "name": "瘋堂斜巷婆仔屋文創駐村聚落",
+      "name_en": "Albergue SCM & St. Lazarus Creative Quarter",
+      "description": "百年葡式黃色庭院與老樟樹下，提供本土設計師、插畫家與葡語藝文展覽空間。",
+      "description_en": "Historic yellow Portuguese courtyard hosting local designers and Lusophone art.",
+      "facts": [
+        "保育瘋堂十號創意園與婆仔屋百年古樟樹庭院",
+        "每年舉辦逾 140 場視覺藝術展覽、葡語文學講座與周末市集",
+        "無障礙斜坡微改造讓長者與旅客輕鬆漫步歷史街區"
+      ],
+      "facts_en": [
+        "Preserves Albergue SCM courtyard and century-old camphor trees",
+        "140+ annual Lusophone art shows, lectures, and markets",
+        "Barrier-free micro-ramps along historic cobblestone lanes"
+      ],
+      "model": "stage",
+      "schedule": "2–3 年",
+      "sort_order": 4
+    },
+    {
+      "id": "el-1",
+      "district_id": "eldercare",
+      "name": "大三巴牌坊 VR 數位復原與夜間光雕",
+      "name_en": "Ruins of St. Paul VR & Night Light Projection",
+      "description": "運用高精度毫米級感測監測聖保祿學院遺址結構，並推出沉浸式 VR 與光雕展演。",
+      "description_en": "Millimeter structural monitoring, VR time-travel, and night lightshows at St. Paul's.",
+      "facts": [
+        "2005 年列入世界遺產名錄，全天候佈設 48 組溫濕度與傾角感測器",
+        "「時空穿梭・遊歷三巴」VR 體驗累計吸引逾 32 萬人次參觀",
+        "結合大炮台花園斜行升降機，打通世遺無障礙慢遊動線"
+      ],
+      "facts_en": [
+        "UNESCO World Heritage site monitored by 48 structural sensors",
+        "320,000+ visitors experienced the St. Paul's VR restoration",
+        "Mount Fortress inclined lift enables step-free heritage access"
+      ],
+      "model": "ruins",
+      "schedule": "第 1 年",
+      "sort_order": 1
+    },
+    {
+      "id": "el-2",
+      "district_id": "eldercare",
+      "name": "衛生中心慢性病篩查與醫療券計劃",
+      "name_en": "Health Center Screening & Healthcare Vouchers",
+      "description": "透過「一戶通」電子醫療券與社區衛生中心家庭醫學團隊，守護長者血壓血糖。",
+      "description_en": "Electronic healthcare vouchers and family medicine clinics managing chronic care.",
+      "facts": [
+        "全澳永久居民每年獲發電子醫療券，覆蓋逾 700 間私人診所及中醫",
+        "65 歲以上長者免費享有公營專科、住院及肺炎鏈球菌疫苗接種",
+        "「自家健康・自家管理」計劃每年完成逾 45 萬人次慢病監測"
+      ],
+      "facts_en": [
+        "Annual digital health vouchers accepted at 700+ local clinics",
+        "Free public specialist & inpatient care for seniors aged 65+",
+        "450,000+ self-health screenings recorded yearly via e-portal"
+      ],
+      "model": "clinic",
+      "schedule": "第 1 年",
+      "sort_order": 2
+    },
+    {
+      "id": "el-3",
+      "district_id": "eldercare",
+      "name": "新橋與十月初五街長者原居安老照顧網",
+      "name_en": "San Kio & Rua de Cinco de Outubro Senior Care",
+      "description": "在舊區街巷密集設置長者日間中心、送膳車與平安通呼援服務。",
+      "description_en": "Alleyway senior daycare centers, hot meal delivery, and 24/7 tele-care alarms.",
+      "facts": [
+        "敬老金及養老金制度穩健保障全澳逾 10 萬名長者基本生活",
+        "「平安通」24 小時緊急呼援及室外定位服務覆蓋逾 1.3 萬名獨居及高齡長者",
+        "資助舊區唐樓加裝升降機及防滑扶手，減少長者上下樓困難"
+      ],
+      "facts_en": [
+        "Old-age allowance & pension supporting 100,000+ seniors",
+        "13,000+ seniors protected by 24/7 Ping On Tung tele-alarms",
+        "Subsidies for walk-up building elevators and grab bars"
+      ],
+      "model": "cottage",
+      "schedule": "2–3 年",
+      "sort_order": 3
+    },
+    {
+      "id": "el-4",
+      "district_id": "eldercare",
+      "name": "白鴿巢公園與大炮台斜行升降機無障礙圈",
+      "name_en": "Camões Garden & Mount Fortress Accessible Loop",
+      "description": "連接白鴿巢前地、東方基金會與大炮台山坡，打造長者晨運與世遺漫步走廊。",
+      "description_en": "Accessible elevators and shaded paths linking Camões Garden and Mount Fortress.",
+      "facts": [
+        "白鴿巢公園設社區圖書館、兒童遊戲場與長者太極晨運廣場",
+        "大炮台斜行升降機僅需 50 秒即可由山腳直達大炮台花園平台",
+        "沿線重鋪防滑葡式碎石與導盲磚，輪椅與嬰兒車暢行無阻"
+      ],
+      "facts_en": [
+        "Camões Garden combines library, playground & Tai Chi plaza",
+        "50-second inclined elevator ride to Mount Fortress deck",
+        "Slip-resistant tactile paving for wheelchairs and strollers"
+      ],
+      "model": "pavilion",
+      "schedule": "2–3 年",
+      "sort_order": 4
+    },
+    {
+      "id": "sn-1",
+      "district_id": "senado",
+      "name": "世遺議事亭前地、市政署大樓與玫瑰堂步行區",
+      "name_en": "UNESCO Senado Square, IAM Building & St. Dominic's",
+      "description": "以葡國黑白色碎石鋪成波浪圖案之 3,700 平方公尺廣場，串聯 1784 年市政署大樓、仁慈堂與玫瑰堂。",
+      "description_en": "3,700 m² wave-patterned Portuguese cobblestone plaza linking the 1784 IAM Building, Holy House of Mercy, and St. Dominic's Church.",
+      "facts": [
+        "2005 年列入世界遺產名錄，年接待中外旅客逾 2,200 萬人次，為澳門最核心世遺步行區",
+        "市政署大樓內藏 1929 年葡式圖書館與花園葡國藍白瓷磚（Azulejos），免費對公眾開放",
+        "全區導入智慧人流熱力監測與節慶燈飾工程，農曆新年及聖誕期間化身為光影廣場"
+      ],
+      "facts_en": [
+        "UNESCO World Heritage site welcoming 22M+ annual visitors",
+        "1784 IAM Building features historic 1929 library & Portuguese Azulejo courtyard",
+        "Equipped with real-time crowd heatmaps and festive light installations"
+      ],
+      "model": "townhall",
+      "schedule": "第 1 年",
+      "sort_order": 1
+    },
+    {
+      "id": "sn-2",
+      "district_id": "senado",
+      "name": "塔石廣場、中央圖書館與荷蘭園歷史建築群",
+      "name_en": "Tap Seac Square, Central Library & Cultural Cluster",
+      "description": "佔地 13,000 平方公尺之葡式碎石文化廣場，環繞文化局大樓、中央圖書館、歷史檔案館與塔石體育館。",
+      "description_en": "13,000 m² cultural plaza framed by 1920s red-and-ochre neoclassical buildings, Central Library, and Archives.",
+      "facts": [
+        "行車隧道下穿廣場下方，地面全鋪葡式碎石並保留八幢 1920 年代新古典主義紅黃建築群",
+        "每年舉辦春秋季「塔石藝墟」、葡韻嘉年華與國際幻彩大巡遊閉幕匯演，匯聚逾 220 個文創攤位",
+        "原愛都酒店舊址正建設「澳門新中央圖書館」，建築面積逾 10,000 平方公尺"
+      ],
+      "facts_en": [
+        "Pedestrianized 13,000 m² plaza over an underpass, framed by eight 1920s heritage buildings",
+        "Hosts Tap Seac Craft Markets (220+ booths) and International Parade finale",
+        "Site of the upcoming 10,000 m² New Macao Central Library"
+      ],
+      "model": "library",
+      "schedule": "2–3 年",
+      "sort_order": 2
+    },
+    {
+      "id": "sn-3",
+      "district_id": "senado",
+      "name": "望德堂瘋堂斜巷文創園區與仁伯爵綜合醫院（山頂醫院）",
+      "name_en": "St. Lazarus Creative Quarter & CHCSJ Hospital",
+      "description": "融合葡式鵝黃巴洛克街道之瘋堂十號創意園、大瘋堂藝舍，以及全澳公立急重症醫療中樞「仁伯爵綜合醫院」。",
+      "description_en": "Cobblestone St. Lazarus creative arts district alongside Macao's primary public hospital (Conde S. Januário Hospital).",
+      "facts": [
+        "仁伯爵綜合醫院（山頂醫院）提供 24 小時急診與逾 1,000 張病床，公共衛生專科大樓已全面啟用",
+        "瘋堂斜巷保留百年葡式黃白外牆與馬忌士前地，常年舉辦週末「瘋堂藝墟」與露天音樂會",
+        "山禮度與雀仔園街市完成現代化空調改造，保留傳統街坊人情味與潔淨購物環境"
+      ],
+      "facts_en": [
+        "CHCSJ Public Hospital provides 24h emergency care and 1,000+ inpatient beds",
+        "10 Fantasia & St. Lazarus lanes host weekend art markets and concerts",
+        "Modernized air-conditioned São Lourenço & Horta da Mitra neighborhood markets"
+      ],
+      "model": "theater",
+      "schedule": "第 1 年",
+      "sort_order": 3
+    },
+    {
+      "id": "di-1",
+      "district_id": "digital",
+      "name": "「澳門公共服務一戶通」與「商社通」平台",
+      "name_en": "Macao One Account & Business One Plus Portal",
+      "description": "整合全澳超過 400 項民生政務、電子卡證、跨境政務及商企牌照一站式申辦。",
+      "description_en": "Over 400 public services, digital IDs, and business licenses unified in one mobile app.",
+      "facts": [
+        "「一戶通」註冊用戶突破 62 萬人，綁定逾 40 種官方電子卡證",
+        "在生證明、醫療券、車輛續牌及長者服務實現全程手機零跑腿辦理",
+        "「商社通」整合多部門牌照聯審，社團與商企開辦審批時間縮減 45%"
+      ],
+      "facts_en": [
+        "620,000+ registered users with 40+ bound digital ID cards",
+        "100% mobile processing for proof-of-life, vehicle tax & vouchers",
+        "45% faster business licensing via inter-departmental review"
+      ],
+      "model": "globe",
+      "schedule": "第 1 年",
+      "sort_order": 1
+    },
+    {
+      "id": "di-2",
+      "district_id": "digital",
+      "name": "DATA.GOV.MO 開放數據與城市數位雙生",
+      "name_en": "DATA.GOV.MO Open Data & 3D Digital Twin",
+      "description": "串聯 44 個政府部門開放逾 1,377 個數據集與 463 組 API，賦能智慧交通與防洪。",
+      "description_en": "1,377 open datasets and 463 live APIs across 44 Macao government entities.",
+      "facts": [
+        "開放涵蓋旅遊、交通、醫療、氣象、環境等 1,377 個官方數據集",
+        "地籍局 CAD 與三維城市基礎地理資訊支援工程管線協同管理",
+        "新口岸 6K 地段等政府辦公大樓整併升級，節省公帑租金支出"
+      ],
+      "facts_en": [
+        "1,377 official datasets across transit, health, and weather",
+        "3D GIS cadastre maps coordinate underground roadworks",
+        "Consolidated ZAPE government offices reduce lease costs"
+      ],
+      "model": "clock",
+      "schedule": "第 1 年",
+      "sort_order": 2
+    },
+    {
+      "id": "di-3",
+      "district_id": "digital",
+      "name": "金蓮花廣場與澳門科學館天文科普走廊",
+      "name_en": "Golden Lotus Plaza & Macao Science Center",
+      "description": "連接綜藝館金蓮花廣場至海濱科學館，提供球幕天文館與青少年科創實作基地。",
+      "description_en": "Waterfront science corridor featuring the iconic conical Science Center & Planetarium.",
+      "facts": [
+        "澳門科學館設 14 個主題展廳及榮獲健力士紀錄的超高清 3D 球幕天文館",
+        "每年接待逾 65 萬名學生與旅客參與北斗導航、海洋生態及機械人工作坊",
+        "海濱長廊串聯觀音蓮花苑至友誼大橋海景單車慢行線"
+      ],
+      "facts_en": [
+        "14 interactive galleries and Guinness-record 3D Planetarium",
+        "650,000+ annual visitors for robotics and marine workshops",
+        "Waterfront promenade linking Kun Iam Ecumenical Centre"
+      ],
+      "model": "lotus",
+      "schedule": "2–3 年",
+      "sort_order": 3
+    },
+    {
+      "id": "di-4",
+      "district_id": "digital",
+      "name": "議事亭前地市政署大樓與波浪碎石步行區",
+      "name_en": "Senado Square & IAM Heritage Pedestrian Zone",
+      "description": "由葡國技師鋪設經典黑白波浪形碎石路（Calçada Portuguesa），串聯玫瑰堂與仁慈堂。",
+      "description_en": "Iconic wave-patterned Calçada Portuguesa plaza flanked by IAM Building and St. Dominic's.",
+      "facts": [
+        "市政署大樓內設百年葡式青花瓷磚畫廊、花園及建置於 1929 年之圖書館",
+        "全步行區配備智慧人流熱力監測，節慶尖峰即時透過「旅遊快訊」分流",
+        "地下管網微更新保留百年石磚風貌同時提升暴雨排水能力"
+      ],
+      "facts_en": [
+        "1784 IAM Building with Azulejo tiles and 1929 classic library",
+        "Smart crowd heatmaps guide holiday visitors in real time",
+        "Upgraded storm drains hidden beneath historic stone waves"
+      ],
+      "model": "townhall",
+      "schedule": "2–3 年",
+      "sort_order": 4
+    },
+    {
+      "id": "sa-1",
+      "district_id": "safety",
+      "name": "澳門旅遊塔 338 米高空景觀與國際煙花匯演",
+      "name_en": "338m Macau Tower & International Fireworks",
+      "description": "南灣湖與西灣湖畔地標，結合高空冒險旅遊、會展中心與每年秋季國際煙花比賽匯演。",
+      "description_en": "338m landmark hosting Skywalk, Bungy Jump, and the International Fireworks Display Contest.",
+      "facts": [
+        "塔高 338 公尺，設 223 公尺高空「笨豬跳」(Bungy Jump) 與 360 度旋轉餐廳",
+        "每年 9 至 10 月於旅遊塔對開海面舉辦 10 場國際煙花比賽匯演",
+        "配備雙層強化抗風阻尼結構，可抵禦蒲福氏 12 級以上強颱風吹襲"
+      ],
+      "facts_en": [
+        "338m tower with 223m Guinness World Record Bungy Jump",
+        "10 international fireworks shows over the bay every autumn",
+        "Engineered to withstand Category-5 typhoon winds"
+      ],
+      "model": "macautower",
+      "schedule": "第 1 年",
+      "sort_order": 1
+    },
+    {
+      "id": "sa-2",
+      "district_id": "safety",
+      "name": "內港南雨水泵站及大型地下蓄水箱涵",
+      "name_en": "Inner Harbour South Stormwater Pump & Box Culvert",
+      "description": "於比厘喇馬忌士街至司打口建造大型地下蓄洪池與大流量抽水泵房，根治風暴潮及暴雨水浸。",
+      "description_en": "Massive underground stormwater retention tanks and high-capacity pumps along Inner Harbour.",
+      "facts": [
+        "新建內港南大型雨水泵站及下水道箱涵，排洪能力提升逾 3 倍",
+        "串聯內港北雨水泵站，於天文大潮疊加暴雨時自動啟動強排",
+        "路面同步重鋪防滑瀝青並更新自來水、電力及電訊地下管網"
+      ],
+      "facts_en": [
+        "Triples drainage capacity along Southern Inner Harbour",
+        "Auto-activates high-volume pumps during king tides & storms",
+        "Simultaneously upgrades water, power, and telecom conduits"
+      ],
+      "model": "riverbridge",
+      "schedule": "2–3 年",
+      "sort_order": 2
+    },
+    {
+      "id": "sa-3",
+      "district_id": "safety",
+      "name": "輕軌媽閣站與西灣大橋下層跨海隧道",
+      "name_en": "Barra LRT Station & Sai Van Bridge Lower Deck",
+      "description": "輕軌氹仔線經西灣大橋下層箱樑跨海直達半島媽閣站，並與地面巴士總站立體轉乘。",
+      "description_en": "LRT crosses the sea inside Sai Van Bridge's lower deck to Barra Multimodal Hub.",
+      "facts": [
+        "澳門輕軌首條跨海路段，由媽閣站至海洋站僅需約 4 分鐘",
+        "媽閣交通樞紐整合輕軌、地下巴士總站、旅遊巴泊區與綠化天台公園",
+        "毗鄰世界遺產「媽閣廟」與海事博物館活化廣場"
+      ],
+      "facts_en": [
+        "4-minute cross-sea LRT ride from Barra to Ocean Station",
+        "Multimodal hub with underground bus terminal & roof park",
+        "Steps away from UNESCO A-Ma Temple and Maritime Museum"
+      ],
+      "model": "lrtstation",
+      "schedule": "第 1 年",
+      "sort_order": 3
+    },
+    {
+      "id": "sa-4",
+      "district_id": "safety",
+      "name": "SMG 實時水浸與風暴潮五級預警監測網",
+      "name_en": "SMG Real-Time Tide & 5-Tier Storm Surge Network",
+      "description": "地球物理氣象局於內港、下環及低窪街區佈設水位監測站，精準發佈藍黃橙紅黑五級風暴潮警告。",
+      "description_en": "SMG ultrasonic tide & street flood sensors issuing 5-tier storm surge alerts.",
+      "facts": [
+        "全澳低窪地區設置逾 30 個實時水浸監測站及潮汐站，每 5 分鐘更新數據",
+        "補助內港商戶與住戶安裝逾 2,800 套認證防洪門閘與止回閥",
+        "民防行動中心連動全澳 17 個避險中心，提供無障礙應急轉移"
+      ],
+      "facts_en": [
+        "30+ real-time flood and tide stations updated every 5 min",
+        "2,800+ certified floodgates subsidized for harbour shops",
+        "17 civil defense shelters ready for barrier-free evacuation"
+      ],
+      "model": "clock",
+      "schedule": "第 1 年",
+      "sort_order": 4
+    },
+    {
+      "id": "nv-1",
+      "district_id": "namvan",
+      "name": "亞馬喇前地大型跨海巴士轉乘樞紐與地下商業廣場",
+      "name_en": "Praça Ferreira do Amaral Cross-Sea Bus Hub",
+      "description": "直接銜接嘉樂庇總督大橋（舊大橋）北口之全澳最繁忙巴士轉乘樞紐，匯聚逾 35 條半島與離島幹線。",
+      "description_en": "Macao's busiest bus interchange at the north landing of Governador Nobre de Carvalho Bridge, serving 35+ routes.",
+      "facts": [
+        "全站設 8 條獨立有蓋候車車道與空調候車亭，日均轉乘旅客超過 16 萬人次",
+        "為嘉樂庇總督大橋（公交專道）北端起點，跨海巴士 5 分鐘直達氹仔蘇利安圓形地",
+        "地下兩層提供逾 800 個公共汽車及電單車泊位，並以行人隧道連通殷皇子大馬路商圈"
+      ],
+      "facts_en": [
+        "8 covered bus lanes with A/C waiting pods serving 160,000+ daily riders",
+        "North landing of the bus-only Governador Nobre de Carvalho Bridge to Taipa",
+        "800+ underground parking spaces and pedestrian tunnels to Av. Infante D. Henrique"
+      ],
+      "model": "busdepot",
+      "schedule": "第 1 年",
+      "sort_order": 1
+    },
+    {
+      "id": "nv-2",
+      "district_id": "namvan",
+      "name": "南灣湖水上活動中心、雅文湖畔與特區政府總部",
+      "name_en": "Nam Van Lake Nautical Center & SAR Government HQ",
+      "description": "結合南灣湖國際龍舟賽場、雅文湖畔文創水上單車，以及南灣大馬路 1849 年葡式粉紅政府總部禮賓樓。",
+      "description_en": "Nam Van Lake International Dragon Boat venue, Anim'Arte Nam Van waterfront, and the 1849 pink SAR Government HQ.",
+      "facts": [
+        "每年端午節舉辦「澳門國際龍舟賽」，吸引海內外逾 140 支龍舟隊伍於南灣湖競渡",
+        "澳門特區政府總部（原澳督府，建於 1849 年）每年定期舉辦公眾開放日及園林花展，單日入場逾 2 萬人次",
+        "南灣湖 C、D 區正規劃建設立法會與司法機關辦公大樓群，強化法治與公共行政效能"
+      ],
+      "facts_en": [
+        "Hosts the Macao International Dragon Boat Races with 140+ teams annually",
+        "1849 pink Portuguese Government Headquarters welcomes 20,000+ visitors on Open Days",
+        "Nam Van Lakes Zones C & D planned for new legislative and judicial complexes"
+      ],
+      "model": "townhall",
+      "schedule": "2–3 年",
+      "sort_order": 2
+    },
+    {
+      "id": "nv-3",
+      "district_id": "namvan",
+      "name": "西望洋山（主教山小堂）世遺觀景台與竹室正街歷史片區",
+      "name_en": "Penha Hill Chapel & Scenic Heritage Outlook",
+      "description": "海拔 62.7 公尺之西望洋山巔矗立 1622 年主教山小堂，可俯瞰西灣湖、旅遊塔、西灣大橋與十字門水道全景。",
+      "description_en": "62.7m Penha Hill crowned by the 1622 Chapel of Our Lady of Penha overlooking Sai Van Lake, Macau Tower, and Sai Van Bridge.",
+      "facts": [
+        "1622 年創建之西望洋聖堂與主教府為澳門歷史城區重要地標，哥德式鐘樓與大理石聖母像極具辨識度",
+        "環西望洋山與南灣湖畔設有無障礙觀景步道，為觀賞澳門國際煙花比賽匯演最佳制高點之一",
+        "山下民國大馬路與西灣湖堤岸構成全長 1.8 公里之榕樹林蔭單車及緩跑綠廊"
+      ],
+      "facts_en": [
+        "1622 Gothic-towered Penha Chapel and Bishop's Palace atop 62.7m Penha Hill",
+        "Premier panoramic vantage point for the Macau International Fireworks Display",
+        "1.8 km banyan-shaded waterfront promenade along Avenida da República"
+      ],
+      "model": "guia",
+      "schedule": "第 1 年",
+      "sort_order": 3
+    },
+    {
+      "id": "ch-1",
+      "district_id": "childcare",
+      "name": "新城 A 區公屋裙樓托兒與家綜中心",
+      "name_en": "Zone A Public Housing Nurseries & Family Hubs",
+      "description": "於 B4、B9、B10、B11、B12 等地段公屋裙樓同步落成托兒所、長者日照與衛生站。",
+      "description_en": "Podium-level public nurseries, family centers, and clinics in Zone A housing.",
+      "facts": [
+        "B11 及 B12 地段各提供 768 及 805 個裝配式環保社屋單位",
+        "全區規劃約 28,000 個公屋單位，裙樓配套 6 所大型托兒所",
+        "實施 15 分鐘社區生活圈，下樓即可完成托育接送與買菜"
+      ],
+      "facts_en": [
+        "B11 & B12 blocks deliver 768 and 805 prefab public units",
+        "28,000 planned public units with 6 podium nurseries",
+        "15-minute neighborhood loop for childcare and markets"
+      ],
+      "model": "cottage",
+      "schedule": "2–3 年",
+      "sort_order": 1
+    },
+    {
+      "id": "ch-2",
+      "district_id": "childcare",
+      "name": "東區-2 現代化學校村與共融體育館",
+      "name_en": "East Zone-2 School Village & Shared Gym",
+      "description": "集中配置多所中小幼學校並共享地下接送車道、標準泳池與室內運動場。",
+      "description_en": "Clustered K-12 school village sharing underground drop-off lanes and sports halls.",
+      "facts": [
+        "規劃 8 所非高等教育學校進駐，提供逾 1.1 萬個學額",
+        "地下迴車接送系統徹底消除上下課時段地面交通擠塞",
+        "校園體育場館於課餘及假日向新城 A 區居民開放預約"
+      ],
+      "facts_en": [
+        "8 K-12 schools providing 11,000+ student seats",
+        "Underground drop-off loops eliminate surface traffic jams",
+        "Shared school swimming pools and courts open on weekends"
+      ],
+      "model": "classroom",
+      "schedule": "4 年",
+      "sort_order": 2
+    },
+    {
+      "id": "ch-3",
+      "district_id": "childcare",
+      "name": "地下綜合共同管道與海綿城市綠廊",
+      "name_en": "Underground Utility Tunnel & Sponge Greenway",
+      "description": "電力、自來水、中水及通訊光纖全部納入地下共同溝，免除道路重複開挖。",
+      "description_en": "All power, water, recycled water, and fiber cables housed in utility tunnels.",
+      "facts": [
+        "建成全長 6.5 公里地下綜合管廊，道路重複開挖率降至 0%",
+        "中央綠廊與海濱公園佔全區面積逾 25%，全面鋪設透水磚",
+        "雙管供水系統全面引入再生水作沖廁及園林綠化用途"
+      ],
+      "facts_en": [
+        "6.5 km utility tunnel eliminating road re-excavations",
+        "25%+ green coverage with permeable sponge-city paving",
+        "Dual-pipe network supplying recycled water for flushing"
+      ],
+      "model": "globe",
+      "schedule": "2–3 年",
+      "sort_order": 3
+    },
+    {
+      "id": "ch-4",
+      "district_id": "childcare",
+      "name": "港珠澳大橋人工島澳車北上智慧通關",
+      "name_en": "HZMB Artificial Island Smart Vehicle Clearance",
+      "description": "優化大橋澳門口岸車道預約與「澳車北上」電子識別，串聯A區跨海聯絡橋。",
+      "description_en": "Streamlined vehicle clearance and e-tag lanes at the HZMB Macao Port.",
+      "facts": [
+        "隨車人員驗放廳與 30 條車輛查驗通道全天候高效運作",
+        "「澳車北上」累計通關突破 220 萬輛次，帶動大灣區生活圈",
+        "AB 區跨海連接通道與澳門大橋直達氹仔北安"
+      ],
+      "facts_en": [
+        "30 automated vehicle lanes with passenger clearance hall",
+        "2.2M+ Northbound Macao Vehicle crossings recorded",
+        "Direct viaducts linking Zone A to Macau Bridge & Taipa"
+      ],
+      "model": "busstop",
+      "schedule": "第 1 年",
+      "sort_order": 4
+    },
+    {
+      "id": "hz-1",
+      "district_id": "hzmbport",
+      "name": "港珠澳大橋澳門邊檢大樓與「澳車北上」查驗樞紐",
+      "name_en": "HZMB Macao Frontier Post & Northbound Vehicle Lanes",
+      "description": "連結香港與珠海之 24 小時全天候海陸空立體口岸，實施珠澳「合作查驗、一次放行」及港澳穿梭金巴服務。",
+      "description_en": "24-hour tri-city border complex serving Golden Shuttle Buses to Hong Kong and Northbound Macao Vehicles to Guangdong.",
+      "facts": [
+        "口岸人工島澳門管理區面積約 71.6 公頃，配置 36 條隨車驗放通道與港澳快線金巴總站",
+        "「澳車北上」政策落地後，累計完成備案澳門私家車逾 6 萬輛，單日最高通關車流突破 1.6 萬輛次",
+        "東、西兩座大型公共停車場合共提供逾 6,000 個輕型汽車及電單車泊位"
+      ],
+      "facts_en": [
+        "71.6-hectare port island with 36 vehicle inspection lanes & HK-Macao Golden Bus terminal",
+        "60,000+ Macao cars registered for 'Northbound Travel', peaking at 16,000+ daily vehicle crossings",
+        "Over 6,000 public parking spaces across East and West Port Car Parks"
+      ],
+      "model": "busdepot",
+      "schedule": "第 1 年",
+      "sort_order": 1
+    },
+    {
+      "id": "hz-2",
+      "district_id": "hzmbport",
+      "name": "澳門大橋北端立交樞紐與 A 區中央綠廊海濱公園",
+      "name_en": "Macau Bridge North Interchange & Zone A South Park",
+      "description": "直接連通港珠澳大橋人工島、新城 A 區主幹道與第四條跨海大橋「澳門大橋」，車程 5 分鐘直達氹仔北安。",
+      "description_en": "Multi-level interchange linking HZMB Port directly onto the 8-lane Macau Bridge to Taipa Pac On in 5 minutes.",
+      "facts": [
+        "經澳門大橋 A 線高架匝道，車輛由港珠澳大橋口岸無需繞行半島即可直達氹仔及路氹城",
+        "新城 A 區南端規劃全長 1.6 公里之環島海濱綠廊與城市級文化地標建築群",
+        "預留輕軌東線 ES4–ES5 車站與未來延伸西灣之軌道廊道"
+      ],
+      "facts_en": [
+        "Direct Viaduct A ramp allows HZMB traffic to reach Taipa in 5 mins without entering Peninsula",
+        "1.6 km southern coastal greenway and planned iconic civic cultural landmarks",
+        "Integrates LRT East Line ES4–ES5 underground transit stations"
+      ],
+      "model": "lrtstation",
+      "schedule": "第 1 年",
+      "sort_order": 2
+    },
+    {
+      "id": "hz-3",
+      "district_id": "hzmbport",
+      "name": "人工島 110kV 變電站、跨境光纜與新能源快充站",
+      "name_en": "Port Island 110kV Substation & EV Supercharging Hub",
+      "description": "為港珠澳大橋口岸、新城 A 區及跨海大橋照明提供雙迴路高可靠度電力與大灣區低延遲光纖互聯。",
+      "description_en": "Dual-circuit 110kV power grid, cross-border fiber optics, and high-power EV supercharging hub.",
+      "facts": [
+        "全自動數位化 110kV 變電站支援口岸及澳門大橋全線智慧路燈與交通監控供電",
+        "口岸停車場配備逾 200 支國標／歐標雙制式電動車快速充電樁",
+        "整合氣象局海面風速、能見度與橋面結冰感測器，實時聯動跨海大橋限速牌"
+      ],
+      "facts_en": [
+        "Automated 110kV digital substation powering the port and Macau Bridge smart systems",
+        "200+ dual-standard (GB/T & CCS2) EV fast chargers in port car parks",
+        "Real-time marine wind & visibility sensors linked to bridge speed-limit displays"
+      ],
+      "model": "solar",
+      "schedule": "2–3 年",
+      "sort_order": 3
+    },
+    {
+      "id": "to-w1",
+      "district_id": "taipaocean",
+      "name": "輕軌海洋站與西灣大橋氹仔南口跨海隧道段",
+      "name_en": "LRT Ocean Station & Sai Van Bridge South Portal",
+      "description": "澳門輕軌氹仔線跨海進入西灣大橋下層箱樑前之首座離島車站，無縫銜接海洋花園巴士轉乘站。",
+      "description_en": "Gateway LRT station on western Taipa where trains enter the lower deck of Sai Van Bridge toward Barra.",
+      "facts": [
+        "列車自海洋站駛入西灣大橋下層專用軌道，跨海前往半島媽閣站僅需約 4 分鐘",
+        "車站連接有蓋行人天橋直通海洋花園住宅群、衛生中心與海濱單車徑",
+        "隨媽閣跨海段通車，海洋站日均進出站客流增長逾 65%"
+      ],
+      "facts_en": [
+        "Trains enter Sai Van Bridge lower deck here, reaching Peninsula Barra in 4 minutes",
+        "Skybridge links station directly to Ocean Gardens, clinic, and waterfront bikeway",
+        "Station ridership surged by 65%+ following the Barra cross-sea extension"
+      ],
+      "model": "lrtstation",
+      "schedule": "第 1 年",
+      "sort_order": 1
+    },
+    {
+      "id": "to-w2",
+      "district_id": "taipaocean",
+      "name": "氹仔海濱休憩區（東亞運大馬路雙向單車徑與緩跑徑）",
+      "name_en": "Taipa Waterfront Promenade & Cycle Track",
+      "description": "沿十字門東水道南岸鋪設全長 2,000 公尺之專業分流單車徑、紅樹林觀景台與親子健身廣場。",
+      "description_en": "2,000m coastal cycle track and jogging promenade overlooking Macau Tower and the three western bridges.",
+      "facts": [
+        "全長 2 公里、寬 6 公尺之濱海綠廊，實行「單車徑」與「海濱緩跑徑」雙軌安全分流",
+        "正對澳門半島西灣湖與旅遊塔天際線，設有共享單車租借站、兒童平衡車場及海濱茶座",
+        "沿岸種植逾 400 棵耐鹽抗風棕櫚與秋茄紅樹林，兼具防浪消波與生態教育功能"
+      ],
+      "facts_en": [
+        "2 km waterfront corridor with dedicated segregated cycling and jogging lanes",
+        "Panoramic views across the channel toward Macau Tower and Sai Van Bridge",
+        "400+ coastal palms and Kandelia mangrove belt for wave attenuation"
+      ],
+      "model": "park",
+      "schedule": "第 1 年",
+      "sort_order": 2
+    },
+    {
+      "id": "to-w3",
+      "district_id": "taipaocean",
+      "name": "小潭山 2000 環山徑、180 度觀景台與海洋花園衛生中心",
+      "name_en": "Taipa Pequena 2000 Trail & 180° Bridge Viewpoint",
+      "description": "海拔 110 公尺之小潭山生態步道，配備無障礙登山升降機直達 180 度跨海大橋觀景台。",
+      "description_en": "110m Pequipa Hill eco-trail featuring an inclined elevator to a 180° viewpoint over the cross-sea bridges.",
+      "facts": [
+        "小潭山 2000 環山徑全長 2,300 公尺，沿途設 6 座涼亭與健身設施，可飽覽西灣大橋及舊大橋全景",
+        "配備高差逾 35 公尺之基馬拉斯大馬路連接升降機塔，方便長者與市民輕鬆登高晨運",
+        "山麓設海洋花園衛生中心與培華中學、婦聯學校，完善氹仔西區醫療與教育配套"
+      ],
+      "facts_en": [
+        "2,300m circuit trail atop 110m Pequipa Hill with panoramic cross-sea bridge views",
+        "35m barrier-free elevator tower allowing easy access for seniors and families",
+        "Home to Ocean Gardens Health Center and local secondary schools"
+      ],
+      "model": "footprint",
+      "schedule": "2–3 年",
+      "sort_order": 3
+    },
+    {
+      "id": "sp-1",
+      "district_id": "sports",
+      "name": "奧林匹克體育中心運動場與游泳館",
+      "name_en": "Olympic Sports Centre Stadium & Aquatic Arena",
+      "description": "全澳最大綜合體育基地，涵蓋標準田徑場、室內館、跳水游泳池與羽毛球區，支援十五運會。",
+      "description_en": "Macao's premier athletic complex hosting international events and public fitness.",
+      "facts": [
+        "主運動場設 16,000 個觀眾席及全天候蒙多跑道，與輕軌運動場站無縫相連",
+        "「大眾體育健身興趣班」每年提供逾 8 萬個名額予全齡市民報讀",
+        "升級智慧場館照明與無障礙看台，迎接粵港澳全運會賽事"
+      ],
+      "facts_en": [
+        "16,000-seat stadium directly linked to Stadium LRT Station",
+        "80,000+ annual slots in public fitness and swimming classes",
+        "Upgraded smart lighting & accessible seating for National Games"
+      ],
+      "model": "court",
+      "schedule": "第 1 年",
+      "sort_order": 1
+    },
+    {
+      "id": "sp-2",
+      "district_id": "sports",
+      "name": "氹仔海濱休憩區單車徑與慢跑長廊",
+      "name_en": "Taipa Waterfront Cycle Track & Jogging Promenade",
+      "description": "沿西灣大橋至嘉樂庇總督大橋北岸闢建分道單車徑、兒童平衡車場與觀海平台。",
+      "description_en": "Separated coastal cycleway and jogging path facing the Macau Tower skyline.",
+      "facts": [
+        "海濱綠道全長逾 2.5 公里，設雙向獨立單車道與透水彈性慢跑道",
+        "配置共享單車租借站、親子滑步車場與寵物友善草坪",
+        "夜間採用低眩光暖色景觀燈，遠眺澳門半島與旅遊塔夜景"
+      ],
+      "facts_en": [
+        "2.5 km waterfront trail with separated bike & jogging lanes",
+        "Features bike rentals, kids balance-bike track & dog park",
+        "Low-glare warm night lighting overlooking Macau Tower"
+      ],
+      "model": "bikerack",
+      "schedule": "第 1 年",
+      "sort_order": 2
+    },
+    {
+      "id": "sp-3",
+      "district_id": "sports",
+      "name": "氹仔中央公園圖書館與露天泳池",
+      "name_en": "Taipa Central Park Library & Open-Air Pool",
+      "description": "結合地面大型綠化公園、戶外嬉水泳池、地下現代化圖書館與公共停車場。",
+      "description_en": "Multi-layered urban park combining outdoor pools, underground library, and parking.",
+      "facts": [
+        "公園佔地 28,000 平方公尺，地庫設 2,200 平方公尺自然採光公共圖書館",
+        "夏季露天泳池配備遮陽噴霧與兒童淺水池，日均接待逾 2,500 人次",
+        "地庫兩層提供逾 1,300 個私家車及電單車泊位，舒緩氹仔中心區泊車需求"
+      ],
+      "facts_en": [
+        "28,000 m² park above a 2,200 m² sunlit underground library",
+        "Outdoor pool complex serving 2,500+ swimmers daily in summer",
+        "1,300+ underground parking spaces for cars and motorbikes"
+      ],
+      "model": "pavilion",
+      "schedule": "2–3 年",
+      "sort_order": 3
+    },
+    {
+      "id": "sp-4",
+      "district_id": "sports",
+      "name": "基馬拉斯大馬路空中走廊",
+      "name_en": "Av. de Guimarães Elevated Pedestrian Skywalk",
+      "description": "跨越氹仔中心區四大迴旋處，讓居民免受車流干擾由住宅群步行直達輕軌運動場站。",
+      "description_en": "700m elevated pedestrian walkway bridging four busy roundabouts to the LRT.",
+      "facts": [
+        "走廊全長 700 公尺、寬 4.5 公尺，沿途設 11 個上落點連接周邊 20 多座大廈",
+        "頂棚採用隔熱透光材料並配自然通風百葉，雨季與酷暑皆舒適好行",
+        "地面騰出空間增設巴士專道、綠化帶與安全斑馬線"
+      ],
+      "facts_en": [
+        "700m covered skywalk with 11 access nodes to 20+ estates",
+        "Heat-insulated canopy with natural ventilation louvers",
+        "Frees up ground level for bus lanes and tree belts"
+      ],
+      "model": "riverbridge",
+      "schedule": "第 1 年",
+      "sort_order": 4
+    },
+    {
+      "id": "cu-1",
+      "district_id": "culture",
+      "name": "龍環葡韻住宅式博物館與紅樹林生態濕地",
+      "name_en": "Taipa Houses Museum & Mangrove Wetland",
+      "description": "五幢 1921 年建成的薄荷綠葡式建築，緊鄰鷺鳥棲息的生態池與露天劇場。",
+      "description_en": "Five 1921 mint-green Portuguese residences overlooking a lotus and egret wetland.",
+      "facts": [
+        "「澳門八景」之一，完整展示土生葡人家居生活、服飾與中西合璧傢俱",
+        "前方 5.5 公頃淡水濕地棲息黑臉琵鷺與白鷺等逾 70 種水鳥",
+        "每年舉辦「葡韻嘉年華」匯聚 10 個葡語國家音樂、歌舞與特色美食"
+      ],
+      "facts_en": [
+        "Five 1921 Macanese heritage houses among Macao's Top 8 Sights",
+        "5.5-hectare wetland hosting 70+ bird species including egrets",
+        "Annual Lusofonia Festival celebrating 10 Portuguese-speaking nations"
+      ],
+      "model": "cottage",
+      "schedule": "第 1 年",
+      "sort_order": 1
+    },
+    {
+      "id": "cu-2",
+      "district_id": "culture",
+      "name": "益隆炮竹廠舊址生態文創園區",
+      "name_en": "Iec Long Firecracker Factory Heritage Park",
+      "description": "保留百年炮竹工業建築、水道與古樹群，修建 400 公尺高架木棧道與互動展館。",
+      "description_en": "Centennial firecracker industrial site reborn with 400m elevated wooden boardwalks.",
+      "facts": [
+        "佔地逾 2.5 萬平方公尺，是華南地區保存最完整的炮竹工業遺址",
+        "全園保留逾 200 棵參天古樹與昔日利用潮汐發電之儲水池水道",
+        "免費開放市民與旅客漫步，串聯官也街與龍環葡韻形成慢遊三角"
+      ],
+      "facts_en": [
+        "25,000 m² industrial heritage park with 200+ preserved trees",
+        "400m elevated timber trail over historic tidal water channels",
+        "Links Cunha Street and Taipa Houses in a cultural walk loop"
+      ],
+      "model": "pavilion",
+      "schedule": "第 1 年",
+      "sort_order": 2
+    },
+    {
+      "id": "cu-3",
+      "district_id": "culture",
+      "name": "官也街「美食之都」無煙步行區與智慧分流",
+      "name_en": "Rua do Cunha UNESCO Gastronomy Pedestrian Street",
+      "description": "彰顯聯合國教科文組織「創意城市美食之都」魅力，結合油煙淨化與節慶行人專區。",
+      "description_en": "UNESCO Creative City of Gastronomy showcase with smoke-free upgrades and smart flow.",
+      "facts": [
+        "傳承土生葡菜、杏仁餅、水蟹粥等逾 30 項澳門非物質文化遺產技藝",
+        "結合嘉模斜巷自動步行系統，無障礙連接地堡街、官也街與湖畔大廈",
+        "假日實施智慧行人專區與流動公廁、飲水補給站配套"
+      ],
+      "facts_en": [
+        "Showcases Macanese cuisine & 30+ intangible culinary crafts",
+        "Inclined travelator connects Cunha St, Regedor & Lake Building",
+        "Holiday pedestrian zone with smart crowd & waste management"
+      ],
+      "model": "stage",
+      "schedule": "2–3 年",
+      "sort_order": 3
+    },
+    {
+      "id": "cu-4",
+      "district_id": "culture",
+      "name": "澳門國際機場擴建填海與北安海空聯運樞紐",
+      "name_en": "Macau International Airport Expansion & Pac On Hub",
+      "description": "推進機場跑道人工島與滑行道之間填海擴建，並透過輕軌氹仔線連接北安碼頭。",
+      "description_en": "Airport reclamation expansion and seamless LRT transfer at Taipa Ferry Terminal.",
+      "facts": [
+        "機場填海擴建約 129 公頃土地，年客運承載力將提升至 1,300 萬人次",
+        "輕軌「機場站」與「氹仔碼頭站」實現海、陸、空 5 分鐘立體無縫換乘",
+        "澳門大橋通車後，由新城 A 區及關閘前往北安及機場車程縮短逾 30%"
+      ],
+      "facts_en": [
+        "129-hectare airport expansion raising capacity to 13M passengers",
+        "5-minute sea-land-air transfer via Airport & Ferry LRT stations",
+        "Macau Bridge cuts travel time from Zone A to Airport by 30%+"
+      ],
+      "model": "lrtstation",
+      "schedule": "4 年",
+      "sort_order": 4
+    },
+    {
+      "id": "po-1",
+      "district_id": "pacon",
+      "name": "澳門國際機場擴建填海工程與輕軌機場站／科大連線",
+      "name_en": "Macau International Airport Expansion & LRT Station",
+      "description": "採用人工島跑道設計之國際航空樞紐，正推進 129 公頃填海擴建工程，將年客運容量提升至 1,300 萬人次。",
+      "description_en": "Offshore-runway international airport undergoing a 129-hectare reclamation expansion to reach 13M annual passengers.",
+      "facts": [
+        "澳門國際機場開通逾 40 條國內外航線，客運大樓與輕軌「機場站」實現室內 2 分鐘無縫轉乘",
+        "機場擴建填海工程（約 129 公頃）已正式動工，新增遠機位、滑行道及綠色智慧貨運站",
+        "經第四條跨海通道「澳門大橋」，由機場及北安前往港珠澳大橋口岸與新城 A 區車程縮短逾 50%"
+      ],
+      "facts_en": [
+        "40+ international routes with 2-minute indoor transfer to LRT Airport Station",
+        "129-hectare reclamation expansion boosting capacity to 13M passengers/year",
+        "Macau Bridge cuts travel time from the Airport to HZMB Port & Zone A by over 50%"
+      ],
+      "model": "busdepot",
+      "schedule": "2–3 年",
+      "sort_order": 1
+    },
+    {
+      "id": "po-2",
+      "district_id": "pacon",
+      "name": "氹仔北安客運碼頭、澳門大橋南口與治安警出入境大樓",
+      "name_en": "Taipa Pac On Ferry Terminal & Macau Bridge South Hub",
+      "description": "設有 16 個高速客輪泊位與直升機坪之現代化海空聯運碼頭，西側直接銜接澳門大橋南端高架匝道。",
+      "description_en": "400,000 m² mega ferry terminal with 16 high-speed berths and direct ramps onto the 4th Macau Bridge.",
+      "facts": [
+        "碼頭總建築面積約 40 萬平方公尺，配置 16 個高速客船泊位、3 個多功能泊位及天台直升機坪",
+        "輕軌「氹仔碼頭站」緊鄰碼頭大樓，為未來輕軌東線跨海延伸氹仔線之關鍵交匯站",
+        "毗鄰北安出入境事務大樓與有機資源回收中心，形成離島東北部綜合市政服務群"
+      ],
+      "facts_en": [
+        "400,000 m² terminal with 16 high-speed ferry berths and rooftop helipad",
+        "Adjacent to LRT Taipa Ferry Terminal Station (future East Line junction)",
+        "Direct viaduct connection onto the 8-lane Macau Bridge across the bay"
+      ],
+      "model": "lrtstation",
+      "schedule": "第 1 年",
+      "sort_order": 2
+    },
+    {
+      "id": "po-3",
+      "district_id": "pacon",
+      "name": "大潭山地球物理氣象局（SMG）百年觀測站與滑草場郊野公園",
+      "name_en": "Taipa Grande SMG Weather Radar & Country Park",
+      "description": "矗立海拔 158.2 公尺大潭山之澳門氣象預警中樞，配備雙偏振多普勒天氣雷達與市民滑草場。",
+      "description_en": "Macao's official meteorological observatory and storm-warning center atop 158.2m Taipa Grande Hill.",
+      "facts": [
+        "2023 年獲世界氣象組織（WMO）認證為「百年氣象站」，全天候運作颱風、暴雨及風暴潮數值預報",
+        "大潭山郊野公園設有中華民族雕塑園、人造滑草場、環山自然教育徑及斜行升降機直達雞頸馬路",
+        "大潭山大氣環境監測站實時發布全澳 PM2.5、臭氧與紫外線開放數據（DATA.GOV.MO）"
+      ],
+      "facts_en": [
+        "Recognized by WMO as a Centennial Observing Station for typhoon & storm-surge alerts",
+        "Features Taipa Grande Grass-Skiing Slope, Sculpture Park & inclined elevator",
+        "Streams real-time AQI, PM2.5, and UV telemetry to DATA.GOV.MO"
+      ],
+      "model": "sensor",
+      "schedule": "第 1 年",
+      "sort_order": 3
+    },
+    {
+      "id": "yo-1",
+      "district_id": "youth",
+      "name": "國家重點實驗室（晶片、中醫藥與智慧城市物聯網）",
+      "name_en": "State Key Labs (Microelectronics, TCM & Smart IoT)",
+      "description": "匯聚模擬與混合信號超大規模集成電路、中藥質量研究及智慧城市物聯網三大國家重點實驗室。",
+      "description_en": "Three State Key Laboratories driving IC chip design, TCM quality, and Smart City IoT.",
+      "facts": [
+        "微電子實驗室在國際頂級晶片會議 ISSCC 發表論文數量位居全球前列",
+        "智慧城市物聯網實驗室直接對接澳門交通、電力微電網與氣象防災模型",
+        "中醫藥科研成果於橫琴粵澳深度合作區產業園轉化量產"
+      ],
+      "facts_en": [
+        "Global top-tier ISSCC microchip publications from UM",
+        "Smart City IoT lab powers Macao traffic & storm surge models",
+        "Traditional Chinese Medicine patents commercialized in Hengqin"
+      ],
+      "model": "globe",
+      "schedule": "第 1 年",
+      "sort_order": 1
+    },
+    {
+      "id": "yo-2",
+      "district_id": "youth",
+      "name": "輕軌橫琴線（蓮花站—橫琴站）海底盾構隧道",
+      "name_en": "LRT Hengqin Line Underwater Tunnel (Lotus–Hengqin)",
+      "description": "由路氹蓮花站經十字門水道海底隧道直達橫琴口岸地底，6 分鐘無縫銜接深合區。",
+      "description_en": "Cross-channel underwater LRT link from Lotus Station to Hengqin Port in 6 minutes.",
+      "facts": [
+        "全長約 2.2 公里（含約 900 公尺水下盾構隧道），每班車距約 6 分鐘",
+        "橫琴站直接設於橫琴口岸澳門口岸區地底，出站即達隨車及旅檢大廳",
+        "串聯珠機城際鐵路與廣珠城軌，將澳門輕軌融入大灣區軌道網"
+      ],
+      "facts_en": [
+        "2.2 km line with 900m underwater tunnel & 6-min headway",
+        "Direct underground transfer to Hengqin Port inspection hall",
+        "Connects Macao LRT directly with Greater Bay Area rail"
+      ],
+      "model": "lrtstation",
+      "schedule": "第 1 年",
+      "sort_order": 2
+    },
+    {
+      "id": "yo-3",
+      "district_id": "youth",
+      "name": "澳大十座住宿式書院與河底行人專道",
+      "name_en": "UM 10 Residential Colleges & Underwater Tunnel",
+      "description": "全亞洲最大規模住宿式書院系統，並新建連接路氹與校區的第二條河底行人隧道。",
+      "description_en": "Asia's largest collegiate residential system with a dedicated cross-harbour walkway.",
+      "facts": [
+        "校區佔地 1.09 平方公里，設 10 所住宿式書院培育逾 1.3 萬名本科及研究生",
+        "園區綠化與水道面積佔比逾 40%，全校配置共享單車與純電校園巴士",
+        "24 小時河底隧道與全天候行人專道免過關直通氹仔與路氹"
+      ],
+      "facts_en": [
+        "1.09 km² campus with 10 Residential Colleges for 13,000+ students",
+        "40%+ green & water ratio with campus bike-share & e-buses",
+        "24/7 underwater tunnel access without border checkpoints"
+      ],
+      "model": "classroom",
+      "schedule": "2–3 年",
+      "sort_order": 3
+    },
+    {
+      "id": "yo-4",
+      "district_id": "youth",
+      "name": "青年創業孵化中心與深合區科創免息貸款",
+      "name_en": "Youth Startup Incubator & Interest-Free Tech Loans",
+      "description": "提供最高 60 萬澳門元青年創業免息貸款、跨境專利快速審批與免費共享實驗空間。",
+      "description_en": "Up to 600k MOP interest-free startup loans, fast-track patents, and co-working labs.",
+      "facts": [
+        "累計孵化逾 520 個澳門青年科創、文創與跨境電商項目",
+        "提供免費法務、會計、融資媒合及深合區「澳門新街坊」商業落地輔導",
+        "每年舉辦「中葡科創大賽」吸引逾 300 支葡語國家及大灣區隊伍參賽"
+      ],
+      "facts_en": [
+        "520+ Macao youth tech and creative startups incubated",
+        "Free legal, tax & Macau New Neighborhood landing support",
+        "300+ teams in annual China-Lusophone Tech Startup Competition"
+      ],
+      "model": "coin",
+      "schedule": "2–3 年",
+      "sort_order": 4
+    },
+    {
+      "id": "to-1",
+      "district_id": "tourism",
+      "name": "「演藝之都」國際綜藝館與戶外五萬人演出場",
+      "name_en": "City of Performing Arts Arenas & 50k Outdoor Venue",
+      "description": "串聯路氹各大室內綜藝館與新建五萬人大型戶外演出區，帶動非博彩文化消費。",
+      "description_en": "World-class indoor arenas and a 50,000-capacity outdoor concert venue in Cotai.",
+      "facts": [
+        "全澳酒店客房平均入住率達 89.3%，非博彩旅遊消費佔比持續攀升",
+        "大型戶外演出場地配備可拆卸草坪與輕軌東亞運站、路氹東站雙向疏散",
+        "每年舉辦逾 2,000 場國際演唱會、交響樂、水舞劇及親子沉浸式特展"
+      ],
+      "facts_en": [
+        "89.3% hotel occupancy rate with rising non-gaming spending",
+        "50,000-seat outdoor concert venue linked to 2 LRT stations",
+        "2,000+ international concerts, shows, and exhibitions yearly"
+      ],
+      "model": "stage",
+      "schedule": "第 1 年",
+      "sort_order": 1
+    },
+    {
+      "id": "to-2",
+      "district_id": "tourism",
+      "name": "亞太綠色會展 (MICE) 中心與智慧無紙展覽",
+      "name_en": "Green MICE Convention Hub & Smart Exhibitions",
+      "description": "推動逾 24 萬平方公尺會展場地全面獲得綠色建築與碳中和會展認證。",
+      "description_en": "240,000+ m² of MICE exhibition space certified for green carbon-neutral events.",
+      "facts": [
+        "全年舉辦逾 1,300 項會議及展覽活動，吸引專業會展客商逾 160 萬人次",
+        "聚焦大健康、現代金融、高新科技及會展商貿四大新興產業專題展",
+        "全面導入模組化可循環展架與太陽能場館供電，減廢率達 65%"
+      ],
+      "facts_en": [
+        "1,300+ annual MICE events drawing 1.6M+ business visitors",
+        "Dedicated expos for Big Health, Fintech, and High-Tech",
+        "65% waste reduction via modular reusable exhibition booths"
+      ],
+      "model": "townhall",
+      "schedule": "2–3 年",
+      "sort_order": 2
+    },
+    {
+      "id": "to-3",
+      "district_id": "tourism",
+      "name": "路氹全天候室內連廊與純電動穿梭車隊",
+      "name_en": "Cotai All-Weather Skybridges & 100% EV Shuttles",
+      "description": "以冷氣空中步廊串聯各大綜合渡假村與輕軌站，地面穿梭巴士 100% 純電動化。",
+      "description_en": "Air-conditioned skybridges linking resorts and LRT stations with 100% electric shuttles.",
+      "facts": [
+        "超過 4.2 公里恆溫無障礙空中連廊，連接輕軌排角站、路氹西站及路氹東站",
+        "逾 600 輛純電動旅遊穿梭巴士投入營運，每年減碳逾 1.8 萬公噸",
+        "提供「行李直掛」服務，旅客退房即可於渡假村辦理機場託運"
+      ],
+      "facts_en": [
+        "4.2 km climate-controlled skywalk linking 3 LRT stations",
+        "600+ pure-electric shuttle buses saving 18,000t CO2/year",
+        "In-resort airline check-in and direct baggage drop service"
+      ],
+      "model": "busstop",
+      "schedule": "第 1 年",
+      "sort_order": 3
+    },
+    {
+      "id": "to-4",
+      "district_id": "tourism",
+      "name": "東亞運動會體育館（「澳門蛋」）室內運動中心",
+      "name_en": "Macau East Asian Games Dome Indoor Sports Hub",
+      "description": "大型巨蛋穹頂場館，兼具國際體育賽事、大型博覽會與社區全民健身中心功能。",
+      "description_en": "Iconic domed arena hosting international tournaments, trade fairs, and civic sports.",
+      "facts": [
+        "巨蛋直徑達 140 公尺，內設室內運動場、綜合劇院及國際展覽中心",
+        "緊鄰輕軌「東亞運站」及「蓮花站」（橫琴線轉乘樞紐）",
+        "週末開放羽毛球、乒乓球及保齡球道予市民透過「一戶通」預約"
+      ],
+      "facts_en": [
+        "140m-diameter dome housing indoor arena, theater & expo hall",
+        "Adjacent to East Asian Games & Lotus LRT transfer stations",
+        "Community badminton, table tennis & bowling via One Account"
+      ],
+      "model": "court",
+      "schedule": "2–3 年",
+      "sort_order": 4
+    },
+    {
+      "id": "ce-1",
+      "district_id": "cotaieast",
+      "name": "澳門東亞運動會體育館（澳門蛋）與第十五屆全運會賽區",
+      "name_en": "Macao East Asian Games Dome ('Macao Egg') & National Games",
+      "description": "全澳最大型室內綜合體育館與國際賽事場館，全面升級智慧燈光、木地板與無障礙看台以承辦全運會。",
+      "description_en": "Macao's largest indoor sports dome upgraded to host the 15th National Games and WTT table tennis championships.",
+      "facts": [
+        "主場館穹頂跨度達 140 公尺，室內運動場與綜合劇院合共可容納逾 10,000 名觀眾",
+        "作為粵港澳合辦「第十五屆全國運動會」澳門賽區核心場館，承辦乒乓球、三人籃球及空手道等賽事",
+        "緊鄰澳門國際射擊中心、網球學校及保齡球中心，構成路氹東國際體育園區"
+      ],
+      "facts_en": [
+        "140m-span dome complex accommodating over 10,000 spectators",
+        "Core Macao venue for the 15th National Games (Table Tennis, 3x3 Basketball, Karate)",
+        "Surrounded by the International Shooting Range, Tennis Academy & Bowling Center"
+      ],
+      "model": "arena",
+      "schedule": "第 1 年",
+      "sort_order": 1
+    },
+    {
+      "id": "ce-2",
+      "district_id": "cotaieast",
+      "name": "澳門科技大學（MUST）與「澳科一號」行星科學國家重點實驗室",
+      "name_en": "MUST Campus & 'Macao Science-1' Planetary State Key Lab",
+      "description": "全澳規模最大之綜合型非牟利私立大學，主導研製內地與澳門首顆空間科學衛星「澳科一號」。",
+      "description_en": "Macao's largest university campus, leading the 'Macao Science-1' geomagnetic space satellite mission.",
+      "facts": [
+        "校園面積約 21 萬平方公尺，設有中藥質量研究、月球與行星科學 2 個國家重點實驗室",
+        "「澳科一號」雙星成功發射入軌，高精確度測繪地球南大西洋地磁異常區並與全球 20 多國共享科學數據",
+        "校內附設科大醫院與國際學校，並由輕軌「科大站」天橋直通校門"
+      ],
+      "facts_en": [
+        "210,000 m² campus housing 2 State Key Laboratories (Lunar/Planetary Science & Chinese Medicine)",
+        "Home to the 'Macao Science-1' twin geomagnetic satellites sharing space telemetry globally",
+        "Includes MUST Hospital and direct skybridge access to LRT MUST Station"
+      ],
+      "model": "school",
+      "schedule": "第 1 年",
+      "sort_order": 2
+    },
+    {
+      "id": "ce-3",
+      "district_id": "cotaieast",
+      "name": "路氹東綠色國際會展走廊與輕軌東亞運站慢行系統",
+      "name_en": "Cotai East Green MICE Corridor & LRT Skywalk",
+      "description": "連結輕軌科大站、路氹東站與東亞運站之全天候高架慢行連廊，支撐亞洲頂尖商貿與科技會展。",
+      "description_en": "Climate-controlled skywalk network connecting LRT stations with Asia's premier green MICE convention halls.",
+      "facts": [
+        "路氹城東西兩片區會展場館總面積超過 24 萬平方公尺，逾 90% 大型場館獲 ISO 20121 永續會展認證",
+        "高架冷氣連廊全天候連接輕軌路氹東站、東亞運站與各大會展中心，步行 5 分鐘內直達展廳",
+        "全面導入屋頂太陽能光伏與中水回用冷卻系統，年減碳量逾 1.2 萬公噸"
+      ],
+      "facts_en": [
+        "240,000+ m² of Cotai MICE exhibition space (>90% ISO 20121 sustainability certified)",
+        "Air-conditioned skybridges link LRT Cotai East & East Asian Games stations directly to halls",
+        "Rooftop solar PV and greywater cooling cut 12,000+ tonnes of CO₂ annually"
+      ],
+      "model": "lrtstation",
+      "schedule": "2–3 年",
+      "sort_order": 3
+    },
+    {
+      "id": "en-1",
+      "district_id": "environment",
+      "name": "離島醫療綜合體北京協和醫院澳門醫學中心",
+      "name_en": "Islands Healthcare Complex – PUMCH Macao Center",
+      "description": "澳門最大型醫療基建，提供腫瘤放射治療、精準醫學及重症專科，實現「大病不出澳」。",
+      "description_en": "Macao's largest medical complex delivering tertiary care, oncology, and rehab.",
+      "facts": [
+        "總建築面積逾 43 萬平方公尺，規劃逾 800 張病床及 26 間現代化手術室",
+        "引進國際頂尖直線加速器與精準腫瘤治療中心，大幅減少重症外送就醫",
+        "緊接開展第 2 期康復醫院工程，完善急症治療與術後復康無縫銜接"
+      ],
+      "facts_en": [
+        "430,000 m² medical campus with 800+ beds and 26 operating rooms",
+        "Advanced radiotherapy & precision oncology keeping care local",
+        "Phase 2 Rehabilitation Hospital expanding post-acute recovery"
+      ],
+      "model": "clinic",
+      "schedule": "第 1 年",
+      "sort_order": 1
+    },
+    {
+      "id": "en-2",
+      "district_id": "environment",
+      "name": "輕軌石排灣線（協和醫院站—石排灣站）",
+      "name_en": "LRT Seac Pai Van Line (Union Hospital–Seac Pai Van)",
+      "description": "於協和醫院站與氹仔線轉乘，直通石排灣公屋群與郊野公園，便利長者就醫與居民通勤。",
+      "description_en": "Elevated LRT branch connecting Union Hospital transfer hub with Seac Pai Van estates.",
+      "facts": [
+        "全長 1.6 公里，設「協和醫院站」轉乘大堂及「石排灣站」兩座高架車站",
+        "車站設有天橋直連離島醫院門診大樓及石排灣公共房屋行人天橋網",
+        "全線採用膠輪靜音高架軌道，將石排灣納入 15 分鐘輕軌生活圈"
+      ],
+      "facts_en": [
+        "1.6 km elevated line linking Union Hospital & Seac Pai Van",
+        "Direct skybridges into hospital outpatient clinics & estates",
+        "Quiet rubber-tyred trains bring 15-min rail access to Coloane"
+      ],
+      "model": "lrtstation",
+      "schedule": "第 1 年",
+      "sort_order": 2
+    },
+    {
+      "id": "en-3",
+      "district_id": "environment",
+      "name": "路環再生水站與「電子及電器設備回收」網絡",
+      "name_en": "Coloane Recycled Water Plant & Clean Recycling Net",
+      "description": "生產高品質再生水供應石排灣、澳大及新城 A 區，並於全澳社區普及「環保加Fun站」。",
+      "description_en": "Reclaimed water plant supplying Seac Pai Van & UM, plus Eco-Fun recycling stations.",
+      "facts": [
+        "路環再生水站第一期日產能達 1.5 萬立方公尺，每年節省逾 500 萬噸淡水",
+        "全澳設置逾 4,000 個三色回收點、廚餘回收桶及 9 間「環保加Fun站」",
+        "建築廢料惰性拆建物料篩選回填利用，配合太陽能光伏發電併網"
+      ],
+      "facts_en": [
+        "15,000 m³/day recycled water saving 5M+ tons of fresh water/yr",
+        "4,000+ recycling nodes and 9 Eco-Fun community stations",
+        "Construction material sorting and rooftop solar feed-in tariff"
+      ],
+      "model": "globe",
+      "schedule": "2–3 年",
+      "sort_order": 3
+    },
+    {
+      "id": "en-4",
+      "district_id": "environment",
+      "name": "石排灣郊野公園大熊貓館與原生植物園",
+      "name_en": "Seac Pai Van Giant Panda Pavilion & Native Flora",
+      "description": "依山而建的半透明膜結構大熊貓館（「開開、心心、健健、康康」），結合香徑藥谷教育。",
+      "description_en": "Bioclimatic Giant Panda Pavilion and medicinal botanical trail in Seac Pai Van.",
+      "facts": [
+        "3,000 平方公尺扇形自然採光熊貓館，模擬四川高山竹林微氣候",
+        "園區內設珍稀動物館、土地暨自然博物館與香徑藥谷生態園區",
+        "每年為全澳逾 4.5 萬名學童提供免費自然生態與生物多樣性導賞"
+      ],
+      "facts_en": [
+        "3,000 m² fan-shaped panda habitat for Kai Kai, Xin Xin, Jian Jian & Kang Kang",
+        "Includes Natural & Agrarian Museum and Medicinal Valley",
+        "45,000+ students join free biodiversity tours annually"
+      ],
+      "model": "farm",
+      "schedule": "第 1 年",
+      "sort_order": 4
+    },
+    {
+      "id": "gr-1",
+      "district_id": "greenspace",
+      "name": "黑沙青少年活動體驗營與海濱泳灘保育",
+      "name_en": "Hac Sa Youth Adventure Park & Beach Conservation",
+      "description": "活化黑沙海灘周邊約 10 公頃空間，打造全齡歷奇攀爬、滑索、露營與沙灘防侵蝕護養。",
+      "description_en": "10-hectare coastal adventure park with zip-lines, camping, and Hac Sa beach nourishment.",
+      "facts": [
+        "整合約 10 公頃綠地，設自然歷奇塔、山地單車場及防風林露營區",
+        "採用天然海砂補沙與生態潛堤技術，穩定 1.3 公里黑沙海灣海岸線",
+        "配備逾 500 個綠蔭泊車位及假日快速接駁巴士專線"
+      ],
+      "facts_en": [
+        "10-hectare eco-adventure park with zip-lines & mountain biking",
+        "Ecological beach nourishment protecting the 1.3 km Hac Sa bay",
+        "500+ shaded parking spots and weekend express shuttle buses"
+      ],
+      "model": "pavilion",
+      "schedule": "2–3 年",
+      "sort_order": 1
+    },
+    {
+      "id": "gr-2",
+      "district_id": "greenspace",
+      "name": "路環步行徑（全澳最高點疊石塘山）與古樹保育",
+      "name_en": "Coloane Trail Network & Heritage Tree Conservation",
+      "description": "修繕全島逾 30 公里山林步道，並為全澳編號古樹名木建立「一樹一檔」健康監測。",
+      "description_en": "30+ km mountain trails around 170m Alto de Coloane and digital health tags for ancient trees.",
+      "facts": [
+        "路環步行徑於 1984 年開闢，環繞海拔 170.6 公尺全澳最高峰疊石塘山",
+        "市政署為全澳逾 600 棵《古樹名木保護名錄》樹木安裝二维码與微創應力檢測",
+        "每年「澳門綠化週」與市民合力補植原生抗風樹種逾 1.5 萬株"
+      ],
+      "facts_en": [
+        "30+ km trail network circling 170.6m Alto de Coloane peak",
+        "600+ registered ancient trees protected with digital health tags",
+        "15,000+ native wind-resistant saplings planted in Green Week"
+      ],
+      "model": "farm",
+      "schedule": "第 1 年",
+      "sort_order": 2
+    },
+    {
+      "id": "gr-3",
+      "district_id": "greenspace",
+      "name": "路環十月初五馬路漁村風貌與荔枝碗船廠片區",
+      "name_en": "Coloane Waterfront & Lai Chi Vun Shipyards",
+      "description": "保育聖方濟各聖堂、恩尼斯花園與葡撻老店街區，並活化荔枝碗百年造船工業遺址。",
+      "description_en": "Preserve Chapel of St. Francis Xavier and revitalize Lai Chi Vun historic shipyards.",
+      "facts": [
+        "荔枝碗船廠片區 X11–X15 號船廠修復為造船工藝展示館與海景文創市集",
+        "路環碼頭與十月初五馬路保留低密度嶺南與南歐交融海岸風貌",
+        "增設路環西側防洪排澇設施，保護百年漁村免受天文大潮倒灌"
+      ],
+      "facts_en": [
+        "Lai Chi Vun Shipyards X11–X15 restored as maritime museum & market",
+        "Preserves low-rise Luso-Cantonese fishing village waterfront",
+        "Discreet tidal flood defenses protecting historic coastal lanes"
+      ],
+      "model": "cottage",
+      "schedule": "第 1 年",
+      "sort_order": 3
+    },
+    {
+      "id": "gr-4",
+      "district_id": "greenspace",
+      "name": "九澳聖母村古建築群與海岸燈塔觀星角",
+      "name_en": "Ka Ho Our Lady Village & Cape Lighthouse Stargazing",
+      "description": "修復九澳七苦聖母小堂與彩色葡式小屋為青年藝術展館，結合九澳燈塔海岸生態。",
+      "description_en": "Restored pastel cottages at Ka Ho Village and coastal stargazing by Ka Ho Lighthouse.",
+      "facts": [
+        "全面修復 5 間 1930 年代折衷主義彩色小屋及 1966 年九澳七苦聖母小堂",
+        "引入社會企業與康復學員營運咖啡廊，創造共融就業機會",
+        "九澳隧道通車後，由路氹城前往九澳深水港及聖母村車程縮短至 6 分鐘"
+      ],
+      "facts_en": [
+        "5 restored 1930s pastel cottages & 1966 Chapel of Our Lady of Sorrows",
+        "Inclusive social-enterprise café staffed by rehab trainees",
+        "Ka Ho Tunnel cuts travel time from Cotai to Ka Ho to 6 minutes"
+      ],
+      "model": "guia",
+      "schedule": "2–3 年",
+      "sort_order": 4
+    },
+    {
+      "id": "hs-1",
+      "district_id": "hacsa",
+      "name": "黑沙海灘防浪護灘生態工程與黑沙水庫郊野公園",
+      "name_en": "Hac Sa Beach Coastal Protection & Reservoir Park",
+      "description": "全長約 1.2 公里之天然新月形海灣，結合木麻黃防風林、水上活動中心與黑沙水庫吊橋滑草場。",
+      "description_en": "1.2 km natural crescent bay paired with Casuarina coastal forests, water sports, and Hac Sa Reservoir suspension bridge.",
+      "facts": [
+        "海灣全長約 1,200 公尺，市政署持續進行海灘補沙與木麻黃海岸防風林復育，年接待逾 150 萬人次",
+        "黑沙水庫郊野公園設有 60 公尺長高空吊橋、水上樂園、植物迷宮及觀星露營區",
+        "串聯黑沙龍爪角海岸徑（全長 2.15 公里），沿途可觀賞億萬年海蝕奇石與聽海軒景觀"
+      ],
+      "facts_en": [
+        "1,200m natural bay welcoming 1.5M+ visitors/yr with Casuarina coastal forest restoration",
+        "Hac Sa Reservoir Park features a 60m suspension bridge, water park & stargazing camp",
+        "Linked to the 2.15 km Long Chao Kok Coastal Trail showcasing dramatic sea-eroded granite"
+      ],
+      "model": "park",
+      "schedule": "第 1 年",
+      "sort_order": 1
+    },
+    {
+      "id": "hs-2",
+      "district_id": "hacsa",
+      "name": "黑沙青少年活動體驗營（10 公頃全齡山海歷奇園區）",
+      "name_en": "Hac Sa Youth Adventure & Eco-Experience Camp (10 ha)",
+      "description": "整合黑沙海灘旁閒置土地打造佔地 10 公頃之大型戶外歷奇、高空滑索、山地單車與自然教育基地。",
+      "description_en": "10-hectare outdoor adventure park offering zip-lines, mountain bike pump tracks, ropes courses, and eco-camping.",
+      "facts": [
+        "總面積達 10 公頃，規劃 12 大主題片區，涵蓋高空繩索歷奇塔、滑索、攀岩牆與山地單車越野場",
+        "堅持「零砍伐原生大樹、低密度生態工法」，園區綠化覆蓋率超過 75% 並設雨水花園蓄水系統",
+        "提供全澳中小學戶外教育營宿及週末親子自然探索工作坊，預計年服務逾 80 萬人次"
+      ],
+      "facts_en": [
+        "10-hectare park with 12 adventure zones including zip-lines, climbing towers & MTB trails",
+        "Over 75% green coverage using low-impact sponge-city rainwater gardens",
+        "Serves Macao schools and families with capacity for 800,000+ annual visits"
+      ],
+      "model": "campsite",
+      "schedule": "2–3 年",
+      "sort_order": 2
+    },
+    {
+      "id": "hs-3",
+      "district_id": "hacsa",
+      "name": "九澳聖母村文遺活化、九澳隧道與路環潔淨能源站",
+      "name_en": "Ka Ho Our Lady Village Heritage, Tunnel & Clean Energy",
+      "description": "修復 1930 年代五間葡式粉彩小屋與 1966 年七苦聖母小堂，並透過九澳隧道 6 分鐘直通路氹城東。",
+      "description_en": "Restored 1930s pastel cottages and 1966 Chapel of Our Lady of Sorrows connected via the 6-minute Ka Ho Tunnel.",
+      "facts": [
+        "完整修復 5 間 1930 年代九澳麻風院舍葡式粉彩小屋與 1966 年義工雕塑之七苦聖母小堂",
+        "引入康復社企咖啡館與青少年藝術展館，成為路環東岸熱門文化打卡點",
+        "九澳雙孔行車隧道貫通大潭山與九澳堤壩馬路，由路氹城前往九澳車程縮短至 6 分鐘"
+      ],
+      "facts_en": [
+        "5 restored 1930s pastel cottages & 1966 Chapel of Our Lady of Sorrows",
+        "Features an inclusive social-enterprise café and youth art galleries",
+        "Twin-tube Ka Ho Tunnel cuts travel time from Cotai East to Ka Ho to 6 minutes"
+      ],
+      "model": "guia",
+      "schedule": "第 1 年",
+      "sort_order": 3
+    }
+  ]
+}

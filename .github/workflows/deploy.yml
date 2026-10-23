@@ -29,5 +29,10 @@ jobs:
             cd /var/www/macao-3d-civic-island
             git fetch origin main
             git reset --hard origin/main
-            git clean -fd
+            git clean -fd -e server/node_modules
+            cd server
+            npm ci --omit=dev --no-audit --no-fund
+            npm run seed
+            sudo -n systemctl restart macao-city
+            sudo -n systemctl is-active --quiet macao-city
           '
