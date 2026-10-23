@@ -1339,9 +1339,14 @@
   window.addEventListener('macao:citizen', (ev) => {
     const d = ev.detail || {};
     if (!d.userId) return;
-    if (!state.me || !state.me.authenticated) { flashDot(); return; }
     state.sandboxVisit = Number(d.userId);
     state.sandboxSlot = null;
+    if (!state.me || !state.me.authenticated) {
+      // 未登入時仍打開面板顯示登入卡，避免「點了沒反應」
+      flashDot();
+      openPanel('sandbox');
+      return;
+    }
     openPanel('sandbox');
   });
   // 在 3D 場景點擊自己的建設，直接打開沙盤對應格子
