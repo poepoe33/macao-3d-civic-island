@@ -8483,80 +8483,394 @@
           return 0xdb6a41;
         }
 
-        function buildCitizenFigure(level, opts = {}) {
-          const g = new THREE.Group();
-          const color = opts.figureColor ? new THREE.Color(opts.figureColor).getHex() : citizenColor(level);
-          const skin = new THREE.MeshStandardMaterial({ color: 0xfce2ce, roughness: 0.75 });
-          const cloth = new THREE.MeshStandardMaterial({ color, roughness: 0.7 });
-          const hairColor = opts.gender === 'female' ? 0x4a3328 : 0x2f2622;
+        // ---- 公仔建構器：完整外觀組合（臉／髮／身型／服裝／配件／顏色） ----
+        // 材質與幾何全部快取共用，60 位市民同時在場也不會重複佔用記憶體
+        const FIG_MATS = new Map();
+        const FIG_GEOS = new Map();
+        const FIG_DEFAULTS = {
+          face: "oval", eyes: "almond", brow: "natural", nose: "button", mouth: "smile",
+          facialHair: "none", hair: "short", body: "average", height: "normal",
+          top: "tee", bottom: "jeans", shoes: "sneakers", outer: "none",
+          glasses: "none", hat: "none", accessory: "none",
+          skin: "#f2c9a8", hairColor: "#2f2622", topColor: "#db6a41", bottomColor: "#3e5c76",
+          shoesColor: "#f7f7f7", outerColor: "#6a9b7a", hatColor: "#3e7c8c", accessoryColor: "#f2c14e",
+        };
+        const FIG_ENUMS = {
+          face: ["oval", "round", "square", "heart", "long"],
+          eyes: ["almond", "round", "sharp", "sleepy", "wide"],
+          brow: ["natural", "thick", "thin", "raised"],
+          nose: ["button", "straight", "wide", "small"],
+          mouth: ["smile", "neutral", "grin", "pout"],
+          facialHair: ["none", "beard", "mustache", "goatee"],
+          hair: ["short", "fade", "buzz", "curly", "long", "ponytail", "bun", "mohawk"],
+          body: ["slim", "average", "athletic", "heavy"],
+          height: ["short", "normal", "tall"],
+          top: ["tee", "shirt", "hoodie", "jacket", "blazer", "dress", "tank"],
+          bottom: ["jeans", "shorts", "skirt", "trousers", "leggings"],
+          shoes: ["sneakers", "boots", "dress", "sandals"],
+          outer: ["none", "coat", "vest", "apron"],
+          glasses: ["none", "round", "square", "sun"],
+          hat: ["none", "cap", "beanie", "bucket", "helmet"],
+          accessory: ["none", "backpack", "scarf", "badge", "headphones"],
+        };
+        const FIG_COLOR_KEYS = ["skin", "hairColor", "topColor", "bottomColor", "shoesColor", "outerColor", "hatColor", "accessoryColor"];
 
-          const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.026, 0.04, 4, 8), cloth);
-          body.position.y = 0.055;
-          body.castShadow = true;
+        function figMat(hex, roughness, metalness) {
+          const r = roughness == null ? 0.75 : roughness;
+          const key = hex + "|" + r + "|" + (metalness || 0);
+          let mat = FIG_MATS.get(key);
+          if (!mat) {
+            mat = new THREE.MeshStandardMaterial({ color: new THREE.Color(hex).getHex(), roughness: r, metalness: metalness || 0 });
+            FIG_MATS.set(key, mat);
+          }
+          return mat;
+        }
+
+        function figShade(hex, k) {
+          const c = new THREE.Color(hex);
+          return "#" + c.clone().multiplyScalar(k).getHexString();
+        }
+
+        function figGeo(key, make) {
+          let geo = FIG_GEOS.get(key);
+          if (!geo) {
+            geo = make();
+            FIG_GEOS.set(key, geo);
+          }
+          return geo;
+        }
+
+        function figureConfig(opts) {
+          const cfg = Object.assign({}, FIG_DEFAULTS);
+          const src = opts && opts.avatar && typeof opts.avatar === "object" ? opts.avatar : null;
+          if (src) {
+            Object.keys(FIG_ENUMS).forEach((key) => {
+              if (FIG_ENUMS[key].indexOf(src[key]) >= 0) cfg[key] = src[key];
+            });
+            FIG_COLOR_KEYS.forEach((key) => {
+              const v = String(src[key] || "");
+              if (/^#[0-9a-fA-F]{6}$/.test(v)) cfg[key] = v.toLowerCase();
+            });
+            return cfg;
+          }
+          // 舊資料（只有顏色／造型）轉換成建構器設定
+          const color = String((opts && opts.figureColor) || "");
+          if (/^#[0-9a-fA-F]{6}$/.test(color)) cfg.topColor = color.toLowerCase();
+          if (opts.figureStyle === "formal") { cfg.top = "blazer"; cfg.bottom = "trousers"; cfg.shoes = "dress"; }
+          else if (opts.figureStyle === "sport") { cfg.top = "tank"; cfg.bottom = "shorts"; }
+          if (opts.gender === "female") { cfg.hair = "ponytail"; if (cfg.bottom !== "trousers") cfg.bottom = "skirt"; }
+          return cfg;
+        }
+
+        // 把同材質的零件合併成單一網格：每位市民約 40 件零件 → 約 12 次 draw call
+        function mergeFigureParts(body) {
+          const buckets = new Map();
+          const meshes = [];
+          body.children.forEach((o) => { if (o.isMesh) meshes.push(o); });
+          meshes.forEach((m) => {
+            m.updateMatrix();
+            const key = m.material.uuid;
+            if (!buckets.has(key)) buckets.set(key, { material: m.material, list: [] });
+            buckets.get(key).list.push(m.geometry.clone().applyMatrix4(m.matrix));
+          });
+          meshes.forEach((m) => body.remove(m));
+          buckets.forEach(({ material, list }) => {
+            const flat = list.map((geo) => (geo.index ? geo.toNonIndexed() : geo));
+            const merged = BufferGeometryUtils.mergeGeometries(flat, false);
+            flat.forEach((geo) => geo.dispose());
+            list.forEach((geo) => { if (flat.indexOf(geo) < 0) geo.dispose(); });
+            if (!merged) return;
+            const mesh = new THREE.Mesh(merged, material);
+            mesh.castShadow = true;
+            mesh.userData.merged = true;
+            body.add(mesh);
+          });
+        }
+
+        function figPart(parent, geo, mat, pos, rot, scl) {
+          const mesh = new THREE.Mesh(geo, mat);
+          if (pos) mesh.position.set(pos[0], pos[1], pos[2]);
+          if (rot) mesh.rotation.set(rot[0], rot[1], rot[2]);
+          if (scl) mesh.scale.set(scl[0], scl[1], scl[2]);
+          mesh.castShadow = true;
+          parent.add(mesh);
+          return mesh;
+        }
+
+        function buildCitizenFigure(level, opts = {}) {
+          const cfg = figureConfig(opts);
+          const g = new THREE.Group();
+          const body = new THREE.Group();
+          const wScale = { slim: 0.86, average: 1, athletic: 1.16, heavy: 1.24 }[cfg.body] || 1;
+          const hScale = { short: 0.9, normal: 1, tall: 1.1 }[cfg.height] || 1;
+          body.scale.set(wScale, hScale, Math.min(1.18, wScale * 0.98));
           g.add(body);
 
-          // 依性別微調身形與髮型，讓自訂公仔可辨識
-          if (opts.gender === 'female') {
-            const skirt = new THREE.Mesh(new THREE.ConeGeometry(0.038, 0.038, 10, 1, true), cloth);
-            skirt.position.y = 0.028;
-            g.add(skirt);
-          } else if (opts.gender === 'male') {
-            const shoulder = new THREE.Mesh(new THREE.BoxGeometry(0.062, 0.016, 0.024), cloth);
-            shoulder.position.y = 0.081;
-            g.add(shoulder);
+          const skinMat = figMat(cfg.skin, 0.82);
+          const topMat = figMat(cfg.topColor, 0.7);
+          const topDark = figMat(figShade(cfg.topColor, 0.72), 0.7);
+          const bottomMat = figMat(cfg.bottomColor, 0.72);
+          const shoeMat = figMat(cfg.shoesColor, 0.6);
+          const hairMat = figMat(cfg.hairColor, 0.85);
+          const darkMat = figMat("#2b2320", 0.55);
+          const isDress = cfg.top === "dress";
+          const bareArms = cfg.top === "tank" || isDress;
+          const bareLegs = isDress || cfg.bottom === "skirt" || cfg.bottom === "shorts";
+
+          // ---- 鞋 ----
+          const shoeH = cfg.shoes === "boots" ? 0.015 : cfg.shoes === "sandals" ? 0.005 : 0.01;
+          const shoeGeo = figGeo("shoe-" + shoeH, () => new THREE.BoxGeometry(0.018, shoeH, cfg.shoes === "dress" ? 0.03 : 0.028));
+          [-0.0105, 0.0105].forEach((x) => {
+            figPart(body, shoeGeo, shoeMat, [x, shoeH / 2 + 0.001, 0.003]);
+          });
+
+          // ---- 腿 ----
+          const legGeo = figGeo("leg", () => new THREE.CapsuleGeometry(0.008, 0.022, 3, 8));
+          const legMat = bareLegs ? skinMat : bottomMat;
+          [-0.0105, 0.0105].forEach((x) => {
+            figPart(body, legGeo, legMat, [x, 0.030, 0]);
+          });
+
+          // ---- 下身 ----
+          if (bareLegs) {
+            figPart(body, figGeo("shorts", () => new THREE.BoxGeometry(0.037, 0.015, 0.024)),
+              isDress ? topMat : bottomMat, [0, 0.047, 0]);
+          } else {
+            figPart(body, figGeo("hip", () => new THREE.BoxGeometry(0.038, 0.016, 0.025)),
+              bottomMat, [0, 0.047, 0]);
+          }
+          if (cfg.bottom === "skirt" || isDress) {
+            figPart(body, figGeo("skirt", () => new THREE.CylinderGeometry(0.019, 0.032, 0.032, 12, 1, false)),
+              isDress ? topMat : bottomMat, [0, 0.043, 0]);
           }
 
-          if (opts.figureStyle === 'formal') {
-            const badge = new THREE.Mesh(
-              new THREE.BoxGeometry(0.008, 0.02, 0.006),
-              new THREE.MeshStandardMaterial({ color: 0xf2f2f2, roughness: 0.5 })
-            );
-            badge.position.set(0.016, 0.065, 0.021);
-            g.add(badge);
-          } else if (opts.figureStyle === 'sport') {
-            const band = new THREE.Mesh(
-              new THREE.TorusGeometry(0.03, 0.005, 6, 14),
-              new THREE.MeshStandardMaterial({ color: 0xf7f7f7, roughness: 0.6 })
-            );
-            band.rotation.x = Math.PI / 2;
-            band.position.y = 0.098;
-            g.add(band);
+          // ---- 軀幹 ----
+          figPart(body, figGeo("torso", () => new THREE.CapsuleGeometry(0.020, 0.014, 4, 10)),
+            topMat, [0, 0.0715, 0]);
+          // 肩線：細肩帶款式露出膚色
+          figPart(body, figGeo("shoulder", () => new THREE.BoxGeometry(0.046, 0.009, 0.022)),
+            bareArms ? skinMat : topMat, [0, 0.0955, 0]);
+
+          // ---- 手臂與手 ----
+          const armGeo = figGeo("arm", () => new THREE.CapsuleGeometry(0.0065, 0.022, 3, 8));
+          const handGeo = figGeo("hand", () => new THREE.SphereGeometry(0.0062, 8, 6));
+          const armMat = bareArms ? skinMat : topMat;
+          [-1, 1].forEach((s) => {
+            figPart(body, armGeo, armMat, [s * 0.0265, 0.0755, 0], [0, 0, -s * 0.12]);
+            figPart(body, handGeo, skinMat, [s * 0.0295, 0.0555, 0]);
+          });
+
+          // ---- 服裝細節 ----
+          if (cfg.top === "shirt") {
+            const collarGeo = figGeo("collar-shirt", () => new THREE.BoxGeometry(0.010, 0.006, 0.010));
+            figPart(body, collarGeo, topDark, [-0.006, 0.0985, 0.010], [0, 0, 0.35]);
+            figPart(body, collarGeo, topDark, [0.006, 0.0985, 0.010], [0, 0, -0.35]);
+            figPart(body, figGeo("placket", () => new THREE.BoxGeometry(0.0026, 0.030, 0.003)), figMat("#f4f1ea", 0.6), [0, 0.074, 0.0205]);
+          } else if (cfg.top === "jacket") {
+            figPart(body, figGeo("zipper", () => new THREE.BoxGeometry(0.0024, 0.036, 0.003)), figMat("#d9dde0", 0.4, 0.3), [0, 0.073, 0.0205]);
+            figPart(body, figGeo("collar-jacket", () => new THREE.BoxGeometry(0.026, 0.007, 0.020)), topDark, [0, 0.098, 0]);
+          } else if (cfg.top === "hoodie") {
+            figPart(body, figGeo("hood", () => new THREE.SphereGeometry(0.021, 10, 8, 0, Math.PI * 2, 0, Math.PI * 0.6)),
+              topDark, [0, 0.104, -0.012]);
+            figPart(body, figGeo("pocket", () => new THREE.BoxGeometry(0.022, 0.010, 0.004)), topDark, [0, 0.060, 0.0205]);
+          } else if (cfg.top === "blazer") {
+            figPart(body, figGeo("shirt-strip", () => new THREE.BoxGeometry(0.011, 0.030, 0.003)), figMat("#f7f5ef", 0.6), [0, 0.080, 0.0195]);
+            const lapelGeo = figGeo("lapel", () => new THREE.BoxGeometry(0.013, 0.026, 0.003));
+            figPart(body, lapelGeo, topDark, [-0.009, 0.0855, 0.0205], [0, 0, 0.28]);
+            figPart(body, lapelGeo, topDark, [0.009, 0.0855, 0.0205], [0, 0, -0.28]);
           }
 
-          const head = new THREE.Mesh(new THREE.SphereGeometry(0.032, 12, 10), skin);
-          head.position.y = 0.115;
-          head.castShadow = true;
-          g.add(head);
-
-          const hairMat = new THREE.MeshStandardMaterial({ color: hairColor, roughness: 0.8 });
-          const hair = new THREE.Mesh(
-            new THREE.SphereGeometry(0.034, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.55),
-            hairMat
-          );
-          hair.position.y = 0.122;
-          g.add(hair);
-
-          if (opts.gender === 'female') {
-            const tail = new THREE.Mesh(new THREE.CapsuleGeometry(0.011, 0.038, 3, 6), hairMat);
-            tail.position.set(0, 0.098, -0.025);
-            g.add(tail);
+          // ---- 外套 ----
+          if (cfg.outer === "coat") {
+            const coatMat = figMat(cfg.outerColor, 0.72);
+            const panelGeo = figGeo("coat-panel", () => new THREE.BoxGeometry(0.009, 0.058, 0.028));
+            figPart(body, panelGeo, coatMat, [-0.0245, 0.072, 0]);
+            figPart(body, panelGeo, coatMat, [0.0245, 0.072, 0]);
+            figPart(body, figGeo("coat-collar", () => new THREE.BoxGeometry(0.040, 0.008, 0.026)), figMat(figShade(cfg.outerColor, 0.8), 0.72), [0, 0.096, 0]);
+          } else if (cfg.outer === "vest") {
+            figPart(body, figGeo("vest", () => new THREE.BoxGeometry(0.032, 0.040, 0.012)), figMat(cfg.outerColor, 0.72), [0, 0.073, 0.014]);
+          } else if (cfg.outer === "apron") {
+            const apronMat = figMat(cfg.outerColor, 0.74);
+            figPart(body, figGeo("apron", () => new THREE.BoxGeometry(0.028, 0.046, 0.004)), apronMat, [0, 0.067, 0.0205]);
+            const strapGeo = figGeo("apron-strap", () => new THREE.BoxGeometry(0.003, 0.026, 0.003));
+            figPart(body, strapGeo, apronMat, [-0.010, 0.090, 0.0205]);
+            figPart(body, strapGeo, apronMat, [0.010, 0.090, 0.0205]);
           }
 
-          const shadow = new THREE.Mesh(
-            new THREE.CircleGeometry(0.042, 10),
-            new THREE.MeshBasicMaterial({ color: 0x211d1d, transparent: true, opacity: 0.2, depthWrite: false })
-          );
+          // ---- 頸與頭 ----
+          figPart(body, figGeo("neck", () => new THREE.CylinderGeometry(0.008, 0.009, 0.012, 8)), skinMat, [0, 0.102, 0]);
+          const faceShape = {
+            oval: [0.97, 1.06, 0.96], round: [1.06, 1.0, 1.0], square: [1.02, 0.98, 1.03],
+            heart: [1.0, 1.03, 0.94], long: [0.92, 1.14, 0.95],
+          }[cfg.face] || [1, 1, 1];
+          const head = figPart(body, figGeo("head", () => new THREE.SphereGeometry(0.028, 14, 12)), skinMat, [0, 0.1185, 0], null, faceShape);
+          const earGeo = figGeo("ear", () => new THREE.SphereGeometry(0.0058, 8, 6));
+          figPart(body, earGeo, skinMat, [-0.0272 * faceShape[0], 0.116, 0]);
+          figPart(body, earGeo, skinMat, [0.0272 * faceShape[0], 0.116, 0]);
+
+          // ---- 五官 ----
+          const eyeGeo = figGeo("eye", () => new THREE.SphereGeometry(0.0052, 8, 6));
+          const eyeScale = {
+            almond: [1, 0.78, 0.6], round: [1, 1, 0.65], sharp: [1.15, 0.5, 0.6],
+            sleepy: [1.05, 0.38, 0.55], wide: [1.08, 1.1, 0.7],
+          }[cfg.eyes] || [1, 0.8, 0.6];
+          [-1, 1].forEach((s) => {
+            figPart(body, eyeGeo, darkMat, [s * 0.0102, 0.121, 0.0228], [0, 0, cfg.eyes === "sharp" ? s * 0.16 : 0], eyeScale);
+          });
+          const browGeo = figGeo("brow", () => new THREE.BoxGeometry(0.010, 0.0024, 0.0026));
+          const browScale = cfg.brow === "thick" ? [1.15, 1.6, 1] : cfg.brow === "thin" ? [0.8, 0.62, 1] : [1, 1, 1];
+          [-1, 1].forEach((s) => {
+            figPart(body, browGeo, hairMat, [s * 0.0102, 0.1275, 0.0242],
+              [0, 0, cfg.brow === "raised" ? s * -0.24 : s * -0.08], browScale);
+          });
+          if (cfg.nose === "straight") {
+            figPart(body, figGeo("nose-straight", () => new THREE.BoxGeometry(0.0038, 0.010, 0.0042)), skinMat, [0, 0.1135, 0.0258]);
+          } else if (cfg.nose === "wide") {
+            figPart(body, figGeo("nose-wide", () => new THREE.SphereGeometry(0.0042, 8, 6)), skinMat, [0, 0.1133, 0.0264], null, [1.3, 0.9, 1]);
+          } else {
+            const noseR = cfg.nose === "small" ? 0.0028 : 0.0034;
+            figPart(body, figGeo("nose-" + noseR, () => new THREE.SphereGeometry(noseR, 8, 6)), skinMat, [0, 0.1133, 0.0272]);
+          }
+          const mouthMat = figMat("#b3544f", 0.6);
+          if (cfg.mouth === "pout") {
+            figPart(body, figGeo("mouth-pout", () => new THREE.SphereGeometry(0.0042, 8, 6)), mouthMat, [0, 0.1065, 0.0262], null, [1, 0.7, 0.5]);
+          } else if (cfg.mouth === "grin") {
+            figPart(body, figGeo("mouth-grin", () => new THREE.BoxGeometry(0.0135, 0.0042, 0.0028)), mouthMat, [0, 0.1065, 0.0258]);
+            figPart(body, figGeo("teeth", () => new THREE.BoxGeometry(0.0115, 0.0018, 0.0016)), figMat("#f8f4ee", 0.5), [0, 0.1076, 0.0272]);
+          } else if (cfg.mouth === "neutral") {
+            figPart(body, figGeo("mouth-neutral", () => new THREE.BoxGeometry(0.0085, 0.0022, 0.0024)), mouthMat, [0, 0.1065, 0.0262]);
+          } else {
+            figPart(body, figGeo("mouth-smile", () => new THREE.TorusGeometry(0.0062, 0.0017, 5, 10, Math.PI)), mouthMat,
+              [0, 0.1072, 0.0264], [0, 0, Math.PI]);
+          }
+          if (cfg.facialHair === "beard") {
+            figPart(body, figGeo("beard", () => new THREE.SphereGeometry(0.0286, 12, 8, 0, Math.PI * 2, Math.PI * 0.56, Math.PI * 0.26)),
+              hairMat, [0, 0.1185, 0], null, faceShape);
+          } else if (cfg.facialHair === "mustache") {
+            figPart(body, figGeo("mustache", () => new THREE.BoxGeometry(0.012, 0.0032, 0.0032)), hairMat, [0, 0.1108, 0.0266], [0, 0, 0.06]);
+          } else if (cfg.facialHair === "goatee") {
+            figPart(body, figGeo("goatee", () => new THREE.BoxGeometry(0.0075, 0.008, 0.003)), hairMat, [0, 0.1015, 0.025]);
+          }
+
+          // ---- 髮型（前方留出臉部開口，避免遮住五官） ----
+          const capGeo = figGeo("hair-cap", () => new THREE.SphereGeometry(0.0297, 14, 8, Math.PI * 0.75, Math.PI * 1.5, 0, Math.PI * 0.5));
+          const fringeGeo = figGeo("hair-fringe", () => new THREE.BoxGeometry(0.036, 0.009, 0.012));
+          if (cfg.hair === "buzz") {
+            figPart(body, figGeo("hair-buzz", () => new THREE.SphereGeometry(0.0292, 14, 8, Math.PI * 0.75, Math.PI * 1.5, 0, Math.PI * 0.4)),
+              hairMat, [0, 0.126, 0], null, [1, 0.98, 1]);
+          } else if (cfg.hair === "fade") {
+            figPart(body, capGeo, hairMat, [0, 0.1235, 0], null, [1, 0.94, 1]);
+            const fadeGeo = figGeo("hair-fade", () => new THREE.BoxGeometry(0.004, 0.012, 0.020));
+            figPart(body, fadeGeo, hairMat, [-0.026, 0.124, 0.004]);
+            figPart(body, fadeGeo, hairMat, [0.026, 0.124, 0.004]);
+            figPart(body, fringeGeo, hairMat, [0, 0.1335, 0.0175]);
+          } else if (cfg.hair === "curly") {
+            figPart(body, capGeo, hairMat, [0, 0.1235, 0]);
+            const curlGeo = figGeo("curl", () => new THREE.SphereGeometry(0.0105, 8, 6));
+            [-0.014, 0.002, 0.015].forEach((x, i) => {
+              figPart(body, curlGeo, hairMat, [x, 0.142 + (i % 2) * 0.004, -0.006 + i * 0.003], null, [1, 0.9, 1]);
+            });
+          } else if (cfg.hair === "long") {
+            figPart(body, capGeo, hairMat, [0, 0.1235, 0]);
+            figPart(body, figGeo("hair-back", () => new THREE.BoxGeometry(0.044, 0.042, 0.014)), hairMat, [0, 0.104, -0.020]);
+            const sideGeo = figGeo("hair-side", () => new THREE.CapsuleGeometry(0.0075, 0.024, 3, 6));
+            figPart(body, sideGeo, hairMat, [-0.0265, 0.106, -0.004]);
+            figPart(body, sideGeo, hairMat, [0.0265, 0.106, -0.004]);
+            figPart(body, fringeGeo, hairMat, [0, 0.1335, 0.0175]);
+          } else if (cfg.hair === "ponytail") {
+            figPart(body, capGeo, hairMat, [0, 0.1235, 0]);
+            figPart(body, figGeo("hair-tail", () => new THREE.CapsuleGeometry(0.0105, 0.034, 3, 8)), hairMat, [0, 0.096, -0.030], [0.28, 0, 0]);
+            figPart(body, figGeo("hair-tie", () => new THREE.TorusGeometry(0.0105, 0.0022, 5, 10)), figMat("#c9483f", 0.6), [0, 0.114, -0.028], [Math.PI / 2, 0, 0]);
+            figPart(body, fringeGeo, hairMat, [0, 0.1335, 0.0175]);
+          } else if (cfg.hair === "bun") {
+            figPart(body, capGeo, hairMat, [0, 0.1235, 0]);
+            figPart(body, figGeo("hair-bun", () => new THREE.SphereGeometry(0.0125, 10, 8)), hairMat, [0, 0.147, -0.012]);
+            figPart(body, fringeGeo, hairMat, [0, 0.1335, 0.0175]);
+          } else if (cfg.hair === "mohawk") {
+            figPart(body, figGeo("hair-mohawk", () => new THREE.BoxGeometry(0.008, 0.020, 0.030)), hairMat, [0, 0.150, -0.002]);
+            figPart(body, figGeo("hair-mohawk-side", () => new THREE.BoxGeometry(0.030, 0.006, 0.024)), hairMat, [0, 0.128, 0]);
+          } else {
+            figPart(body, capGeo, hairMat, [0, 0.1235, 0]);
+            figPart(body, figGeo("sideburn", () => new THREE.BoxGeometry(0.004, 0.012, 0.008)), hairMat, [-0.0262, 0.120, 0.004]);
+            figPart(body, figGeo("sideburn", () => new THREE.BoxGeometry(0.004, 0.012, 0.008)), hairMat, [0.0262, 0.120, 0.004]);
+            figPart(body, fringeGeo, hairMat, [0, 0.1335, 0.0175]);
+          }
+
+          // ---- 眼鏡 ----
+          if (cfg.glasses !== "none") {
+            const frameMat = figMat(cfg.glasses === "sun" ? "#23201e" : "#4a4038", 0.4);
+            if (cfg.glasses === "round") {
+              const lensGeo = figGeo("glasses-round", () => new THREE.TorusGeometry(0.0072, 0.0014, 5, 12));
+              figPart(body, lensGeo, frameMat, [-0.0102, 0.121, 0.0282]);
+              figPart(body, lensGeo, frameMat, [0.0102, 0.121, 0.0282]);
+            } else {
+              const lensGeo = figGeo("glasses-square-" + cfg.glasses, () => new THREE.BoxGeometry(0.0135, cfg.glasses === "sun" ? 0.0088 : 0.0102, 0.002));
+              figPart(body, lensGeo, figMat("#2b2320", 0.35, 0.2), [-0.0102, 0.121, 0.0282]);
+              figPart(body, lensGeo, figMat("#2b2320", 0.35, 0.2), [0.0102, 0.121, 0.0282]);
+            }
+            figPart(body, figGeo("glasses-bridge", () => new THREE.BoxGeometry(0.007, 0.0014, 0.0016)), frameMat, [0, 0.123, 0.0288]);
+          }
+
+          // ---- 帽子（帽沿一律高於眉毛，避免遮住五官） ----
+          if (cfg.hat !== "none") {
+            const hatMat = figMat(cfg.hatColor, 0.7);
+            if (cfg.hat === "cap") {
+              figPart(body, figGeo("hat-cap", () => new THREE.SphereGeometry(0.0305, 14, 8, 0, Math.PI * 2, 0, Math.PI * 0.5)), hatMat, [0, 0.130, 0]);
+              figPart(body, figGeo("hat-brim", () => new THREE.BoxGeometry(0.032, 0.004, 0.018)), hatMat, [0, 0.1315, 0.0265]);
+            } else if (cfg.hat === "beanie") {
+              figPart(body, figGeo("hat-beanie", () => new THREE.SphereGeometry(0.031, 14, 8, 0, Math.PI * 2, 0, Math.PI * 0.6)), hatMat, [0, 0.127, 0]);
+              figPart(body, figGeo("hat-band", () => new THREE.CylinderGeometry(0.0305, 0.0305, 0.008, 12)), figMat(figShade(cfg.hatColor, 0.8), 0.75), [0, 0.134, 0]);
+            } else if (cfg.hat === "bucket") {
+              figPart(body, figGeo("hat-bucket", () => new THREE.CylinderGeometry(0.020, 0.031, 0.020, 12)), hatMat, [0, 0.146, 0]);
+              figPart(body, figGeo("hat-bucket-brim", () => new THREE.CylinderGeometry(0.037, 0.037, 0.004, 12)), hatMat, [0, 0.135, 0]);
+            } else if (cfg.hat === "helmet") {
+              figPart(body, figGeo("hat-helmet", () => new THREE.SphereGeometry(0.0315, 14, 8, 0, Math.PI * 2, 0, Math.PI * 0.5)), hatMat, [0, 0.129, 0]);
+              figPart(body, figGeo("hat-visor", () => new THREE.BoxGeometry(0.027, 0.007, 0.014)), figMat("#2f4a52", 0.3, 0.35), [0, 0.1305, 0.0255]);
+            }
+          }
+
+          // ---- 配件 ----
+          if (cfg.accessory === "backpack") {
+            const bagMat = figMat(cfg.accessoryColor, 0.72);
+            figPart(body, figGeo("backpack", () => new THREE.BoxGeometry(0.030, 0.034, 0.016)), bagMat, [0, 0.074, -0.0255]);
+            const strapGeo = figGeo("backpack-strap", () => new THREE.BoxGeometry(0.004, 0.030, 0.004));
+            figPart(body, strapGeo, figMat(figShade(cfg.accessoryColor, 0.7), 0.7), [-0.011, 0.079, 0.019]);
+            figPart(body, strapGeo, figMat(figShade(cfg.accessoryColor, 0.7), 0.7), [0.011, 0.079, 0.019]);
+          } else if (cfg.accessory === "scarf") {
+            figPart(body, figGeo("scarf", () => new THREE.TorusGeometry(0.018, 0.0055, 6, 12)), figMat(cfg.accessoryColor, 0.8), [0, 0.1005, 0], [Math.PI / 2, 0, 0]);
+            figPart(body, figGeo("scarf-tail", () => new THREE.BoxGeometry(0.011, 0.028, 0.005)), figMat(figShade(cfg.accessoryColor, 0.85), 0.8), [0.006, 0.084, 0.018]);
+          } else if (cfg.accessory === "badge") {
+            figPart(body, figGeo("badge", () => new THREE.BoxGeometry(0.011, 0.013, 0.003)), figMat(cfg.accessoryColor, 0.35, 0.5), [0.010, 0.080, 0.0205]);
+            figPart(body, figGeo("badge-inner", () => new THREE.BoxGeometry(0.006, 0.007, 0.0016)), figMat("#fdf7e3", 0.4), [0.010, 0.080, 0.0222]);
+          } else if (cfg.accessory === "headphones") {
+            figPart(body, figGeo("hp-band", () => new THREE.TorusGeometry(0.0305, 0.0045, 6, 16)), figMat("#2b2320", 0.45), [0, 0.130, 0], [Math.PI / 2, 0, 0]);
+            const cupGeo = figGeo("hp-cup", () => new THREE.SphereGeometry(0.0075, 8, 6));
+            figPart(body, cupGeo, figMat(cfg.accessoryColor, 0.5), [-0.0285, 0.115, 0], null, [0.7, 1, 1]);
+            figPart(body, cupGeo, figMat(cfg.accessoryColor, 0.5), [0.0285, 0.115, 0], null, [0.7, 1, 1]);
+          }
+
+          // ---- 合併零件，降低 draw call ----
+          mergeFigureParts(body);
+
+          // ---- 地面陰影與等級光環 ----
+          const color = cfg.topColor ? new THREE.Color(cfg.topColor).getHex() : citizenColor(level);
+          let shadowMat = FIG_MATS.get("shadow-mat");
+          if (!shadowMat) {
+            shadowMat = new THREE.MeshBasicMaterial({ color: 0x211d1d, transparent: true, opacity: 0.2, depthWrite: false });
+            FIG_MATS.set("shadow-mat", shadowMat);
+          }
+          const shadow = new THREE.Mesh(figGeo("shadow", () => new THREE.CircleGeometry(0.042, 12)), shadowMat);
           shadow.rotation.x = -Math.PI / 2;
           shadow.position.y = 0.002;
           g.add(shadow);
 
-          // 等級光環
           const halo = new THREE.Mesh(
-            new THREE.RingGeometry(0.045, 0.058, 20),
+            figGeo("halo-geo", () => new THREE.RingGeometry(0.045, 0.058, 20)),
             new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.45, side: THREE.DoubleSide, depthWrite: false })
           );
           halo.rotation.x = -Math.PI / 2;
           halo.position.y = 0.004;
+          halo.userData.ownMaterial = true;
           g.add(halo);
           g.userData.halo = halo;
           return g;
@@ -8567,7 +8881,8 @@
             const child = citizenGroup.children[0];
             citizenGroup.remove(child);
             child.traverse((o) => {
-              if (o.geometry) o.geometry.dispose();
+              if (o.isMesh && o.userData.merged) o.geometry.dispose();
+              if (o.isMesh && o.userData.ownMaterial) o.material.dispose();
             });
           }
           citizens.length = 0;
@@ -8583,6 +8898,7 @@
               gender: c.gender,
               figureColor: c.figureColor,
               figureStyle: c.figureStyle,
+              avatar: c.avatar,
             });
             const radius = 0.33 + (idx % 3) * 0.05;
             fig.scale.setScalar(CITIZEN_SCALE);

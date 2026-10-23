@@ -193,8 +193,16 @@
 
 ### 個人資料與 3D 公仔
 
-- 「市民檔案」頁可直接編輯 **暱稱、性別、頭像 Emoji、公仔顏色、公仔造型（休閒／正式／運動）、居住分區、自我介紹**。
-- 儲存後即時同步：3D 地圖上的公仔會依性別改變身形與髮型，依顏色改變衣著，依造型加上領章或運動髮帶；名牌亦顯示頭像 Emoji。
+- 「市民檔案」頁可編輯 **暱稱、性別、頭像 Emoji、居住分區、自我介紹**，點「🎨 打開公仔建構器」進入完整造型編輯。
+- **公仔建構器**（模仿 SimCity 的角色建構）分六大分頁，可任意組合：
+  1. **臉部**：臉型（鵝蛋／圓／方／心形／長）、眼睛（杏眼／圓眼／銳利／慵懶／大眼）、眉毛（自然／濃／細／上揚）、鼻子（小巧／挺直／寬／迷你）、嘴巴（微笑／平嘴／露齒／嘟嘴）、鬍子（無／落腮鬍／八字鬍／山羊鬍）。
+  2. **髮型**：短髮、兩側削短、寸頭、捲髮、長髮、馬尾、丸子頭、莫西干。
+  3. **身型**：纖瘦／標準／健碩／豐滿，配合矮／中等／高。
+  4. **服裝**：上衣（T恤／襯衫／連帽衛衣／夾克／西裝／連身裙／背心）、下身（牛仔褲／短褲／裙子／長褲／緊身褲）、鞋子（波鞋／靴子／皮鞋／涼鞋）、外套（不穿／大衣／背心外套／圍裙）。
+  5. **配件**：眼鏡（無／圓框／方框／太陽眼鏡）、帽子（不戴／棒球帽／毛帽／漁夫帽／頭盔）、配件（無／背包／頸巾／胸章／耳機）。
+  6. **顏色**：膚色、髮色、上衣、下身、鞋子、外套、帽子、配件共 8 組調色盤，另可用取色器自訂。
+- 左側 2D SVG 即時預覽，右側選項以晶片呈現；支援「🎲 隨機造型」與「↩ 重設」。
+- 儲存後寫入 `users.avatar_config`，並同步 `figure_color`／`figure_style` 舊欄位；3D 地圖上的公仔立即以同一組設定重建。
 - 居住分區可隨時更改，公仔會搬到新分區中心。
 
 ### 私訊（PM）
@@ -271,7 +279,8 @@
 | POST | `/api/greet/:userId` | 向鄰居打招呼（每日 5 次，對方獲得城市幣） |
 | POST | `/api/sandbox/visit/:userId` | 記錄沙盤巡訪（好友才計入每日任務） |
 | GET | `/api/festival` | 依澳門日期回傳今日節慶（無則為 null） |
-| POST | `/api/profile` | 更新暱稱、性別、頭像、公仔顏色／造型、分區、自我介紹 |
+| POST | `/api/profile` | 更新暱稱、性別、頭像、公仔設定、分區、自我介紹 |
+| POST | `/api/avatar` | 儲存公仔建構器設定（16 個部位選項＋8 組顏色，白名單驗證） |
 | GET | `/api/messages` | 私訊會話列表（含未讀數） |
 | GET | `/api/messages/:userId` | 與指定市民的對話（讀取即標記已讀） |
 | POST | `/api/messages/:userId` | 發送私訊（上限 500 字） |
@@ -308,8 +317,24 @@
 
 | 資料表 | 主鍵 | 主要欄位 | 說明 |
 | --- | --- | --- | --- |
-| `users` | `id` BIGSERIAL | `google_sub UNIQUE, email, name, avatar_url, nickname, district_id → districts.id, level, xp, coins, streak_days, last_active_on, onboarded, gender, bio, avatar_emoji, figure_color, figure_style, role, banned, banned_reason, created_at` | 市民主檔；`role` 為 `citizen`／`admin`，`banned` 為封禁旗標 |
+| `users` | `id` BIGSERIAL | `google_sub UNIQUE, email, name, avatar_url, nickname, district_id → districts.id, level, xp, coins, streak_days, last_active_on, onboarded, gender, bio, avatar_emoji, figure_color, figure_style, avatar_config JSONB, role, banned, banned_reason, created_at` | 市民主檔；`role` 為 `citizen`／`admin`；`avatar_config` 存公仔建構器完整設定（見下） |
 | `sessions` | `token_hash` TEXT | `user_id → users.id, created_at, expires_at` | HttpOnly Cookie Session（30 天），封禁時刪除 |
+
+#### `users.avatar_config`（公仔建構器）
+
+`JSONB NOT NULL DEFAULT '{}'`，由 `POST /api/avatar` 寫入；伺服器逐鍵以白名單驗證，非法值回退預設，顏色必須為 `#RRGGBB`。
+
+| 分類 | 欄位 | 可選值 |
+| --- | --- | --- |
+| 臉部 | `face` / `eyes` / `brow` / `nose` / `mouth` / `facialHair` | oval·round·square·heart·long／almond·round·sharp·sleepy·wide／natural·thick·thin·raised／button·straight·wide·small／smile·neutral·grin·pout／none·beard·mustache·goatee |
+| 髮型 | `hair` | short·fade·buzz·curly·long·ponytail·bun·mohawk |
+| 身型 | `body` / `height` | slim·average·athletic·heavy／short·normal·tall |
+| 服裝 | `top` / `bottom` / `shoes` / `outer` | tee·shirt·hoodie·jacket·blazer·dress·tank／jeans·shorts·skirt·trousers·leggings／sneakers·boots·dress·sandals／none·coat·vest·apron |
+| 配件 | `glasses` / `hat` / `accessory` | none·round·square·sun／none·cap·beanie·bucket·helmet／none·backpack·scarf·badge·headphones |
+| 顏色 | `skin` / `hairColor` / `topColor` / `bottomColor` / `shoesColor` / `outerColor` / `hatColor` / `accessoryColor` | 任意 `#RRGGBB` |
+
+舊欄位 `figure_color`／`figure_style` 由 `topColor` 與服裝自動推導，供既有查詢與未使用建構器的舊資料相容；若 `avatar_config` 為空，`publicUser` / `/api/citizens` 會依 `gender`、`figure_color`、`figure_style` 產生預設設定。
+
 
 ### 探索、任務與互動紀錄
 
@@ -409,6 +434,14 @@ https://city.nexuslinktech.com/api/auth/google/callback
 ## 升級日誌
 
 > 每次修改／升級後在此補一筆，格式：`日期 · 版本 · 內容 · 影響檔案`。
+
+### 2026-10-24 · v13 · 公仔建構器（SimCity 式角色組合）
+- 新增 `users.avatar_config JSONB`：16 個部位選項（臉型／眼／眉／鼻／嘴／鬍／髮型／身型／身高／上衣／下身／鞋／外套／眼鏡／帽／配件）＋ 8 組顏色，全部白名單驗證。
+- 新增 `POST /api/avatar`；`/api/profile` 改為同時接受 `avatar` 並同步 `figure_color`／`figure_style`；`/api/me`、`/api/citizens` 回傳完整 `avatar`（舊資料自動推導預設值）。
+- 「市民檔案」新增「🎨 打開公仔建構器」：左側 2D SVG 即時預覽，右側六大分頁晶片選項，支援隨機、重設、Escape 關閉、儲存後即時同步 3D。
+- 3D `buildCitizenFigure` 重寫：逐項組合臉部五官、8 種髮型（前方留臉部開口避免遮擋）、4 種身型／3 種身高、7 種上衣＋5 種下身＋4 種鞋＋4 種外套、3 類配件（含眼鏡、帽、背包／頸巾／胸章／耳機）；材質與幾何全域快取，每位市民零件再按材質合併（約 40 件 → 約 12 次 draw call），避免 60 位市民造成記憶體與效能負擔。
+- README 補 `avatar_config` 欄位規格、API 一覽與本升級日誌。
+- 影響檔案：`server/src/schema.sql`、`server/src/index.js`、`3d_macao_3d_civic_island.html`、`web/social.js`、`web/social.css`、`README.md`。
 
 ### 2026-10-24 · v12 · 管理後台、個人化公仔、私訊與城市活動
 - README 新增完整「資料庫結構」章節：20 張資料表的主鍵、欄位、關聯與常用查詢。

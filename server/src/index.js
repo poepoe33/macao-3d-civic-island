@@ -121,6 +121,91 @@ const requireAdmin = (req, res, next) => {
 
 const wrap = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 
+// ---------- 公仔建構器設定 ----------
+// 所有可選項目以白名單驗證，顏色一律 #RRGGBB，避免任意 JSON 寫入資料庫
+const AVATAR_OPTIONS = {
+  face: ['oval', 'round', 'square', 'heart', 'long'],
+  eyes: ['almond', 'round', 'sharp', 'sleepy', 'wide'],
+  brow: ['natural', 'thick', 'thin', 'raised'],
+  nose: ['button', 'straight', 'wide', 'small'],
+  mouth: ['smile', 'neutral', 'grin', 'pout'],
+  facialHair: ['none', 'beard', 'mustache', 'goatee'],
+  hair: ['short', 'fade', 'buzz', 'curly', 'long', 'ponytail', 'bun', 'mohawk'],
+  body: ['slim', 'average', 'athletic', 'heavy'],
+  height: ['short', 'normal', 'tall'],
+  top: ['tee', 'shirt', 'hoodie', 'jacket', 'blazer', 'dress', 'tank'],
+  bottom: ['jeans', 'shorts', 'skirt', 'trousers', 'leggings'],
+  shoes: ['sneakers', 'boots', 'dress', 'sandals'],
+  outer: ['none', 'coat', 'vest', 'apron'],
+  glasses: ['none', 'round', 'square', 'sun'],
+  hat: ['none', 'cap', 'beanie', 'bucket', 'helmet'],
+  accessory: ['none', 'backpack', 'scarf', 'badge', 'headphones'],
+};
+
+const AVATAR_DEFAULTS = {
+  face: 'oval',
+  eyes: 'almond',
+  brow: 'natural',
+  nose: 'button',
+  mouth: 'smile',
+  facialHair: 'none',
+  hair: 'short',
+  body: 'average',
+  height: 'normal',
+  top: 'tee',
+  bottom: 'jeans',
+  shoes: 'sneakers',
+  outer: 'none',
+  glasses: 'none',
+  hat: 'none',
+  accessory: 'none',
+  skin: '#f2c9a8',
+  hairColor: '#2f2622',
+  topColor: '#db6a41',
+  bottomColor: '#3e5c76',
+  shoesColor: '#f7f7f7',
+  outerColor: '#6a9b7a',
+  hatColor: '#3e7c8c',
+  accessoryColor: '#f2c14e',
+};
+
+function normalizeAvatar(raw) {
+  const src = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : {};
+  const out = { version: 1 };
+  for (const [key, list] of Object.entries(AVATAR_OPTIONS)) {
+    out[key] = list.includes(src[key]) ? src[key] : AVATAR_DEFAULTS[key];
+  }
+  for (const key of ['skin', 'hairColor', 'topColor', 'bottomColor', 'shoesColor', 'outerColor', 'hatColor', 'accessoryColor']) {
+    const v = String(src[key] || '');
+    out[key] = /^#[0-9a-fA-F]{6}$/.test(v) ? v.toLowerCase() : AVATAR_DEFAULTS[key];
+  }
+  return out;
+}
+
+function figureStyleOf(avatar) {
+  if (avatar.top === 'blazer' || avatar.top === 'shirt') return 'formal';
+  if (avatar.top === 'tank' || avatar.outer === 'vest') return 'sport';
+  return 'casual';
+}
+
+// 舊資料（尚未使用建構器）以 figure_color / figure_style / gender 推導外觀
+function avatarForUser(u) {
+  const raw = u.avatar_config;
+  if (raw && typeof raw === 'object' && Object.keys(raw).length > 1) return normalizeAvatar(raw);
+  const base = normalizeAvatar(null);
+  if (/^#[0-9a-fA-F]{6}$/.test(String(u.figure_color || ''))) base.topColor = String(u.figure_color).toLowerCase();
+  if (u.figure_style === 'formal') {
+    base.top = 'blazer'; base.bottom = 'trousers'; base.shoes = 'dress';
+  } else if (u.figure_style === 'sport') {
+    base.top = 'tank'; base.bottom = 'shorts';
+  }
+  if (u.gender === 'female') {
+    base.hair = 'ponytail';
+    if (base.bottom !== 'trousers') base.bottom = 'skirt';
+  }
+  return base;
+}
+
 function publicUser(u, extra = {}) {
   return {
     id: u.id,
@@ -128,6 +213,7 @@ function publicUser(u, extra = {}) {
     name: u.name,
     email: u.email,
     avatarUrl: u.avatar_url,
+    avatar: avatarForUser(u),
     districtId: u.district_id,
     coins: u.coins,
     xp: u.xp,
@@ -307,14 +393,13 @@ app.post('/api/profile', requireUser, wrap(async (req, res) => {
   const gender = String(req.body.gender || 'other');
   const bio = String(req.body.bio || '').trim().slice(0, 120);
   const avatarEmoji = String(req.body.avatarEmoji || '🙂').slice(0, 8);
-  const figureColor = String(req.body.figureColor || '#db6a41');
-  const figureStyle = String(req.body.figureStyle || 'casual');
+  const avatar = req.body.avatar ? normalizeAvatar(req.body.avatar) : avatarForUser(req.user);
+  const figureColor = avatar.topColor;
+  const figureStyle = figureStyleOf(avatar);
   const districtId = req.body.districtId ? String(req.body.districtId) : null;
 
   if (nickname.length < 2) return res.status(400).json({ error: 'nickname_too_short' });
   if (!['male', 'female', 'other'].includes(gender)) return res.status(400).json({ error: 'bad_gender' });
-  if (!['casual', 'formal', 'sport'].includes(figureStyle)) return res.status(400).json({ error: 'bad_style' });
-  if (!/^#[0-9a-fA-F]{6}$/.test(figureColor)) return res.status(400).json({ error: 'bad_color' });
   if (districtId) {
     const { rows } = await query('SELECT id FROM districts WHERE id=$1', [districtId]);
     if (!rows[0]) return res.status(400).json({ error: 'bad_district' });
@@ -322,16 +407,27 @@ app.post('/api/profile', requireUser, wrap(async (req, res) => {
 
   const { rows } = await query(
     `UPDATE users SET nickname=$2, gender=$3, bio=$4, avatar_emoji=$5,
-            figure_color=$6, figure_style=$7,
-            district_id = COALESCE($8, district_id),
+            figure_color=$6, figure_style=$7, avatar_config=$8,
+            district_id = COALESCE($9, district_id),
             onboarded = TRUE
       WHERE id=$1
       RETURNING *`,
-    [req.user.id, nickname, gender, bio, avatarEmoji, figureColor, figureStyle, districtId]
+    [req.user.id, nickname, gender, bio, avatarEmoji, figureColor, figureStyle, avatar, districtId]
   );
   const level = await refreshLevel(req.user.id);
   const { tasks } = await computeTasks(req.user.id);
   res.json({ ok: true, user: publicUser(rows[0], { levelInfo: level }), tasks });
+}));
+
+// 公仔建構器：儲存完整外觀設定，並同步舊欄位供既有查詢使用
+app.post('/api/avatar', requireUser, wrap(async (req, res) => {
+  const avatar = normalizeAvatar(req.body.avatar);
+  const { rows } = await query(
+    `UPDATE users SET avatar_config=$2, figure_color=$3, figure_style=$4
+      WHERE id=$1 RETURNING *`,
+    [req.user.id, avatar, avatar.topColor, figureStyleOf(avatar)]
+  );
+  res.json({ ok: true, avatar, user: publicUser(rows[0]) });
 }));
 
 app.post('/api/discover', requireUser, wrap(async (req, res) => {
@@ -895,7 +991,7 @@ app.post('/api/admin/users/:id/grant', requireAdmin, wrap(async (req, res) => {
 app.get('/api/citizens', wrap(async (req, res) => {
   const { rows } = await query(
     `SELECT u.id, u.nickname, u.name, u.level, u.district_id,
-            u.gender, u.avatar_emoji, u.figure_color, u.figure_style,
+            u.gender, u.avatar_emoji, u.figure_color, u.figure_style, u.avatar_config,
             (SELECT count(*)::int FROM user_buildings b WHERE b.user_id = u.id) AS buildings,
             ${REPUTATION_SQL} AS reputation,
             EXISTS (
@@ -920,6 +1016,7 @@ app.get('/api/citizens', wrap(async (req, res) => {
       avatarEmoji: c.avatar_emoji || '🙂',
       figureColor: c.figure_color || '#db6a41',
       figureStyle: c.figure_style || 'casual',
+      avatar: avatarForUser(c),
     })),
   });
 }));

@@ -104,6 +104,51 @@
   const body = $('#mc-body');
   const tabs = $('#mc-tabs');
 
+  // ---------- 公仔建構器 DOM ----------
+  const avRoot = document.createElement('div');
+  avRoot.id = 'mc-av';
+  avRoot.hidden = true;
+  avRoot.innerHTML = `
+    <div class="mc-av-backdrop" data-av-close></div>
+    <section class="mc-av-dialog" role="dialog" aria-modal="true" aria-label="公仔建構器">
+      <header class="mc-av-head">
+        <div>
+          <div class="mc-av-title">🎨 公仔建構器</div>
+          <div class="mc-av-sub">自由組合臉型、髮型、身型、服裝與配件</div>
+        </div>
+        <button class="mc-close" type="button" data-av-close aria-label="關閉">×</button>
+      </header>
+      <div class="mc-av-main">
+        <div class="mc-av-stage">
+          <div class="mc-av-figure" id="mc-av-figure"></div>
+          <div class="mc-av-summary" id="mc-av-summary"></div>
+          <div class="mc-row" style="justify-content:center;gap:8px;">
+            <button class="mc-btn ghost" id="mc-av-random" type="button">🎲 隨機造型</button>
+            <button class="mc-btn ghost" id="mc-av-reset" type="button">↩ 重設</button>
+          </div>
+        </div>
+        <div class="mc-av-side">
+          <nav class="mc-av-tabs" id="mc-av-tabs">
+            <button type="button" data-av-tab="face">臉部</button>
+            <button type="button" data-av-tab="hair">髮型</button>
+            <button type="button" data-av-tab="body">身型</button>
+            <button type="button" data-av-tab="outfit">服裝</button>
+            <button type="button" data-av-tab="extra">配件</button>
+            <button type="button" data-av-tab="color">顏色</button>
+          </nav>
+          <div class="mc-av-pane" id="mc-av-pane"></div>
+        </div>
+      </div>
+      <footer class="mc-av-foot">
+        <span class="mc-av-hint">儲存後 3D 地圖上的公仔立即更新</span>
+        <div class="mc-row">
+          <button class="mc-btn ghost" id="mc-av-cancel" type="button">取消</button>
+          <button class="mc-btn" id="mc-av-save" type="button">儲存並同步 3D</button>
+        </div>
+      </footer>
+    </section>`;
+  root.appendChild(avRoot);
+
   // 市民入口放到頂部工具列（與全景／清單／語言同排）
   const topToolbar = document.querySelector('.top-toolbar');
   if (topToolbar) {
@@ -207,6 +252,396 @@
       </div>`;
   }
 
+  // ======================================================================
+  //  公仔建構器：臉部／髮型／身型／服裝／配件／顏色
+  // ======================================================================
+  const AV_GROUPS = {
+    face: [
+      { key: 'face', label: '臉型', options: [['oval', '鵝蛋臉'], ['round', '圓臉'], ['square', '方臉'], ['heart', '心形臉'], ['long', '長臉']] },
+      { key: 'eyes', label: '眼睛', options: [['almond', '杏眼'], ['round', '圓眼'], ['sharp', '銳利'], ['sleepy', '慵懶'], ['wide', '大眼']] },
+      { key: 'brow', label: '眉毛', options: [['natural', '自然'], ['thick', '濃眉'], ['thin', '細眉'], ['raised', '上揚']] },
+      { key: 'nose', label: '鼻子', options: [['button', '小巧'], ['straight', '挺直'], ['wide', '寬鼻'], ['small', '迷你']] },
+      { key: 'mouth', label: '嘴巴', options: [['smile', '微笑'], ['neutral', '平嘴'], ['grin', '露齒'], ['pout', '嘟嘴']] },
+      { key: 'facialHair', label: '鬍子', options: [['none', '無'], ['beard', '落腮鬍'], ['mustache', '八字鬍'], ['goatee', '山羊鬍']] },
+    ],
+    hair: [
+      { key: 'hair', label: '髮型', options: [['short', '短髮'], ['fade', '兩側削短'], ['buzz', '寸頭'], ['curly', '捲髮'], ['long', '長髮'], ['ponytail', '馬尾'], ['bun', '丸子頭'], ['mohawk', '莫西干']] },
+    ],
+    body: [
+      { key: 'body', label: '身型', options: [['slim', '纖瘦'], ['average', '標準'], ['athletic', '健碩'], ['heavy', '豐滿']] },
+      { key: 'height', label: '身高', options: [['short', '矮'], ['normal', '中等'], ['tall', '高']] },
+    ],
+    outfit: [
+      { key: 'top', label: '上衣', options: [['tee', 'T恤'], ['shirt', '襯衫'], ['hoodie', '連帽衛衣'], ['jacket', '夾克'], ['blazer', '西裝'], ['dress', '連身裙'], ['tank', '背心']] },
+      { key: 'bottom', label: '下身', options: [['jeans', '牛仔褲'], ['shorts', '短褲'], ['skirt', '裙子'], ['trousers', '長褲'], ['leggings', '緊身褲']] },
+      { key: 'shoes', label: '鞋子', options: [['sneakers', '波鞋'], ['boots', '靴子'], ['dress', '皮鞋'], ['sandals', '涼鞋']] },
+      { key: 'outer', label: '外套', options: [['none', '不穿'], ['coat', '大衣'], ['vest', '背心外套'], ['apron', '圍裙']] },
+    ],
+    extra: [
+      { key: 'glasses', label: '眼鏡', options: [['none', '無'], ['round', '圓框'], ['square', '方框'], ['sun', '太陽眼鏡']] },
+      { key: 'hat', label: '帽子', options: [['none', '不戴'], ['cap', '棒球帽'], ['beanie', '毛帽'], ['bucket', '漁夫帽'], ['helmet', '頭盔']] },
+      { key: 'accessory', label: '配件', options: [['none', '無'], ['backpack', '背包'], ['scarf', '頸巾'], ['badge', '胸章'], ['headphones', '耳機']] },
+    ],
+    color: [],
+  };
+
+  const AV_COLORS = [
+    { key: 'skin', label: '膚色', presets: ['#f7ddc8', '#f2c9a8', '#e8b78f', '#d9a273', '#b87c4e', '#8d5a34'] },
+    { key: 'hairColor', label: '髮色', presets: ['#2f2622', '#4a3328', '#6b4a2f', '#a9713f', '#c9a26b', '#d9534f', '#4b6a88', '#8a8f95'] },
+    { key: 'topColor', label: '上衣顏色', presets: ['#db6a41', '#e9c46a', '#3e7c8c', '#007562', '#6a4c93', '#c9483f', '#f2f2f2', '#2b2320'] },
+    { key: 'bottomColor', label: '下身顏色', presets: ['#3e5c76', '#2b2320', '#6b7d8f', '#8d6e5a', '#c9b79c', '#4a5a3f'] },
+    { key: 'shoesColor', label: '鞋子顏色', presets: ['#f7f7f7', '#2b2320', '#6b4a2f', '#c9483f', '#3e7c8c'] },
+    { key: 'outerColor', label: '外套顏色', presets: ['#6a9b7a', '#3e5c76', '#8d6e5a', '#2b2320', '#c9b79c'] },
+    { key: 'hatColor', label: '帽子顏色', presets: ['#3e7c8c', '#c9483f', '#2b2320', '#e9c46a', '#6a9b7a'] },
+    { key: 'accessoryColor', label: '配件顏色', presets: ['#f2c14e', '#c9483f', '#3e7c8c', '#6a4c93', '#2b2320'] },
+  ];
+
+  const AV_DEFAULTS = {
+    face: 'oval', eyes: 'almond', brow: 'natural', nose: 'button', mouth: 'smile',
+    facialHair: 'none', hair: 'short', body: 'average', height: 'normal',
+    top: 'tee', bottom: 'jeans', shoes: 'sneakers', outer: 'none',
+    glasses: 'none', hat: 'none', accessory: 'none',
+    skin: '#f2c9a8', hairColor: '#2f2622', topColor: '#db6a41', bottomColor: '#3e5c76',
+    shoesColor: '#f7f7f7', outerColor: '#6a9b7a', hatColor: '#3e7c8c', accessoryColor: '#f2c14e',
+  };
+  const AV_ENUM_KEYS = ['face', 'eyes', 'brow', 'nose', 'mouth', 'facialHair', 'hair', 'body', 'height', 'top', 'bottom', 'shoes', 'outer', 'glasses', 'hat', 'accessory'];
+  const AV_COLOR_KEYS = ['skin', 'hairColor', 'topColor', 'bottomColor', 'shoesColor', 'outerColor', 'hatColor', 'accessoryColor'];
+
+  let avDraft = null;
+  let avTab = 'face';
+
+  function normalizeAvatarClient(raw) {
+    const src = raw && typeof raw === 'object' ? raw : {};
+    const out = {};
+    AV_ENUM_KEYS.forEach((key) => {
+      const list = (AV_GROUPS.face.concat(AV_GROUPS.hair, AV_GROUPS.body, AV_GROUPS.outfit, AV_GROUPS.extra)
+        .find((g) => g.key === key) || { options: [] }).options.map((o) => o[0]);
+      out[key] = list.indexOf(src[key]) >= 0 ? src[key] : AV_DEFAULTS[key];
+    });
+    AV_COLOR_KEYS.forEach((key) => {
+      out[key] = /^#[0-9a-fA-F]{6}$/.test(String(src[key] || '')) ? String(src[key]).toLowerCase() : AV_DEFAULTS[key];
+    });
+    return out;
+  }
+
+  function avOptionLabel(key, value) {
+    for (const group of Object.keys(AV_GROUPS)) {
+      const hit = AV_GROUPS[group].find((g) => g.key === key);
+      if (!hit) continue;
+      const opt = hit.options.find((o) => o[0] === value);
+      if (opt) return opt[1];
+    }
+    return '';
+  }
+
+  // 依設定即時繪製 2D 預覽（與 3D 公仔同一套選項）
+  function avatarSVG(a) {
+    const W = { slim: 0.88, average: 1, athletic: 1.12, heavy: 1.2 }[a.body] || 1;
+    const H = { short: 0.95, normal: 1, tall: 1.06 }[a.height] || 1;
+    const skin = a.skin;
+    const hair = a.hairColor;
+    const top = a.topColor;
+    const bottom = a.bottomColor;
+    const shoe = a.shoesColor;
+    const outer = a.outerColor;
+    const hat = a.hatColor;
+    const acc = a.accessoryColor;
+    const isDress = a.top === 'dress';
+    const bareArms = a.top === 'tank' || isDress;
+    const bareLegs = isDress || a.bottom === 'skirt' || a.bottom === 'shorts';
+    const legColor = bareLegs ? skin : bottom;
+    const armColor = bareArms ? skin : top;
+    const fs = { oval: [1, 1], round: [1.06, 0.96], square: [1.02, 0.95], heart: [1, 1.02], long: [0.94, 1.08] }[a.face] || [1, 1];
+    const hx = 30 * fs[0];
+    const hy = 33 * fs[1];
+    const p = [];
+
+    p.push('<svg viewBox="0 0 200 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="公仔預覽">');
+    p.push('<ellipse cx="100" cy="286" rx="46" ry="9" fill="rgba(33,29,29,.13)"/>');
+    p.push(`<g transform="translate(100 286) scale(${W} ${H}) translate(-100 -286)">`);
+
+    if (a.accessory === 'backpack') p.push(`<rect x="62" y="192" width="16" height="46" rx="7" fill="${acc}"/>`);
+
+    p.push(`<rect x="87" y="232" width="11" height="42" rx="5.5" fill="${legColor}"/>`);
+    p.push(`<rect x="102" y="232" width="11" height="42" rx="5.5" fill="${legColor}"/>`);
+
+    if (a.shoes === 'boots') {
+      p.push(`<rect x="84" y="256" width="17" height="24" rx="4" fill="${shoe}"/>`);
+      p.push(`<rect x="100" y="256" width="17" height="24" rx="4" fill="${shoe}"/>`);
+    } else if (a.shoes === 'sandals') {
+      p.push(`<rect x="84" y="272" width="17" height="6" rx="3" fill="${shoe}"/>`);
+      p.push(`<rect x="100" y="272" width="17" height="6" rx="3" fill="${shoe}"/>`);
+    } else {
+      p.push(`<rect x="83" y="265" width="18" height="11" rx="4" fill="${shoe}"/>`);
+      p.push(`<rect x="99" y="265" width="18" height="11" rx="4" fill="${shoe}"/>`);
+    }
+
+    if (bareLegs) p.push(`<rect x="82" y="230" width="36" height="16" rx="6" fill="${isDress ? top : bottom}"/>`);
+    else p.push(`<rect x="82" y="228" width="36" height="20" rx="7" fill="${bottom}"/>`);
+    if (a.bottom === 'skirt' || isDress) {
+      p.push(`<path d="M84 226 L116 226 L128 262 Q100 272 72 262 Z" fill="${isDress ? top : bottom}"/>`);
+    }
+
+    if (a.outer === 'coat') {
+      p.push(`<rect x="64" y="184" width="16" height="66" rx="7" fill="${outer}"/>`);
+      p.push(`<rect x="120" y="184" width="16" height="66" rx="7" fill="${outer}"/>`);
+    }
+
+    // 長髮與馬尾的後層
+    if (a.hair === 'long') p.push(`<rect x="70" y="116" width="60" height="66" rx="18" fill="${hair}"/>`);
+    if (a.hair === 'ponytail') p.push(`<path d="M112 116 Q138 140 127 178 Q119 192 111 176 Q121 150 108 128 Z" fill="${hair}"/>`);
+
+    p.push(`<path d="M78 180 Q100 172 122 180 L124 230 Q100 240 76 230 Z" fill="${top}" stroke="rgba(33,29,29,.08)" stroke-width="1.5"/>`);
+    if (bareArms) p.push(`<path d="M78 180 Q100 172 122 180 L122 192 Q100 184 78 192 Z" fill="${skin}"/>`);
+
+    p.push(`<rect x="63" y="184" width="13" height="58" rx="6.5" fill="${armColor}"/>`);
+    p.push(`<rect x="124" y="184" width="13" height="58" rx="6.5" fill="${armColor}"/>`);
+    p.push(`<circle cx="69.5" cy="246" r="6.5" fill="${skin}"/>`);
+    p.push(`<circle cx="130.5" cy="246" r="6.5" fill="${skin}"/>`);
+
+    // 服裝細節
+    if (a.top === 'shirt') {
+      p.push(`<path d="M92 180 L100 194 L108 180 L103 178 L100 184 L97 178 Z" fill="rgba(0,0,0,.15)"/>`);
+      p.push(`<rect x="98.5" y="186" width="3" height="42" fill="rgba(255,255,255,.75)"/>`);
+    } else if (a.top === 'jacket') {
+      p.push(`<rect x="98.5" y="180" width="3" height="50" fill="rgba(230,236,240,.9)"/>`);
+    } else if (a.top === 'hoodie') {
+      p.push(`<ellipse cx="100" cy="181" rx="20" ry="12" fill="rgba(0,0,0,.16)"/>`);
+      p.push(`<rect x="86" y="214" width="28" height="14" rx="5" fill="rgba(0,0,0,.14)"/>`);
+    } else if (a.top === 'blazer') {
+      p.push(`<path d="M86 181 L100 200 L86 220 Z" fill="rgba(0,0,0,.18)"/>`);
+      p.push(`<path d="M114 181 L100 200 L114 220 Z" fill="rgba(0,0,0,.18)"/>`);
+      p.push(`<rect x="94" y="181" width="12" height="42" fill="rgba(255,255,255,.82)"/>`);
+    }
+
+    if (a.outer === 'vest') p.push(`<path d="M84 182 L116 182 L118 226 L82 226 Z" fill="${outer}" opacity=".94"/>`);
+    if (a.outer === 'apron') {
+      p.push(`<path d="M86 188 L114 188 L118 232 L82 232 Z" fill="${outer}"/>`);
+      p.push(`<rect x="84" y="182" width="5" height="14" fill="${outer}"/>`);
+      p.push(`<rect x="111" y="182" width="5" height="14" fill="${outer}"/>`);
+    }
+
+    p.push(`<rect x="93" y="160" width="14" height="18" rx="5" fill="${skin}"/>`);
+    p.push(`<ellipse cx="100" cy="132" rx="${hx}" ry="${hy}" fill="${skin}"/>`);
+    p.push(`<circle cx="${100 - hx + 1}" cy="136" r="5.5" fill="${skin}"/>`);
+    p.push(`<circle cx="${100 + hx - 1}" cy="136" r="5.5" fill="${skin}"/>`);
+
+    // 髮型
+    const capPath = `<path d="M${100 - hx} 134 Q${100 - hx} 100 100 99 Q${100 + hx} 100 ${100 + hx} 134 Q${100 + hx * 0.6} 119 100 118 Q${100 - hx * 0.6} 119 ${100 - hx} 134 Z" fill="${hair}"/>`;
+    if (a.hair === 'buzz') {
+      p.push(`<path d="M${100 - hx * 0.98} 126 Q${100 - hx * 0.98} 101 100 100 Q${100 + hx * 0.98} 101 ${100 + hx * 0.98} 126 Q${100 + hx * 0.5} 112 100 111 Q${100 - hx * 0.5} 112 ${100 - hx * 0.98} 126 Z" fill="${hair}"/>`);
+    } else if (a.hair === 'curly') {
+      p.push(capPath);
+      p.push(`<circle cx="${100 - 14}" cy="107" r="11" fill="${hair}"/>`);
+      p.push(`<circle cx="100" cy="100" r="12" fill="${hair}"/>`);
+      p.push(`<circle cx="${100 + 14}" cy="107" r="11" fill="${hair}"/>`);
+    } else if (a.hair === 'bun') {
+      p.push(capPath);
+      p.push(`<circle cx="100" cy="92" r="12" fill="${hair}"/>`);
+    } else if (a.hair === 'mohawk') {
+      p.push(`<rect x="94" y="82" width="12" height="34" rx="5" fill="${hair}"/>`);
+      p.push(`<rect x="${100 - hx * 0.9}" y="118" width="${hx * 1.8}" height="9" rx="4" fill="${hair}"/>`);
+    } else if (a.hair === 'fade') {
+      p.push(capPath);
+      p.push(`<rect x="${100 - hx - 1}" y="124" width="5" height="14" rx="2" fill="${hair}"/>`);
+      p.push(`<rect x="${100 + hx - 4}" y="124" width="5" height="14" rx="2" fill="${hair}"/>`);
+    } else {
+      p.push(capPath);
+      if (a.hair === 'short' || a.hair === 'long' || a.hair === 'ponytail') {
+        p.push(`<rect x="${100 - hx + 1}" y="126" width="5" height="12" rx="2" fill="${hair}"/>`);
+        p.push(`<rect x="${100 + hx - 6}" y="126" width="5" height="12" rx="2" fill="${hair}"/>`);
+      }
+    }
+
+    // 五官
+    const eyeRy = { almond: 3.4, round: 4.6, sharp: 2.4, sleepy: 2.2, wide: 5 }[a.eyes] || 3.4;
+    p.push(`<ellipse cx="${100 - 10}" cy="135" rx="4.8" ry="${eyeRy}" fill="#2b2320"/>`);
+    p.push(`<ellipse cx="${100 + 10}" cy="135" rx="4.8" ry="${eyeRy}" fill="#2b2320"/>`);
+    const browH = a.brow === 'thick' ? 4 : a.brow === 'thin' ? 2 : 2.8;
+    const browY = a.brow === 'raised' ? 123 : 126;
+    p.push(`<rect x="${100 - 16}" y="${browY}" width="12" height="${browH}" rx="${browH / 2}" fill="${hair}" transform="rotate(-6 ${100 - 10} ${browY})"/>`);
+    p.push(`<rect x="${100 + 4}" y="${browY}" width="12" height="${browH}" rx="${browH / 2}" fill="${hair}" transform="rotate(6 ${100 + 10} ${browY})"/>`);
+    if (a.nose === 'wide') p.push(`<ellipse cx="100" cy="143" rx="5" ry="3.5" fill="rgba(0,0,0,.16)"/>`);
+    else if (a.nose === 'straight') p.push(`<rect x="97.5" y="136" width="5" height="12" rx="2.5" fill="rgba(0,0,0,.12)"/>`);
+    else if (a.nose === 'small') p.push(`<circle cx="100" cy="143" r="2" fill="rgba(0,0,0,.16)"/>`);
+    else p.push(`<ellipse cx="100" cy="142" rx="3.6" ry="2.8" fill="rgba(0,0,0,.14)"/>`);
+
+    if (a.mouth === 'grin') {
+      p.push(`<path d="M91 149 Q100 159 109 149 Q100 153 91 149 Z" fill="#b3544f"/>`);
+      p.push(`<rect x="93" y="149" width="14" height="2" fill="#f8f4ee"/>`);
+    } else if (a.mouth === 'neutral') {
+      p.push(`<rect x="93" y="150" width="14" height="2.6" rx="1.3" fill="#b3544f"/>`);
+    } else if (a.mouth === 'pout') {
+      p.push(`<ellipse cx="100" cy="151" rx="4.2" ry="3" fill="#b3544f"/>`);
+    } else {
+      p.push(`<path d="M92 148 Q100 157 108 148" stroke="#b3544f" stroke-width="3" fill="none" stroke-linecap="round"/>`);
+    }
+
+    if (a.facialHair === 'beard') {
+      p.push(`<path d="M${100 - hx * 0.92} 138 Q${100 - hx * 0.78} 166 100 169 Q${100 + hx * 0.78} 166 ${100 + hx * 0.92} 138 Q${100 + hx * 0.55} 157 100 157 Q${100 - hx * 0.55} 157 ${100 - hx * 0.92} 138 Z" fill="${hair}" opacity=".92"/>`);
+    } else if (a.facialHair === 'mustache') {
+      p.push(`<rect x="92" y="145" width="16" height="4" rx="2" fill="${hair}"/>`);
+    } else if (a.facialHair === 'goatee') {
+      p.push(`<rect x="96" y="156" width="8" height="9" rx="3" fill="${hair}"/>`);
+    }
+
+    // 眼鏡
+    if (a.glasses === 'round') {
+      p.push(`<circle cx="${100 - 10}" cy="135" r="8" fill="none" stroke="#4a4038" stroke-width="2.2"/>`);
+      p.push(`<circle cx="${100 + 10}" cy="135" r="8" fill="none" stroke="#4a4038" stroke-width="2.2"/>`);
+      p.push(`<rect x="93" y="133.5" width="7" height="2" fill="#4a4038"/>`);
+    } else if (a.glasses === 'square' || a.glasses === 'sun') {
+      p.push(`<rect x="${100 - 19}" y="${a.glasses === 'sun' ? 130 : 129}" width="16" height="${a.glasses === 'sun' ? 9 : 12}" rx="2" fill="#2b2320"/>`);
+      p.push(`<rect x="${100 + 3}" y="${a.glasses === 'sun' ? 130 : 129}" width="16" height="${a.glasses === 'sun' ? 9 : 12}" rx="2" fill="#2b2320"/>`);
+      p.push(`<rect x="95" y="133" width="10" height="2" fill="#2b2320"/>`);
+    }
+
+    // 帽子
+    if (a.hat === 'cap') {
+      p.push(`<path d="M${100 - hx * 1.08} 120 Q${100 - hx * 1.08} 91 100 91 Q${100 + hx * 1.08} 91 ${100 + hx * 1.08} 120 Z" fill="${hat}"/>`);
+      p.push(`<rect x="96" y="114" width="40" height="7" rx="3.5" fill="${hat}" stroke="rgba(0,0,0,.15)"/>`);
+    } else if (a.hat === 'beanie') {
+      p.push(`<path d="M${100 - hx * 1.06} 124 Q${100 - hx * 1.06} 88 100 88 Q${100 + hx * 1.06} 88 ${100 + hx * 1.06} 124 Z" fill="${hat}"/>`);
+      p.push(`<rect x="${100 - hx * 1.08}" y="116" width="${hx * 2.16}" height="10" rx="5" fill="${hat}" stroke="rgba(0,0,0,.16)"/>`);
+    } else if (a.hat === 'bucket') {
+      p.push(`<path d="M78 124 L85 100 Q100 94 115 100 L122 124 Z" fill="${hat}"/>`);
+      p.push(`<ellipse cx="100" cy="124" rx="34" ry="8" fill="${hat}" stroke="rgba(0,0,0,.16)"/>`);
+    } else if (a.hat === 'helmet') {
+      p.push(`<path d="M${100 - hx * 1.1} 122 Q${100 - hx * 1.1} 90 100 90 Q${100 + hx * 1.1} 90 ${100 + hx * 1.1} 122 Z" fill="${hat}"/>`);
+      p.push(`<rect x="92" y="118" width="26" height="8" rx="3" fill="#2f4a52"/>`);
+    }
+
+    // 配件
+    if (a.accessory === 'scarf') {
+      p.push(`<rect x="86" y="163" width="28" height="11" rx="5.5" fill="${acc}"/>`);
+      p.push(`<rect x="104" y="171" width="9" height="24" rx="4" fill="${acc}"/>`);
+    } else if (a.accessory === 'badge') {
+      p.push(`<circle cx="112" cy="198" r="6.5" fill="${acc}" stroke="rgba(0,0,0,.18)"/>`);
+      p.push(`<circle cx="112" cy="198" r="2.6" fill="#fdf7e3"/>`);
+    } else if (a.accessory === 'headphones') {
+      p.push(`<path d="M${100 - hx - 2} 130 Q${100 - hx - 2} 92 100 92 Q${100 + hx + 2} 92 ${100 + hx + 2} 130" stroke="#2b2320" stroke-width="5" fill="none"/>`);
+      p.push(`<circle cx="${100 - hx - 2}" cy="134" r="7" fill="${acc}"/>`);
+      p.push(`<circle cx="${100 + hx + 2}" cy="134" r="7" fill="${acc}"/>`);
+    }
+
+    p.push('</g></svg>');
+    return p.join('');
+  }
+
+  function syncAvatarPreview() {
+    const fig = $('#mc-av-figure');
+    fig.innerHTML = avatarSVG(avDraft);
+    $('#mc-av-summary').textContent =
+      `${avOptionLabel('face', avDraft.face)} · ${avOptionLabel('hair', avDraft.hair)} · ${avOptionLabel('body', avDraft.body)} · ${avOptionLabel('top', avDraft.top)}`;
+  }
+
+  function renderAvatarPane() {
+    const pane = $('#mc-av-pane');
+    if (avTab === 'color') {
+      pane.innerHTML = AV_COLORS.map((g) => `
+        <div class="mc-av-group">
+          <div class="mc-av-label">${g.label}</div>
+          <div class="mc-av-colors">
+            ${g.presets.map((c) => `<button type="button" class="mc-av-swatch ${avDraft[g.key] === c ? 'mc-active' : ''}" data-color-key="${g.key}" data-val="${c}" style="background:${c};" aria-label="${c}"></button>`).join('')}
+            <input type="color" class="mc-av-picker" data-picker="${g.key}" value="${avDraft[g.key]}" aria-label="${g.label}自訂顏色">
+          </div>
+        </div>`).join('');
+      return;
+    }
+    pane.innerHTML = (AV_GROUPS[avTab] || []).map((g) => `
+      <div class="mc-av-group">
+        <div class="mc-av-label">${g.label}</div>
+        <div class="mc-av-chips">
+          ${g.options.map((o) => `<button type="button" class="mc-av-chip ${avDraft[g.key] === o[0] ? 'mc-active' : ''}" data-key="${g.key}" data-val="${o[0]}">${o[1]}</button>`).join('')}
+        </div>
+      </div>`).join('');
+  }
+
+  function renderAvatarBuilder() {
+    avRoot.querySelectorAll('[data-av-tab]').forEach((b) => {
+      b.classList.toggle('mc-active', b.dataset.avTab === avTab);
+    });
+    renderAvatarPane();
+    syncAvatarPreview();
+  }
+
+  function openAvatarBuilder() {
+    const u = state.me && state.me.user;
+    if (!u) return;
+    avDraft = normalizeAvatarClient(u.avatar);
+    avTab = 'face';
+    avRoot.hidden = false;
+    avRoot.classList.add('mc-open');
+    renderAvatarBuilder();
+  }
+
+  function closeAvatarBuilder() {
+    avRoot.classList.remove('mc-open');
+    setTimeout(() => { avRoot.hidden = true; }, 180);
+  }
+
+  function randomAvatar() {
+    const all = AV_GROUPS.face.concat(AV_GROUPS.hair, AV_GROUPS.body, AV_GROUPS.outfit, AV_GROUPS.extra);
+    all.forEach((g) => {
+      avDraft[g.key] = g.options[Math.floor(Math.random() * g.options.length)][0];
+    });
+    AV_COLORS.forEach((g) => {
+      avDraft[g.key] = g.presets[Math.floor(Math.random() * g.presets.length)];
+    });
+    renderAvatarBuilder();
+  }
+
+  avRoot.addEventListener('click', (e) => {
+    if (e.target.closest('[data-av-close]')) { closeAvatarBuilder(); return; }
+    const tabBtn = e.target.closest('[data-av-tab]');
+    if (tabBtn) { avTab = tabBtn.dataset.avTab; renderAvatarBuilder(); return; }
+    const chip = e.target.closest('[data-key]');
+    if (chip) {
+      avDraft[chip.dataset.key] = chip.dataset.val;
+      renderAvatarBuilder();
+      return;
+    }
+    const swatch = e.target.closest('[data-color-key]');
+    if (swatch) {
+      avDraft[swatch.dataset.colorKey] = swatch.dataset.val;
+      renderAvatarPane();
+      syncAvatarPreview();
+    }
+  });
+
+  avRoot.addEventListener('input', (e) => {
+    const picker = e.target.closest('[data-picker]');
+    if (!picker) return;
+    avDraft[picker.dataset.picker] = picker.value;
+    syncAvatarPreview();
+  });
+
+  $('#mc-av-random').addEventListener('click', randomAvatar);
+  $('#mc-av-reset').addEventListener('click', () => {
+    avDraft = normalizeAvatarClient(null);
+    renderAvatarBuilder();
+  });
+  $('#mc-av-cancel').addEventListener('click', closeAvatarBuilder);
+  $('#mc-av-save').addEventListener('click', async () => {
+    const btn = $('#mc-av-save');
+    btn.disabled = true;
+    try {
+      const r = await api('/api/avatar', { method: 'POST', body: JSON.stringify({ avatar: avDraft }) });
+      if (state.me && state.me.user) state.me.user.avatar = r.avatar;
+      closeAvatarBuilder();
+      render();
+      refreshWorld();
+      toast('公仔已更新，3D 地圖同步中');
+    } catch {
+      toast('儲存失敗，請稍後再試');
+    } finally {
+      btn.disabled = false;
+    }
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !avRoot.hidden) closeAvatarBuilder();
+  });
+
   // ---------- 各分頁 ----------
   function renderProfile() {
     const me = state.me;
@@ -255,7 +690,6 @@
     const pct = Math.min(100, Math.round((counts.discoveries / 82) * 100));
     const districts = state.districts || [];
     const AVATAR_EMOJIS = ['🙂', '😎', '🧑‍🎓', '👩‍💻', '👨‍🔧', '🧕', '👵', '🧑‍🚀', '🌟', '🏙'];
-    const figureColor = u.figureColor || '#db6a41';
     body.innerHTML = `
       <div class="mc-stats">
         <div class="mc-stat"><b>${counts.discoveries}<span style="font-size:11px;opacity:.6">/82</span></b><span>地標收集</span></div>
@@ -290,25 +724,21 @@
             </select>
           </div>
           <div style="flex:1;">
-            <label class="mc-label" for="mc-p-style">公仔造型</label>
-            <select class="mc-select" id="mc-p-style">
-              <option value="casual" ${u.figureStyle === 'casual' ? 'selected' : ''}>休閒</option>
-              <option value="formal" ${u.figureStyle === 'formal' ? 'selected' : ''}>正式</option>
-              <option value="sport" ${u.figureStyle === 'sport' ? 'selected' : ''}>運動</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="mc-row" style="gap:8px;align-items:flex-end;">
-          <div style="flex:1;">
             <label class="mc-label" for="mc-p-emoji">頭像</label>
             <select class="mc-select" id="mc-p-emoji">
               ${AVATAR_EMOJIS.map((e) => `<option value="${e}" ${e === (u.avatarEmoji || '🙂') ? 'selected' : ''}>${e}</option>`).join('')}
             </select>
           </div>
-          <div style="width:96px;">
-            <label class="mc-label" for="mc-p-color">公仔顏色</label>
-            <input class="mc-input" type="color" id="mc-p-color" value="${esc(figureColor)}" style="padding:2px;height:34px;">
+        </div>
+
+        <div class="mc-av-inline">
+          <div class="mc-av-thumb">${avatarSVG(normalizeAvatarClient(u.avatar))}</div>
+          <div class="mc-av-inline-main">
+            <div class="mc-av-inline-title">我的公仔</div>
+            <div class="mc-muted" style="font-size:11.5px;margin:2px 0 8px;">
+              ${avOptionLabel('face', (u.avatar || {}).face) || '鵝蛋臉'} · ${avOptionLabel('hair', (u.avatar || {}).hair) || '短髮'} · ${avOptionLabel('body', (u.avatar || {}).body) || '標準'} · ${avOptionLabel('top', (u.avatar || {}).top) || 'T恤'}
+            </div>
+            <button class="mc-btn" id="mc-open-avatar" type="button">🎨 打開公仔建構器</button>
           </div>
         </div>
 
@@ -373,9 +803,8 @@
             body: JSON.stringify({
               nickname: $('#mc-p-nick').value.trim(),
               gender: $('#mc-p-gender').value,
-              figureStyle: $('#mc-p-style').value,
               avatarEmoji: $('#mc-p-emoji').value,
-              figureColor: $('#mc-p-color').value,
+              avatar: u.avatar,
               districtId: $('#mc-p-district').value,
               bio: $('#mc-p-bio').value.trim(),
             }),
@@ -390,6 +819,9 @@
         }
       });
     }
+
+    const openAvatar = $('#mc-open-avatar');
+    if (openAvatar) openAvatar.addEventListener('click', openAvatarBuilder);
 
     $('#mc-refresh').addEventListener('click', async () => {
       await loadAll();
