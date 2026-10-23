@@ -8230,6 +8230,7 @@
             const pz = center.z + (row - (rows - 1) / 2) * SANDBOX_CELL;
             const model = buildSandboxBuilding(slotData.type);
             model.position.set(px, baseY, pz);
+            model.userData.sandboxSlot = slotData.slot;
             model.traverse((o) => {
               if (o.isMesh) {
                 o.userData.sandboxSlot = slotData.slot;
@@ -8251,6 +8252,10 @@
           selectIsland,
           renderSandbox,
           clearSandbox,
+          sandboxInfo: () => ({
+            objects: sandboxGroup.children.length,
+            slots: sandboxGroup.children.reduce((n, g) => n + (g.userData && g.userData.sandboxSlot !== undefined ? 1 : 0), 0)
+          }),
           focusDistrict: (districtId) => selectIsland(districtId),
           districtCenter: (districtId) => {
             const isl = worldData.islandMap.get(districtId);
