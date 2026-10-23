@@ -94,6 +94,13 @@
   const body = $('#mc-body');
   const tabs = $('#mc-tabs');
 
+  // 市民入口放到頂部工具列（與全景／清單／語言同排）
+  const topToolbar = document.querySelector('.top-toolbar');
+  if (topToolbar) {
+    fab.classList.add('mc-fab-toolbar');
+    topToolbar.insertBefore(fab, topToolbar.firstChild);
+  }
+
   function toast(msg) {
     const box = $('#mc-toasts');
     const el = document.createElement('div');
@@ -1321,7 +1328,7 @@
   }
 
   function flashDot() {
-    const dot = root.querySelector('.mc-fab-dot');
+    const dot = fab.querySelector('.mc-fab-dot');
     if (dot) dot.hidden = false;
     setTimeout(() => { if (dot) dot.hidden = true; }, 4000);
   }

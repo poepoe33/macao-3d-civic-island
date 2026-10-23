@@ -838,12 +838,38 @@
       transform: translateX(-50%);
       z-index: 24;
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
       align-items: center;
-      gap: 7px;
+      gap: 6px;
       pointer-events: auto;
       max-width: calc(100vw - 20px);
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(255, 248, 244, 0.92);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(255, 255, 255, 0.85);
+      box-shadow: var(--shadow-soft);
+      overflow-x: auto;
+      scrollbar-width: none;
       transition: opacity 0.22s ease, transform 0.22s ease;
+    }
+
+    #hud-wrapper::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* 兩組 HUD 合併為同一條，子容器不再各自帶底色 */
+    #interactive-sandbox-bar,
+    #hud-bar {
+      background: transparent;
+      border: 0;
+      box-shadow: none;
+      padding: 0;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      flex-wrap: nowrap;
+      flex-shrink: 0;
     }
 
     #flow-legend {
@@ -1398,38 +1424,20 @@
         bottom: 10px;
         width: 100%;
         max-width: 100vw;
-        padding: 0 8px;
-        gap: 6px;
-      }
-
-      #interactive-sandbox-bar {
-        width: 100%;
-        max-width: calc(100vw - 16px);
-        flex-wrap: nowrap;
-        justify-content: flex-start;
-        overflow-x: auto;
-        scrollbar-width: none;
-        -webkit-overflow-scrolling: touch;
-        padding: 4px 10px;
-        border-radius: 14px;
-      }
-      #interactive-sandbox-bar::-webkit-scrollbar {
-        display: none;
-      }
-
-      #hud-bar {
-        width: 100%;
-        max-width: calc(100vw - 16px);
-        flex-wrap: nowrap;
-        justify-content: space-between;
-        overflow-x: auto;
-        scrollbar-width: none;
-        -webkit-overflow-scrolling: touch;
         padding: 4px 8px;
+        gap: 6px;
         border-radius: 16px;
       }
-      #hud-bar::-webkit-scrollbar {
-        display: none;
+
+      #interactive-sandbox-bar,
+      #hud-bar {
+        width: auto;
+        max-width: none;
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+        overflow: visible;
+        padding: 0;
+        border-radius: 0;
       }
 
       .hud-btn {
@@ -1535,7 +1543,7 @@
 
     <!-- Bottom HUD Pill Toolbar & Interactive Sandbox Bar -->
     <div id="hud-wrapper">
-      <div id="flow-legend" class="hidden">
+      <div id="flow-legend" class="hidden ui-hidden">
         <span class="eyebrow" data-en="EVIDENCE">數據與規劃等級</span>
         <span class="legend-item"><span class="legend-line"></span><span data-en="Official">施政報告已落實／營運中 (official)</span></span>
         <span class="legend-item"><span class="legend-line dashed"></span><span data-en="Thematic">二五／三五規劃建設中 (thematic)</span></span>
@@ -1544,11 +1552,11 @@
 
       <!-- New Macao Interactive Sandbox Controls -->
       <div id="interactive-sandbox-bar" role="region" aria-label="Macao Interactive Experiences">
-        <button id="btn-bridges-tour" class="chip" type="button" title="Inspect Macao's 4 Cross-Sea Bridges">
+        <button id="btn-bridges-tour" class="chip ui-hidden" type="button" title="Inspect Macao's 4 Cross-Sea Bridges">
           <span>🌉</span>
           <span data-en="4 Cross-Sea Bridges">四條跨海大橋</span>
         </button>
-        <button id="btn-geo-grid" class="chip active" type="button" aria-pressed="true" title="Toggle Authentic Geographic Coordinate Grid">
+        <button id="btn-geo-grid" class="chip active ui-hidden" type="button" aria-pressed="true" title="Toggle Authentic Geographic Coordinate Grid">
           <span>🗺️</span>
           <span data-en="Geo Grid">真實地理方格</span>
         </button>
@@ -1564,7 +1572,7 @@
           <span>✨</span>
           <span data-en="Ruins Lightshow">大三巴光雕夜演</span>
         </button>
-        <div class="tide-slider-wrap" title="Simulate Inner Harbour Storm Surge & Floodgates (SMG Tide Level)">
+        <div class="tide-slider-wrap ui-hidden" title="Simulate Inner Harbour Storm Surge & Floodgates (SMG Tide Level)">
           <span>🌊 <span data-en="Tide/Floodgate">內港潮位防洪</span></span>
           <input id="slider-tide" type="range" min="0" max="2.5" step="0.1" value="0" aria-label="Storm surge tide simulation" />
           <span id="tide-val-label" style="font-family:var(--font-mono);min-width:38px;">+0.0m</span>
@@ -1603,7 +1611,7 @@
             <span class="ico">🏷</span>
             <span data-en="District Names">地區名</span>
           </button>
-          <button id="tog-nameplate" class="hud-btn" type="button" aria-pressed="false">
+          <button id="tog-nameplate" class="hud-btn ui-hidden" type="button" aria-pressed="false">
             <span class="ico">💬</span>
             <span data-en="Tags">名牌</span>
           </button>
@@ -1611,7 +1619,7 @@
             <span class="ico">📦</span>
             <span data-en="Cargo">搬運</span>
           </button>
-          <button id="tog-flows" class="hud-btn" type="button" aria-pressed="false">
+          <button id="tog-flows" class="hud-btn ui-hidden" type="button" aria-pressed="false">
             <span class="ico">🔗</span>
             <span data-en="Flows">協作線</span>
           </button>
@@ -6640,11 +6648,9 @@
       scene.add(bridgeCarMesh);
 
       // =====================================================================
-      // 互動 1：澳門輕軌系統 (Macau LRT) 3D 動態雙節列車（經西灣大橋下層跨海與新城A區東線）
+      // 互動 1：澳門輕軌系統 (Macau LRT) 3D 動態雙節列車（氹仔線：媽閣—氹仔碼頭）
       // =====================================================================
       const saivanBridge = bridgeMap.get("bridge-saivan");
-      const macauBridge = bridgeMap.get("bridge-macau");
-      const lotusBridge = bridgeMap.get("bridge-lotus");
 
       const lrtPoints = [];
       const pushIslPt = (id, yOff = 0.14) => {
@@ -6652,40 +6658,20 @@
         if (isl) lrtPoints.push(new THREE.Vector3(isl.worldPos.x, TOP + yOff, isl.worldPos.z + 0.15));
       };
 
-      // 貫通關閘(02) -> 黑沙環(03) -> 新城A區北(12) -> 人工島(13) -> 澳門大橋 -> 北安機場(17) -> 官也街(16) -> 運動場(15) -> 海洋站(14) -> 西灣大橋下層 -> 媽閣站(10) -> 路氹西蓮花站(19) -> 橫琴口岸(18) -> 路氹東科大澳門蛋(20) -> 協和醫院石排灣(21)
-      pushIslPt("portascerco");
-      pushIslPt("transport");
-      pushIslPt("childcare");
-      pushIslPt("hzmbport");
-      if (macauBridge && macauBridge.curve) {
-        lrtPoints.push(macauBridge.curve.getPoint(0.5).clone().add(new THREE.Vector3(0, 0.06, 0)));
-      }
-      pushIslPt("pacon");
-      pushIslPt("culture");
-      pushIslPt("sports");
-      pushIslPt("taipaocean");
-      if (saivanBridge && saivanBridge.curve) {
-        // 經過西灣大橋下層箱樑往半島媽閣站
-        lrtPoints.push(saivanBridge.curve.getPoint(0.5).clone().add(new THREE.Vector3(0, -0.04, 0)));
-      }
+      // 依真實澳門輕軌氹仔線（媽閣—氹仔碼頭）排點：
+      // 媽閣站(10) → 西灣大橋下層跨海 → 海洋站(14) → 運動場(15) → 排角(16) → 路氹西／蓮花(19) → 路氹東／科大(20) → 機場／氹仔碼頭(17)
       pushIslPt("safety");
       if (saivanBridge && saivanBridge.curve) {
         lrtPoints.push(saivanBridge.curve.getPoint(0.5).clone().add(new THREE.Vector3(0, -0.04, 0)));
       }
       pushIslPt("taipaocean");
-      pushIslPt("tourism");
-      if (lotusBridge && lotusBridge.curve) {
-        lrtPoints.push(lotusBridge.curve.getPoint(0.5).clone().add(new THREE.Vector3(0, 0.04, 0)));
-      }
-      pushIslPt("youth");
-      if (lotusBridge && lotusBridge.curve) {
-        lrtPoints.push(lotusBridge.curve.getPoint(0.5).clone().add(new THREE.Vector3(0, 0.04, 0)));
-      }
+      pushIslPt("sports");
+      pushIslPt("culture");
       pushIslPt("tourism");
       pushIslPt("cotaieast");
-      pushIslPt("environment");
+      pushIslPt("pacon");
 
-      const lrtCurve = new THREE.CatmullRomCurve3(lrtPoints, true, "catmullrom", 0.35);
+      const lrtCurve = new THREE.CatmullRomCurve3(lrtPoints, false, "catmullrom", 0.25);
 
       const lrtTrainGroup = new THREE.Group();
       const carMat = new THREE.MeshStandardMaterial({ color: 0xfff8f4, roughness: 0.55 });
@@ -6869,10 +6855,13 @@
       const bvTan = new THREE.Vector3();
 
       function updateInteractiveLandmarks(dt, elapsedTime, waterMat, tideLevelM) {
-        // 1. 澳門輕軌列車沿環線行駛
-        const lrtU = (elapsedTime * 0.028) % 1.0;
+        // 1. 澳門輕軌列車沿氹仔線往返行駛（媽閣 ⇄ 氹仔碼頭）
+        const lrtCycle = (elapsedTime * 0.022) % 2;
+        const lrtForward = lrtCycle <= 1;
+        const lrtU = lrtForward ? lrtCycle : 2 - lrtCycle;
         lrtCurve.getPointAt(lrtU, lrtPos);
         lrtCurve.getTangentAt(lrtU, lrtTan);
+        if (!lrtForward) lrtTan.negate();
         lrtTrainGroup.position.copy(lrtPos);
         lrtTrainGroup.rotation.y = Math.atan2(lrtTan.x, lrtTan.z);
 
@@ -7731,7 +7720,7 @@
         let showCargoBadges = false;
         let showAllFlows = false;
         let showCityLog = false;
-        let showGeoGrid = true;
+        let showGeoGrid = false;
         let activeSidebarTab = "themes";
         let searchQuery = "";
 
@@ -7865,6 +7854,9 @@
           });
         }
 
+        // 真實地理方格預設不顯示（連同經緯度座標標籤；待 coordLabelObjs 建立後再設定）
+        if (worldData.geoGridGroup) worldData.geoGridGroup.visible = false;
+
         // 7. 島嶼標籤、四條跨海大橋標籤、海圖經緯度座標標籤與細項 ①②③ Pin
         const islandLabelObjs = [];
         DATA.islands.forEach((isl) => {
@@ -7925,6 +7917,10 @@
           obj.position.set(cm.x, WATER_Y + 0.04, cm.z);
           scene.add(obj);
           coordLabelObjs.push({ cm, el, obj });
+        });
+        coordLabelObjs.forEach((cl) => {
+          cl.obj.visible = false;
+          cl.el.classList.add("hidden");
         });
 
         const activePinGroup = new THREE.Group();
@@ -8401,6 +8397,7 @@
         const EMOTES = ["💬", "❤️", "🏗", "✨", "👍", "🏙"];
         let championTag = null;
         let emoteTimer = 0;
+        const CITIZEN_SCALE = 2.4;
 
         function citizenColor(level) {
           if (level >= 8) return 0xf2c14e;
@@ -8472,6 +8469,7 @@
             if (!isl) return;
             const fig = buildCitizenFigure(c.level || 1);
             const radius = 0.33 + (idx % 3) * 0.05;
+            fig.scale.setScalar(CITIZEN_SCALE);
             fig.position.set(isl.worldPos.x, TOP + 0.02, isl.worldPos.z);
             fig.userData.citizenId = c.id;
             fig.traverse((o) => {
@@ -8666,7 +8664,7 @@
             const x = c.center.x + Math.cos(c.angle) * c.radius;
             const z = c.center.z + Math.sin(c.angle) * c.radius;
             const cheering = c.cheerUntil > nowMs;
-            const hopHeight = cheering ? 0.05 : 0.014;
+            const hopHeight = cheering ? 0.1 : 0.025;
             const hopSpeed = cheering ? 7.5 : 3.2;
             c.fig.position.set(x, c.center.y + Math.abs(Math.sin(t * hopSpeed + c.phase)) * hopHeight, z);
             c.fig.rotation.y = -c.angle + Math.PI / 2;
