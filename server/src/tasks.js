@@ -41,6 +41,7 @@ const TASK_POOL = [
   { key: 'lightshow1', title: '點亮 1 次大三巴光雕', type: 'lightshow', goal: 1, xp: 20, coins: 12 },
   { key: 'proposal1', title: '提交 1 個城市提案', type: 'proposal', goal: 1, xp: 35, coins: 25 },
   { key: 'island4', title: '瀏覽 4 個不同分區', type: 'island', goal: 4, xp: 25, coins: 15 },
+  { key: 'build1', title: '完成 1 次分區建設', type: 'build', goal: 1, xp: 30, coins: 20 },
 ];
 
 export async function todayKey() {
@@ -63,6 +64,8 @@ const EVENT_RULES = {
   fireworks: { xp: 6, coins: 3, dailyCap: 3 },
   lrt: { xp: 6, coins: 3, dailyCap: 3 },
   lightshow: { xp: 6, coins: 3, dailyCap: 3 },
+  build: { xp: 15, coins: 0, dailyCap: 5 },
+  like: { xp: 4, coins: 2, dailyCap: 10 },
 };
 
 /**

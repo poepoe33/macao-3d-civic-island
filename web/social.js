@@ -14,6 +14,9 @@
     board: 'weekly',
     tab: 'profile',
     city: null,
+    sandbox: null,
+    sandboxSlot: null,
+    sandboxVisit: null,
     open: false,
   };
 
@@ -69,6 +72,7 @@
       <nav class="mc-tabs" id="mc-tabs">
         <button class="mc-tab mc-active" data-tab="profile" type="button">市民檔案</button>
         <button class="mc-tab" data-tab="atlas" type="button">探索圖鑑</button>
+        <button class="mc-tab" data-tab="sandbox" type="button">建設沙盤</button>
         <button class="mc-tab" data-tab="tasks" type="button">每日任務</button>
         <button class="mc-tab" data-tab="proposals" type="button">提案牆</button>
         <button class="mc-tab" data-tab="ranking" type="button">排行榜</button>
@@ -202,7 +206,7 @@
             ${districts.map((d) => `<option value="${esc(d.id)}">${esc(d.icon)} ${esc(d.code)} · ${esc(d.name)}</option>`).join('')}
           </select>
           <div style="margin-top:14px;">
-            <button class="mc-btn" id="mc-onboard" type="button">成為市民 · 領取 30 城市幣</button>
+            <button class="mc-btn" id="mc-onboard" type="button">成為市民 · 領取 200 城市幣</button>
           </div>
         </div>`;
       const btn = $('#mc-onboard');
@@ -355,6 +359,251 @@
         toast('3D 場景尚未就緒');
       }
     });
+  }
+
+  // ---------- 建設沙盤 ----------
+  function slotGrid(slots, interactive) {
+    return `<div class="mc-slot-grid">${slots.map((s) => (s.type
+      ? `<button class="mc-slot mc-slot-filled" data-slot="${s.slot}" type="button" ${interactive ? '' : 'disabled'}>
+           <span class="mc-slot-icon">${esc(s.icon)}</span>
+           <span class="mc-slot-name">${esc(s.name)}</span>
+         </button>`
+      : `<button class="mc-slot" data-slot="${s.slot}" type="button" ${interactive ? '' : 'disabled'}>
+           <span class="mc-slot-plus">＋</span>
+         </button>`)).join('')}</div>`;
+  }
+
+  async function renderSandbox() {
+    const me = state.me;
+    if (!me || !me.authenticated) {
+      body.innerHTML = loginCard('登入後在自己的居住分區建設公園、市集與公共設施');
+      return;
+    }
+    if (!me.user.onboarded) {
+      body.innerHTML = '<div class="mc-empty">請先到「市民檔案」建立暱稱與居住分區。</div>';
+      return;
+    }
+    if (state.sandboxVisit) {
+      await renderSandboxVisit(state.sandboxVisit);
+      return;
+    }
+    body.innerHTML = '<div class="mc-empty">載入中…</div>';
+    try {
+      state.sandbox = await api('/api/sandbox/me');
+    } catch {
+      body.innerHTML = '<div class="mc-empty">讀取沙盤失敗，請稍後再試。</div>';
+      return;
+    }
+    paintSandbox();
+    loadNeighbours();
+  }
+
+  function paintSandbox() {
+    const sb = state.sandbox;
+    if (!sb) return;
+    const sel = state.sandboxSlot;
+    const selSlot = sel != null ? sb.slots.find((s) => s.slot === sel) : null;
+
+    body.innerHTML = `
+      <div class="mc-card mc-sand-hero">
+        <div class="mc-sand-district">${esc(sb.district ? sb.district.icon : '🏙')} ${esc(sb.district ? sb.district.name : '未選分區')}</div>
+        <div class="mc-muted">${esc(sb.district ? sb.district.macro_region || '' : '')}</div>
+        <div class="mc-stats" style="margin:10px 0 0;">
+          <div class="mc-stat"><b>💰 ${sb.coins}</b><span>可用城市幣</span></div>
+          <div class="mc-stat"><b>${sb.vitality}</b><span>沙盤活力</span></div>
+          <div class="mc-stat"><b>${sb.built}/${sb.slots.length}</b><span>已建設</span></div>
+          <div class="mc-stat"><b>${sb.likesReceived}</b><span>鄰里點讚</span></div>
+        </div>
+      </div>
+
+      ${slotGrid(sb.slots, true)}
+
+      <div id="mc-slot-panel" style="margin-top:12px;"></div>
+
+      <div id="mc-neigh"></div>
+
+      <div style="text-align:center;margin-top:12px;">
+        <button class="mc-btn ghost" id="mc-sand-refresh" type="button">更新沙盤</button>
+      </div>`;
+
+    const panel = $('#mc-slot-panel');
+    if (selSlot && selSlot.type) {
+      panel.innerHTML = `
+        <div class="mc-card">
+          <div class="mc-row" style="justify-content:space-between;">
+            <b style="font-size:13px;">${esc(selSlot.icon)} ${esc(selSlot.name)}</b>
+            <span class="mc-muted">活力 +${selSlot.vitality}</span>
+          </div>
+          <div class="mc-muted" style="margin:6px 0 10px;">拆除後可退回 40% 建設費用。</div>
+          <button class="mc-btn ghost" id="mc-demolish" type="button">🗑 拆除這項建設</button>
+        </div>`;
+      $('#mc-demolish').addEventListener('click', async () => {
+        state.sandboxSlot = null;
+        try {
+          const r = await api('/api/sandbox/demolish', { method: 'POST', body: JSON.stringify({ slot: selSlot.slot }) });
+          toast(`已拆除，退回 ${r.refund} 城市幣`);
+          await loadSandbox();
+        } catch {
+          toast('拆除失敗');
+        }
+      });
+    } else {
+      const catalog = sb.catalog.map((c) => `
+        <button class="mc-build ${c.locked ? 'mc-build-locked' : ''}" data-build="${esc(c.type)}" type="button" ${c.locked ? 'disabled' : ''}>
+          <span class="mc-build-icon">${esc(c.icon)}</span>
+          <span class="mc-build-main">
+            <b>${esc(c.name)}</b>
+            <small>${esc(c.desc)}</small>
+          </span>
+          <span class="mc-build-cost">
+            ${c.locked ? `Lv.${c.level} 解鎖` : `💰 ${c.cost}`}
+            <small>活力 +${c.vitality}</small>
+          </span>
+        </button>`).join('');
+      panel.innerHTML = `
+        <div class="mc-card">
+          <b style="font-size:12.5px;">${sel == null ? '點選一個空格開始建設' : `第 ${sel + 1} 格 · 選擇設施`}</b>
+          <div class="mc-muted" style="margin:4px 0 8px;">建設會永久增加分區活力，其他市民可前來參觀與點讚。</div>
+          ${sel == null ? '' : catalog}
+        </div>`;
+      if (sel != null) {
+        panel.querySelectorAll('[data-build]').forEach((b) => {
+          b.addEventListener('click', async () => {
+            const type = b.dataset.build;
+            b.disabled = true;
+            try {
+              const r = await api('/api/sandbox/build', { method: 'POST', body: JSON.stringify({ slot: sel, type }) });
+              state.sandboxSlot = null;
+              if (r.tasks) state.me.tasks = r.tasks;
+              toast(`🏗 已建成，活力 +${r.building.vitality}`);
+              await loadSandbox();
+            } catch (err) {
+              const map = {
+                not_enough_coins: '城市幣不足',
+                slot_taken: '這一格已經有建設',
+                level_locked: '等級不足，繼續探索升級吧',
+              };
+              toast(map[err.message] || '建設失敗');
+              b.disabled = false;
+            }
+          });
+        });
+      }
+    }
+
+    body.querySelectorAll('[data-slot]').forEach((b) => {
+      b.addEventListener('click', () => {
+        state.sandboxSlot = Number(b.dataset.slot);
+        paintSandbox();
+        loadNeighbours();
+      });
+    });
+    $('#mc-sand-refresh').addEventListener('click', async () => {
+      await loadSandbox();
+      await loadMe(true);
+      toast('沙盤已更新');
+    });
+  }
+
+  async function loadSandbox() {
+    try {
+      state.sandbox = await api('/api/sandbox/me');
+      paintSandbox();
+      loadNeighbours();
+    } catch { /* 保留原畫面 */ }
+  }
+
+  async function loadNeighbours() {
+    const box = body.querySelector('#mc-neigh');
+    if (!box) return;
+    try {
+      const d = await api('/api/sandbox/overview');
+      box.innerHTML = `
+        <div class="mc-card" style="margin-top:12px;">
+          <b style="font-size:12.5px;">🏘 鄰里沙盤</b>
+          ${d.plots.length
+            ? d.plots.map((p) => `
+              <div class="mc-rank-row">
+                <div class="mc-rank-no">${esc(p.districtIcon || '🏙')}</div>
+                <div class="mc-rank-name">${esc(p.nickname)}
+                  <div class="mc-rank-sub">${esc(p.districtName)} · ${p.buildings} 項建設 · ❤ ${p.likes}</div>
+                </div>
+                <button class="mc-btn ghost" data-visit="${p.id}" type="button">參觀</button>
+              </div>`).join('')
+            : '<div class="mc-empty">還沒有人開始建設，你可以成為第一位。</div>'}
+          <div class="mc-muted" style="margin:12px 0 4px;">分區活力榜</div>
+          ${d.districts.length
+            ? d.districts.map((x, i) => `
+              <div class="mc-rank-row">
+                <div class="mc-rank-no">${i + 1}</div>
+                <div class="mc-rank-name">${esc(x.icon)} ${esc(x.name)}</div>
+                <div class="mc-rank-score">${x.vitality}</div>
+              </div>`).join('')
+            : '<div class="mc-empty">尚未有活力數據</div>'}
+        </div>`;
+      box.querySelectorAll('[data-visit]').forEach((b) => {
+        b.addEventListener('click', () => {
+          state.sandboxVisit = Number(b.dataset.visit);
+          renderSandbox();
+        });
+      });
+    } catch {
+      box.innerHTML = '';
+    }
+  }
+
+  async function renderSandboxVisit(userId) {
+    body.innerHTML = '<div class="mc-empty">載入中…</div>';
+    let d;
+    try {
+      d = await api(`/api/sandbox/user/${userId}`);
+    } catch {
+      state.sandboxVisit = null;
+      body.innerHTML = '<div class="mc-empty">找不到這位市民的沙盤。</div>';
+      return;
+    }
+    body.innerHTML = `
+      <button class="mc-btn ghost" id="mc-sand-back" type="button">← 返回我的沙盤</button>
+      <div class="mc-card" style="margin-top:10px;">
+        <div class="mc-row">
+          <div class="mc-head-avatar" style="width:38px;height:38px;font-size:16px;">
+            ${d.owner.avatarUrl ? `<img src="${esc(d.owner.avatarUrl)}" alt="" referrerpolicy="no-referrer">` : '🏙'}
+          </div>
+          <div style="min-width:0;">
+            <div style="font-size:13px;font-weight:800;">${esc(d.owner.nickname || '市民')} Lv.${d.owner.level}</div>
+            <div class="mc-muted">${esc(d.owner.districtIcon || '')} ${esc(d.owner.districtName || '')}</div>
+          </div>
+        </div>
+      </div>
+      ${slotGrid(d.slots, false)}
+      <div class="mc-row" style="margin-top:12px;justify-content:space-between;">
+        <span class="mc-muted">沙盤活力 ${d.vitality} · ${d.built} 項建設</span>
+        ${d.isOwner ? '<span class="mc-muted">這是你的沙盤</span>'
+          : `<button class="mc-vote ${d.liked ? 'mc-voted' : ''}" id="mc-visit-like" type="button">👍 ${d.likes}</button>`}
+      </div>`;
+
+    $('#mc-sand-back').addEventListener('click', () => {
+      state.sandboxVisit = null;
+      renderSandbox();
+    });
+    const likeBtn = $('#mc-visit-like');
+    if (likeBtn) {
+      likeBtn.addEventListener('click', async () => {
+        if (!state.me || !state.me.authenticated) { toast('請先登入'); return; }
+        likeBtn.disabled = true;
+        try {
+          const r = await api(`/api/sandbox/like/${d.owner.id}`, { method: 'POST', body: '{}' });
+          likeBtn.classList.toggle('mc-voted', r.liked);
+          likeBtn.textContent = `👍 ${r.likes}`;
+          likeBtn.disabled = false;
+          if (r.tasks) state.me.tasks = r.tasks;
+          if (r.liked) toast('已為鄰里點讚 +2 城市幣');
+        } catch {
+          toast('點讚失敗');
+          likeBtn.disabled = false;
+        }
+      });
+    }
   }
 
   function renderTasks() {
@@ -546,6 +795,8 @@
       await renderProfileAsync();
     } else if (state.tab === 'atlas') {
       await renderAtlas();
+    } else if (state.tab === 'sandbox') {
+      await renderSandbox();
     } else if (state.tab === 'tasks') {
       renderTasks();
     } else if (state.tab === 'proposals') {

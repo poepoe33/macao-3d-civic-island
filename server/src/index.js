@@ -1,7 +1,8 @@
 import crypto from 'node:crypto';
 import express from 'express';
-import { query } from './db.js';
+import { pool, query } from './db.js';
 import { computeTasks, levelInfo, recordEvent, refreshLevel, todayKey, touchStreak, TZ } from './tasks.js';
+import { BUILDING_CATALOG, CATALOG_MAP, DEMOLISH_REFUND_RATE, SLOT_COUNT, districtVitality } from './sandbox.js';
 
 const PORT = Number(process.env.PORT || 3100);
 const BASE_URL = (process.env.BASE_URL || 'http://127.0.0.1:3100').replace(/\/$/, '');
@@ -231,10 +232,10 @@ app.post('/api/onboard', requireUser, wrap(async (req, res) => {
   const { rows } = await query('SELECT id FROM districts WHERE id=$1', [districtId]);
   if (!rows[0]) return res.status(400).json({ error: 'bad_district' });
   await query(
-    `UPDATE users SET nickname=$2, district_id=$3, onboarded=TRUE, xp=xp+20, coins=coins+30 WHERE id=$1`,
+    `UPDATE users SET nickname=$2, district_id=$3, onboarded=TRUE, xp=xp+30, coins=coins+200 WHERE id=$1`,
     [req.user.id, nickname, districtId]
   );
-  await query(`INSERT INTO events (user_id,type,ref_id,xp,coins) VALUES ($1,'onboard',$2,20,30)`,
+  await query(`INSERT INTO events (user_id,type,ref_id,xp,coins) VALUES ($1,'onboard',$2,30,200)`,
     [req.user.id, districtId]);
   const level = await refreshLevel(req.user.id);
   return res.json({ ok: true, levelInfo: level });
@@ -439,6 +440,192 @@ app.post('/api/proposals/:id/vote', requireUser, wrap(async (req, res) => {
   const { rows: c } = await query('SELECT count(*)::int AS n FROM proposal_votes WHERE proposal_id=$1', [id]);
   const { tasks } = await computeTasks(req.user.id);
   res.json({ ok: true, voted, votes: c[0].n, tasks });
+}));
+
+// ---------- 分區建設沙盤 ----------
+function sandboxPayload(buildings, level) {
+  const slots = Array.from({ length: SLOT_COUNT }, (_, i) => {
+    const b = buildings.find((x) => x.slot === i);
+    if (!b) return { slot: i, type: null };
+    const meta = CATALOG_MAP.get(b.building_type);
+    return {
+      slot: i,
+      type: b.building_type,
+      name: meta ? meta.name : b.building_type,
+      icon: meta ? meta.icon : '🏗',
+      vitality: b.vitality,
+      createdAt: b.created_at,
+    };
+  });
+  return {
+    slots,
+    catalog: BUILDING_CATALOG.map((b) => ({ ...b, locked: level < b.level })),
+    built: buildings.length,
+    vitality: buildings.reduce((sum, b) => sum + b.vitality, 0),
+  };
+}
+
+app.get('/api/sandbox/me', requireUser, wrap(async (req, res) => {
+  if (!req.user.district_id) return res.status(400).json({ error: 'no_district' });
+  const { rows: districtRows } = await query('SELECT id, name, icon, macro_region FROM districts WHERE id=$1', [req.user.district_id]);
+  const { rows: buildings } = await query(
+    'SELECT slot, building_type, vitality, created_at FROM user_buildings WHERE user_id=$1 ORDER BY slot',
+    [req.user.id]
+  );
+  const { rows: likes } = await query('SELECT count(*)::int AS n FROM sandbox_likes WHERE owner_id=$1', [req.user.id]);
+  const info = levelInfo(req.user.xp);
+  res.json({
+    district: districtRows[0] || null,
+    coins: req.user.coins,
+    level: info.level,
+    likesReceived: likes[0].n,
+    ...sandboxPayload(buildings, info.level),
+  });
+}));
+
+app.get('/api/sandbox/user/:id', wrap(async (req, res) => {
+  const ownerId = Number(req.params.id);
+  if (!Number.isFinite(ownerId)) return res.status(400).json({ error: 'bad_id' });
+  const { rows: owners } = await query(
+    `SELECT u.id, u.nickname, u.name, u.avatar_url, u.level, u.district_id,
+            d.name AS district_name, d.icon AS district_icon
+       FROM users u LEFT JOIN districts d ON d.id=u.district_id
+      WHERE u.id=$1 AND u.onboarded`,
+    [ownerId]
+  );
+  if (!owners[0]) return res.status(404).json({ error: 'not_found' });
+  const { rows: buildings } = await query(
+    'SELECT slot, building_type, vitality, created_at FROM user_buildings WHERE user_id=$1 ORDER BY slot',
+    [ownerId]
+  );
+  const { rows: likes } = await query('SELECT count(*)::int AS n FROM sandbox_likes WHERE owner_id=$1', [ownerId]);
+  let liked = false;
+  if (req.user) {
+    const { rows: mine } = await query('SELECT 1 FROM sandbox_likes WHERE owner_id=$1 AND liker_id=$2', [ownerId, req.user.id]);
+    liked = Boolean(mine[0]);
+  }
+  const payload = sandboxPayload(buildings, owners[0].level);
+  res.json({
+    owner: {
+      id: owners[0].id, nickname: owners[0].nickname || owners[0].name,
+      avatarUrl: owners[0].avatar_url, level: owners[0].level,
+      districtId: owners[0].district_id, districtName: owners[0].district_name,
+      districtIcon: owners[0].district_icon,
+    },
+    likes: likes[0].n,
+    liked,
+    isOwner: Boolean(req.user && Number(req.user.id) === ownerId),
+    ...payload,
+  });
+}));
+
+app.post('/api/sandbox/build', requireUser, wrap(async (req, res) => {
+  if (!req.user.district_id) return res.status(400).json({ error: 'no_district' });
+  const slot = Number(req.body.slot);
+  const type = String(req.body.type || '');
+  const meta = CATALOG_MAP.get(type);
+  if (!Number.isInteger(slot) || slot < 0 || slot >= SLOT_COUNT) return res.status(400).json({ error: 'bad_slot' });
+  if (!meta) return res.status(400).json({ error: 'bad_type' });
+  const info = levelInfo(req.user.xp);
+  if (info.level < meta.level) return res.status(403).json({ error: 'level_locked', needLevel: meta.level });
+
+  const client = await pool.connect();
+  let coinsAfter = 0;
+  try {
+    await client.query('BEGIN');
+    const pay = await client.query(
+      'UPDATE users SET coins=coins-$2 WHERE id=$1 AND coins >= $2 RETURNING coins',
+      [req.user.id, meta.cost]
+    );
+    if (pay.rowCount === 0) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ error: 'not_enough_coins', cost: meta.cost });
+    }
+    coinsAfter = pay.rows[0].coins;
+    try {
+      await client.query(
+        `INSERT INTO user_buildings (user_id, district_id, slot, building_type, vitality)
+         VALUES ($1,$2,$3,$4,$5)`,
+        [req.user.id, req.user.district_id, slot, type, meta.vitality]
+      );
+    } catch (err) {
+      if (err.code === '23505') {
+        await client.query('ROLLBACK');
+        return res.status(409).json({ error: 'slot_taken' });
+      }
+      throw err;
+    }
+    await client.query('COMMIT');
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw err;
+  } finally {
+    client.release();
+  }
+
+  const reward = await recordEvent(req.user.id, 'build', type);
+  const level = await refreshLevel(req.user.id);
+  const { tasks } = await computeTasks(req.user.id);
+  res.json({ ok: true, coins: coinsAfter, building: { ...meta }, reward, levelInfo: level, tasks });
+}));
+
+app.post('/api/sandbox/demolish', requireUser, wrap(async (req, res) => {
+  const slot = Number(req.body.slot);
+  if (!Number.isInteger(slot)) return res.status(400).json({ error: 'bad_slot' });
+  const del = await query(
+    'DELETE FROM user_buildings WHERE user_id=$1 AND slot=$2 RETURNING building_type, vitality',
+    [req.user.id, slot]
+  );
+  if (del.rowCount === 0) return res.status(404).json({ error: 'not_found' });
+  const meta = CATALOG_MAP.get(del.rows[0].building_type);
+  const refund = Math.floor((meta ? meta.cost : 0) * DEMOLISH_REFUND_RATE);
+  const { rows } = await query('UPDATE users SET coins=coins+$2 WHERE id=$1 RETURNING coins', [req.user.id, refund]);
+  res.json({ ok: true, refund, coins: rows[0].coins });
+}));
+
+app.post('/api/sandbox/like/:id', requireUser, wrap(async (req, res) => {
+  const ownerId = Number(req.params.id);
+  if (!Number.isFinite(ownerId)) return res.status(400).json({ error: 'bad_id' });
+  if (ownerId === Number(req.user.id)) return res.status(400).json({ error: 'self_like' });
+  const { rows: owners } = await query('SELECT 1 FROM users WHERE id=$1 AND onboarded', [ownerId]);
+  if (!owners[0]) return res.status(404).json({ error: 'not_found' });
+
+  const del = await query('DELETE FROM sandbox_likes WHERE owner_id=$1 AND liker_id=$2 RETURNING owner_id', [ownerId, req.user.id]);
+  let liked = false;
+  if (del.rowCount === 0) {
+    await query('INSERT INTO sandbox_likes (owner_id, liker_id) VALUES ($1,$2) ON CONFLICT DO NOTHING', [ownerId, req.user.id]);
+    liked = true;
+    await recordEvent(req.user.id, 'like', String(ownerId));
+    await refreshLevel(req.user.id);
+  }
+  const { rows: c } = await query('SELECT count(*)::int AS n FROM sandbox_likes WHERE owner_id=$1', [ownerId]);
+  const { tasks } = await computeTasks(req.user.id);
+  res.json({ ok: true, liked, likes: c[0].n, tasks });
+}));
+
+app.get('/api/sandbox/overview', wrap(async (req, res) => {
+  const { rows: plots } = await query(
+    `SELECT u.id, u.nickname, u.name, u.avatar_url, u.level,
+            d.id AS district_id, d.name AS district_name, d.icon AS district_icon,
+            count(b.id)::int AS buildings,
+            COALESCE(sum(b.vitality),0)::int AS build_vitality,
+            (SELECT count(*)::int FROM sandbox_likes sl WHERE sl.owner_id=u.id) AS likes
+       FROM users u
+       JOIN districts d ON d.id=u.district_id
+       JOIN user_buildings b ON b.user_id=u.id
+      WHERE u.onboarded
+      GROUP BY u.id, d.id
+      ORDER BY build_vitality DESC, likes DESC
+      LIMIT 8`
+  );
+  res.json({
+    plots: plots.map((p) => ({
+      id: p.id, nickname: p.nickname || p.name, avatarUrl: p.avatar_url, level: p.level,
+      districtId: p.district_id, districtName: p.district_name, districtIcon: p.district_icon,
+      buildings: p.buildings, likes: p.likes, vitality: p.build_vitality,
+    })),
+    districts: await districtVitality(query),
+  });
 }));
 
 // ---------- 城市總覽與共創目標 ----------

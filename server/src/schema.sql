@@ -106,3 +106,23 @@ CREATE TABLE IF NOT EXISTS proposal_votes (
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
   PRIMARY KEY (proposal_id, user_id)
 );
+
+-- 分區建設沙盤：每位市民在自己的居住分區擁有 12 格建設用地
+CREATE TABLE IF NOT EXISTS user_buildings (
+  id            BIGSERIAL PRIMARY KEY,
+  user_id       BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  district_id   TEXT NOT NULL REFERENCES districts(id) ON DELETE CASCADE,
+  slot          SMALLINT NOT NULL CHECK (slot >= 0 AND slot < 12),
+  building_type TEXT NOT NULL,
+  vitality      INT NOT NULL DEFAULT 0,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (user_id, slot)
+);
+CREATE INDEX IF NOT EXISTS user_buildings_district_idx ON user_buildings(district_id);
+
+CREATE TABLE IF NOT EXISTS sandbox_likes (
+  owner_id   BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  liker_id   BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (owner_id, liker_id)
+);
