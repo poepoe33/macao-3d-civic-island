@@ -44,6 +44,7 @@ const TASK_POOL = [
   { key: 'build1', title: '完成 1 次分區建設', type: 'build', goal: 1, xp: 30, coins: 20 },
   { key: 'greet3', title: '向 3 位鄰居打招呼', type: 'greet', goal: 3, xp: 30, coins: 20 },
   { key: 'visit3', title: '巡訪 3 位好友的沙盤', type: 'visit', goal: 3, xp: 35, coins: 25 },
+  { key: 'activity1', title: '參加 1 個城市活動', type: 'activity', goal: 1, xp: 30, coins: 20 },
 ];
 
 export async function todayKey() {
@@ -70,6 +71,7 @@ const EVENT_RULES = {
   like: { xp: 4, coins: 2, dailyCap: 10 },
   greet: { xp: 5, coins: 4, dailyCap: 5 },
   visit: { xp: 6, coins: 4, dailyCap: 8 },
+  activity: { xp: 0, coins: 0, dailyCap: 5 },
 };
 
 /**

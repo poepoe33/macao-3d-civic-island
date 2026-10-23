@@ -213,6 +213,7 @@
   border: 1px solid var(--mc-soft);
   background: transparent;
   color: var(--mc-ink);
+  white-space: nowrap;
   border-radius: 999px;
   padding: 7px 14px;
   font-size: 12.5px;
@@ -595,3 +596,49 @@
 @media (prefers-reduced-motion: reduce) {
   #mc-fab, #mc-panel, #mc-backdrop, .mc-toast { transition: none !important; animation: none !important; }
 }
+
+/* 私訊與活動 */
+.mc-badge {
+  display: inline-block;
+  min-width: 18px;
+  padding: 1px 5px;
+  border-radius: 99px;
+  background: #d2542f;
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 800;
+  text-align: center;
+  line-height: 1.5;
+}
+.mc-badge.ok { background: #4f8a63; }
+.mc-msg-row { cursor: pointer; }
+.mc-msg-row:hover { border-color: rgba(219, 106, 65, 0.45); }
+.mc-msg-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px 2px 10px;
+  max-height: 46vh;
+  overflow-y: auto;
+}
+.mc-msg { display: flex; flex-direction: column; align-items: flex-start; }
+.mc-msg-mine { align-items: flex-end; }
+.mc-msg-body {
+  max-width: 82%;
+  padding: 8px 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--mc-soft);
+  font-size: 12.5px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.mc-msg-mine .mc-msg-body {
+  background: var(--mc-ink);
+  color: var(--mc-cream);
+  border-color: var(--mc-ink);
+}
+.mc-msg-time { font-size: 10px; color: #9a8a7c; margin: 3px 4px 0; }
+.mc-activity { cursor: pointer; }
+.mc-activity:hover { border-color: rgba(219, 106, 65, 0.45); }

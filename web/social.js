@@ -19,6 +19,12 @@
     sandboxVisit: null,
     guildView: null,
     friendSearch: null,
+    messages: null,
+    msgUser: null,
+    msgThread: null,
+    activities: null,
+    activityView: null,
+    activityCategory: '',
     festival: null,
     festivalFired: false,
     open: false,
@@ -79,8 +85,10 @@
         <button class="mc-tab" data-tab="atlas" type="button">探索圖鑑</button>
         <button class="mc-tab" data-tab="sandbox" type="button">建設沙盤</button>
         <button class="mc-tab" data-tab="community" type="button">好友社團</button>
+        <button class="mc-tab" data-tab="messages" type="button">私訊</button>
         <button class="mc-tab" data-tab="tasks" type="button">每日任務</button>
         <button class="mc-tab" data-tab="proposals" type="button">提案牆</button>
+        <button class="mc-tab" data-tab="activities" type="button">城市活動</button>
         <button class="mc-tab" data-tab="ranking" type="button">排行榜</button>
       </nav>
       <div class="mc-body" id="mc-body"></div>
@@ -172,7 +180,7 @@
     const u = me.user;
     avatar.innerHTML = u.avatarUrl
       ? `<img src="${esc(u.avatarUrl)}" alt="" referrerpolicy="no-referrer">`
-      : '🏙';
+      : `<span style="font-size:22px;">${esc(u.avatarEmoji || '🏙')}</span>`;
     const lv = u.levelInfo || { level: 1, title: '城市觀察員', progress: 0 };
     $('#mc-head-name').textContent = `${u.nickname} · Lv.${lv.level} ${lv.title}`;
     const reputation = u.counts ? (u.counts.reputation || 0) : 0;
@@ -245,6 +253,9 @@
     const counts = u.counts || { discoveries: 0, proposals: 0, votes: 0 };
     const goal = state.city && state.city.goal;
     const pct = Math.min(100, Math.round((counts.discoveries / 82) * 100));
+    const districts = state.districts || [];
+    const AVATAR_EMOJIS = ['🙂', '😎', '🧑‍🎓', '👩‍💻', '👨‍🔧', '🧕', '👵', '🧑‍🚀', '🌟', '🏙'];
+    const figureColor = u.figureColor || '#db6a41';
     body.innerHTML = `
       <div class="mc-stats">
         <div class="mc-stat"><b>${counts.discoveries}<span style="font-size:11px;opacity:.6">/82</span></b><span>地標收集</span></div>
@@ -260,6 +271,60 @@
         </div>
         <div class="mc-muted" style="margin-top:4px;">${esc(state.festival.message)}</div>
       </div>` : ''}
+
+      <div class="mc-card">
+        <div class="mc-row" style="justify-content:space-between;margin-bottom:4px;">
+          <b style="font-size:13px;">🎨 個人資料與公仔</b>
+          ${u.isAdmin ? '<a class="mc-btn ghost" href="/admin.html" target="_blank" rel="noopener" style="text-decoration:none;">🛠 管理後台</a>' : ''}
+        </div>
+        <label class="mc-label" for="mc-p-nick">市民暱稱</label>
+        <input class="mc-input" id="mc-p-nick" maxlength="20" value="${esc(u.nickname || '')}">
+
+        <div class="mc-row" style="gap:8px;align-items:flex-end;">
+          <div style="flex:1;">
+            <label class="mc-label" for="mc-p-gender">性別</label>
+            <select class="mc-select" id="mc-p-gender">
+              <option value="male" ${u.gender === 'male' ? 'selected' : ''}>男</option>
+              <option value="female" ${u.gender === 'female' ? 'selected' : ''}>女</option>
+              <option value="other" ${!u.gender || u.gender === 'other' ? 'selected' : ''}>其他／不公開</option>
+            </select>
+          </div>
+          <div style="flex:1;">
+            <label class="mc-label" for="mc-p-style">公仔造型</label>
+            <select class="mc-select" id="mc-p-style">
+              <option value="casual" ${u.figureStyle === 'casual' ? 'selected' : ''}>休閒</option>
+              <option value="formal" ${u.figureStyle === 'formal' ? 'selected' : ''}>正式</option>
+              <option value="sport" ${u.figureStyle === 'sport' ? 'selected' : ''}>運動</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="mc-row" style="gap:8px;align-items:flex-end;">
+          <div style="flex:1;">
+            <label class="mc-label" for="mc-p-emoji">頭像</label>
+            <select class="mc-select" id="mc-p-emoji">
+              ${AVATAR_EMOJIS.map((e) => `<option value="${e}" ${e === (u.avatarEmoji || '🙂') ? 'selected' : ''}>${e}</option>`).join('')}
+            </select>
+          </div>
+          <div style="width:96px;">
+            <label class="mc-label" for="mc-p-color">公仔顏色</label>
+            <input class="mc-input" type="color" id="mc-p-color" value="${esc(figureColor)}" style="padding:2px;height:34px;">
+          </div>
+        </div>
+
+        <label class="mc-label" for="mc-p-district">居住分區</label>
+        <select class="mc-select" id="mc-p-district">
+          ${districts.map((d) => `<option value="${esc(d.id)}" ${d.id === u.districtId ? 'selected' : ''}>${esc(d.icon)} ${esc(d.code)} · ${esc(d.name)}</option>`).join('')}
+        </select>
+
+        <label class="mc-label" for="mc-p-bio">自我介紹 <span style="opacity:.6;font-weight:400;">（最多 120 字）</span></label>
+        <textarea class="mc-input" id="mc-p-bio" rows="2" maxlength="120" placeholder="說說你喜歡澳門的哪一角…">${esc(u.bio || '')}</textarea>
+
+        <div style="margin-top:12px;display:flex;gap:8px;align-items:center;">
+          <button class="mc-btn" id="mc-save-profile" type="button">儲存個人資料</button>
+          <span class="mc-muted" style="font-size:11.5px;">公仔會即時出現在 3D 地圖</span>
+        </div>
+      </div>
 
       <div class="mc-card">
         <div class="mc-row" style="justify-content:space-between;">
@@ -297,6 +362,34 @@
           <button class="mc-btn ghost" id="mc-logout" type="button">登出</button>
         </div>
       </div>`;
+
+    const saveProfile = $('#mc-save-profile');
+    if (saveProfile) {
+      saveProfile.addEventListener('click', async () => {
+        saveProfile.disabled = true;
+        try {
+          const r = await api('/api/profile', {
+            method: 'POST',
+            body: JSON.stringify({
+              nickname: $('#mc-p-nick').value.trim(),
+              gender: $('#mc-p-gender').value,
+              figureStyle: $('#mc-p-style').value,
+              avatarEmoji: $('#mc-p-emoji').value,
+              figureColor: $('#mc-p-color').value,
+              districtId: $('#mc-p-district').value,
+              bio: $('#mc-p-bio').value.trim(),
+            }),
+          });
+          if (r.tasks) state.me.tasks = r.tasks;
+          await loadAll();
+          render();
+          toast('個人資料已更新，公仔已同步到 3D 地圖');
+        } catch (err) {
+          toast(err.message === 'nickname_too_short' ? '暱稱至少 2 個字' : '儲存失敗，請稍後再試');
+          saveProfile.disabled = false;
+        }
+      });
+    }
 
     $('#mc-refresh').addEventListener('click', async () => {
       await loadAll();
@@ -709,6 +802,7 @@
         <span class="mc-muted">沙盤活力 ${d.vitality} · ${d.built} 項建設</span>
         ${d.isOwner ? '<span class="mc-muted">這是你的沙盤</span>'
           : `<div class="mc-row" style="gap:6px;">
+               <button class="mc-btn ghost" id="mc-visit-pm" type="button">私訊</button>
                <button class="mc-btn ghost" id="mc-visit-greet" type="button">👋 打招呼</button>
                <button class="mc-vote ${d.liked ? 'mc-voted' : ''}" id="mc-visit-like" type="button">👍 ${d.likes}</button>
              </div>`}
@@ -752,6 +846,11 @@
           likeBtn.disabled = false;
         }
       });
+    }
+
+    const pmBtn = $('#mc-visit-pm');
+    if (pmBtn) {
+      pmBtn.addEventListener('click', () => openMessageTo(d.owner.id));
     }
 
     const greetBtn = $('#mc-visit-greet');
@@ -975,7 +1074,8 @@
       : '';
     const friendList = friends.friends.length
       ? friends.friends.map((p) => personRow(p,
-        `<button class="mc-btn ghost" data-greet="${p.id}" type="button">👋 打招呼</button>
+        `<button class="mc-btn ghost" data-pm="${p.id}" type="button">私訊</button>
+         <button class="mc-btn ghost" data-greet="${p.id}" type="button">👋 打招呼</button>
          <button class="mc-btn ghost" data-visit-friend="${p.id}" type="button">參觀</button>
          <button class="mc-btn ghost" data-remove-friend="${p.id}" type="button">移除</button>`
       )).join('')
@@ -1082,6 +1182,9 @@
         syncTabs();
         await renderSandbox();
       });
+    });
+    body.querySelectorAll('[data-pm]').forEach((b) => {
+      b.addEventListener('click', () => openMessageTo(b.dataset.pm));
     });
     body.querySelectorAll('[data-greet]').forEach((b) => {
       b.addEventListener('click', async () => {
@@ -1260,6 +1363,287 @@
     }
   }
 
+  // ---------- 私訊 ----------
+  function fmtTime(v) {
+    if (!v) return '';
+    try {
+      return new Date(v).toLocaleString('zh-MO', {
+        timeZone: 'Asia/Macau', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit',
+      });
+    } catch { return ''; }
+  }
+
+  async function renderMessages() {
+    if (!state.me || !state.me.authenticated) {
+      body.innerHTML = loginCard('登入後可與其他市民私訊交流');
+      return;
+    }
+    if (!state.me.user.onboarded) {
+      body.innerHTML = '<div class="mc-empty">請先到「市民檔案」建立暱稱與居住分區。</div>';
+      return;
+    }
+    if (state.msgUser) { await renderMessageThread(state.msgUser); return; }
+
+    if (!state.messages) {
+      try { state.messages = await api('/api/messages'); } catch { state.messages = { conversations: [], unreadTotal: 0 }; }
+    }
+    const list = state.messages.conversations || [];
+    body.innerHTML = `
+      <div class="mc-card">
+        <div class="mc-row" style="justify-content:space-between;">
+          <b style="font-size:13px;">💬 私訊</b>
+          <span class="mc-muted">${state.messages.unreadTotal ? `${state.messages.unreadTotal} 則未讀` : '沒有未讀'}</span>
+        </div>
+        <div class="mc-muted" style="margin-top:4px;">可從好友名單或市民沙盤頁發起對話。</div>
+      </div>
+      ${list.length ? list.map((c) => `
+        <div class="mc-card mc-msg-row" data-conv="${c.userId}" role="button" tabindex="0">
+          <div class="mc-row" style="justify-content:space-between;">
+            <div class="mc-row" style="gap:8px;min-width:0;">
+              <span style="font-size:20px;">${esc(c.avatarEmoji)}</span>
+              <div style="min-width:0;">
+                <div style="font-size:13px;font-weight:800;">${esc(c.nickname)} <span class="mc-muted">Lv.${c.level}</span></div>
+                <div class="mc-muted" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${c.mine ? '你：' : ''}${esc(c.lastMessage)}</div>
+              </div>
+            </div>
+            <div style="text-align:right;">
+              ${c.unread ? `<span class="mc-badge">${c.unread}</span>` : ''}
+              <div class="mc-muted" style="font-size:11px;">${fmtTime(c.updatedAt)}</div>
+            </div>
+          </div>
+        </div>`).join('')
+        : '<div class="mc-empty">還沒有對話。到「好友社團」或市民沙盤頁按「私訊」開始聊天。</div>'}
+    `;
+    body.querySelectorAll('[data-conv]').forEach((el) => {
+      el.addEventListener('click', () => {
+        state.msgUser = Number(el.dataset.conv);
+        state.msgThread = null;
+        renderMessages();
+      });
+    });
+  }
+
+  async function renderMessageThread(userId) {
+    try {
+      state.msgThread = await api(`/api/messages/${userId}`);
+    } catch {
+      state.msgUser = null;
+      state.msgThread = null;
+      toast('無法載入對話');
+      return renderMessages();
+    }
+    const t = state.msgThread;
+    body.innerHTML = `
+      <div class="mc-card">
+        <div class="mc-row" style="justify-content:space-between;">
+          <button class="mc-btn ghost" id="mc-msg-back" type="button">← 返回</button>
+          <div class="mc-row" style="gap:6px;">
+            <span style="font-size:18px;">${esc(t.user.avatarEmoji)}</span>
+            <b style="font-size:13px;">${esc(t.user.nickname)}</b>
+            <span class="mc-muted">Lv.${t.user.level}${t.isFriend ? ' · 好友' : ''}</span>
+          </div>
+        </div>
+      </div>
+      <div class="mc-msg-thread">
+        ${t.messages.length ? t.messages.map((m) => `
+          <div class="mc-msg ${m.mine ? 'mc-msg-mine' : ''}">
+            <div class="mc-msg-body">${esc(m.body)}</div>
+            <div class="mc-msg-time">${fmtTime(m.createdAt)}</div>
+          </div>`).join('')
+          : '<div class="mc-empty">還沒有訊息，說句話打個招呼吧。</div>'}
+      </div>
+      <div class="mc-card">
+        <div class="mc-row" style="gap:8px;align-items:flex-end;">
+          <textarea class="mc-input" id="mc-msg-input" rows="2" maxlength="500" placeholder="輸入訊息…" style="flex:1;"></textarea>
+          <button class="mc-btn" id="mc-msg-send" type="button">送出</button>
+        </div>
+        <div class="mc-muted" style="margin-top:6px;font-size:11px;">最多 500 字，請保持友善。</div>
+      </div>
+    `;
+    $('#mc-msg-back').addEventListener('click', () => {
+      state.msgUser = null;
+      state.msgThread = null;
+      state.messages = null;
+      renderMessages();
+    });
+    const input = $('#mc-msg-input');
+    const send = async () => {
+      const value = input.value.trim();
+      if (!value) return;
+      const btn = $('#mc-msg-send');
+      btn.disabled = true;
+      try {
+        await api(`/api/messages/${userId}`, {
+          method: 'POST', body: JSON.stringify({ body: value }),
+        });
+        input.value = '';
+        state.messages = null;
+        await renderMessageThread(userId);
+      } catch {
+        toast('訊息送出失敗');
+        btn.disabled = false;
+      }
+    };
+    $('#mc-msg-send').addEventListener('click', send);
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+    });
+  }
+
+  function openMessageTo(userId) {
+    state.msgUser = Number(userId);
+    state.msgThread = null;
+    state.tab = 'messages';
+    syncTabs();
+    render();
+  }
+
+  // ---------- 城市活動 ----------
+  async function renderActivities() {
+    if (state.activityView) { await renderActivityDetail(state.activityView); return; }
+    try {
+      const q = state.activityCategory ? `?category=${encodeURIComponent(state.activityCategory)}` : '';
+      state.activities = await api(`/api/activities${q}`);
+    } catch {
+      body.innerHTML = '<div class="mc-empty">活動資料載入失敗，請稍後再試。</div>';
+      return;
+    }
+    const list = state.activities.activities || [];
+    const cats = state.activities.categories || [];
+    body.innerHTML = `
+      <div class="mc-card">
+        <div class="mc-row" style="justify-content:space-between;">
+          <b style="font-size:13px;">🎪 城市活動</b>
+          <span class="mc-muted">${list.length} 個進行中</span>
+        </div>
+        <div class="mc-muted" style="margin-top:4px;">報名、現場簽到即可獲得城市幣與 XP。</div>
+        <div class="mc-row wrap" style="gap:6px;margin-top:10px;">
+          <button class="mc-tab ${!state.activityCategory ? 'mc-active' : ''}" data-cat="" type="button">全部</button>
+          ${cats.map((c) => `<button class="mc-tab ${state.activityCategory === c.key ? 'mc-active' : ''}" data-cat="${c.key}" type="button">${c.icon} ${c.name}</button>`).join('')}
+        </div>
+      </div>
+      ${list.length ? list.map((a) => `
+        <div class="mc-card mc-activity" data-activity="${a.id}" role="button" tabindex="0">
+          <div class="mc-row" style="justify-content:space-between;">
+            <div style="font-size:13px;font-weight:800;min-width:0;">${esc(a.categoryIcon)} ${esc(a.title)}</div>
+            ${a.myCheckedIn ? '<span class="mc-badge ok">已簽到</span>'
+              : a.myStatus === 'going' ? '<span class="mc-badge ok">已報名</span>' : ''}
+          </div>
+          <div class="mc-muted" style="margin-top:4px;">
+            ${fmtTime(a.startAt)} · ${esc(a.districtIcon || '📍')} ${esc(a.location || a.districtName || '全澳')}
+          </div>
+          <div class="mc-row" style="justify-content:space-between;margin-top:8px;">
+            <span class="mc-muted">${a.goingCount}${a.capacity ? `/${a.capacity}` : ''} 人報名</span>
+            <span class="mc-muted">💰 ${a.rewardCoins} · ⭐ ${a.rewardXp}</span>
+          </div>
+        </div>`).join('')
+        : '<div class="mc-empty">目前沒有符合條件的活動，活動由管理員建立後會出現在這裡。</div>'}
+    `;
+    body.querySelectorAll('[data-cat]').forEach((b) => {
+      b.addEventListener('click', () => {
+        state.activityCategory = b.dataset.cat;
+        renderActivities();
+      });
+    });
+    body.querySelectorAll('[data-activity]').forEach((el) => {
+      el.addEventListener('click', () => {
+        state.activityView = Number(el.dataset.activity);
+        renderActivities();
+      });
+    });
+  }
+
+  async function renderActivityDetail(id) {
+    let d;
+    try { d = await api(`/api/activities/${id}`); } catch {
+      state.activityView = null;
+      toast('活動載入失敗');
+      return renderActivities();
+    }
+    const a = d.activity;
+    const authed = state.me && state.me.authenticated && state.me.user.onboarded;
+    const canCheckin = a.myStatus === 'going' && !a.myCheckedIn;
+    body.innerHTML = `
+      <div class="mc-card">
+        <div class="mc-row" style="justify-content:space-between;">
+          <button class="mc-btn ghost" id="mc-act-back" type="button">← 返回</button>
+          <span class="mc-muted">${esc(a.categoryIcon)} ${esc(a.categoryName)}</span>
+        </div>
+        <div style="font-size:15px;font-weight:900;margin-top:8px;">${esc(a.title)}</div>
+        <div class="mc-muted" style="margin-top:6px;">
+          🕒 ${fmtTime(a.startAt)} — ${fmtTime(a.endAt)}<br>
+          📍 ${esc(a.districtIcon || '')} ${esc(a.location || a.districtName || '全澳')}
+        </div>
+        <div class="mc-muted" style="margin-top:10px;line-height:1.7;">${esc(a.description)}</div>
+      </div>
+      <div class="mc-card">
+        <div class="mc-row" style="justify-content:space-between;">
+          <span class="mc-muted">報名 ${a.goingCount}${a.capacity ? ` / ${a.capacity}` : ''}${a.capacity ? '（額滿截止）' : '（不限額）'}</span>
+          <span class="mc-muted">💰 ${a.rewardCoins} · ⭐ ${a.rewardXp}</span>
+        </div>
+        <div class="mc-row wrap" style="gap:8px;margin-top:12px;">
+          ${!authed ? '<span class="mc-muted">登入並建立市民檔案後即可報名</span>'
+            : a.myCheckedIn ? '<span class="mc-badge ok">已簽到，獎勵已發放</span>'
+              : a.myStatus === 'going'
+                ? `<button class="mc-btn ghost" id="mc-act-cancel" type="button">取消報名</button>
+                   <button class="mc-btn" id="mc-act-checkin" type="button" ${canCheckin ? '' : 'disabled'}>📍 現場簽到</button>`
+                : '<button class="mc-btn" id="mc-act-signup" type="button">我要報名</button>'}
+        </div>
+        ${a.myStatus === 'going' && !a.myCheckedIn ? '<div class="mc-muted" style="margin-top:8px;font-size:11.5px;">簽到於活動開始前 30 分鐘開放，至活動結束為止。</div>' : ''}
+      </div>
+    `;
+    $('#mc-act-back').addEventListener('click', () => {
+      state.activityView = null;
+      state.activities = null;
+      renderActivities();
+    });
+    const signup = $('#mc-act-signup');
+    if (signup) {
+      signup.addEventListener('click', async () => {
+        signup.disabled = true;
+        try {
+          await api(`/api/activities/${id}/signup`, { method: 'POST', body: '{}' });
+          toast('報名成功，記得活動當天現場簽到');
+          await renderActivityDetail(id);
+        } catch (err) {
+          toast(err.status === 409 ? '名額已滿' : '報名失敗');
+          signup.disabled = false;
+        }
+      });
+    }
+    const cancel = $('#mc-act-cancel');
+    if (cancel) {
+      cancel.addEventListener('click', async () => {
+        cancel.disabled = true;
+        try {
+          await api(`/api/activities/${id}/cancel`, { method: 'POST', body: '{}' });
+          toast('已取消報名');
+          await renderActivityDetail(id);
+        } catch {
+          toast('取消失敗');
+          cancel.disabled = false;
+        }
+      });
+    }
+    const checkin = $('#mc-act-checkin');
+    if (checkin) {
+      checkin.addEventListener('click', async () => {
+        checkin.disabled = true;
+        try {
+          const r = await api(`/api/activities/${id}/checkin`, { method: 'POST', body: '{}' });
+          if (r.tasks) state.me.tasks = r.tasks;
+          toast(r.already ? '已完成簽到' : `簽到成功 +${r.rewardCoins} 城市幣、+${r.rewardXp} XP`);
+          await loadMe(true);
+          await renderActivityDetail(id);
+        } catch (err) {
+          toast(err.message === 'too_early' ? '尚未開放簽到' : err.message === 'ended' ? '活動已結束' : '簽到失敗');
+          checkin.disabled = false;
+        }
+      });
+    }
+  }
+
   async function renderRanking() {
     body.innerHTML = `
       <div class="mc-row" style="gap:6px;margin-bottom:10px;">
@@ -1304,6 +1688,10 @@
       renderTasks();
     } else if (state.tab === 'proposals') {
       await renderProposals();
+    } else if (state.tab === 'messages') {
+      await renderMessages();
+    } else if (state.tab === 'activities') {
+      await renderActivities();
     } else if (state.tab === 'ranking') {
       await renderRanking();
     }
@@ -1313,7 +1701,7 @@
     if (state.me && state.me.authenticated && !state.city) {
       try { state.city = await api('/api/city'); } catch { /* 非必要 */ }
     }
-    if (state.me && state.me.authenticated && !state.me.user.onboarded) {
+    if (state.me && state.me.authenticated) {
       try { await ensureDistricts(); } catch { /* 稍後重試 */ }
     }
     renderProfile();

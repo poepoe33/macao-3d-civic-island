@@ -4,6 +4,8 @@ import { pool, query } from './db.js';
 import { computeTasks, levelInfo, recordEvent, refreshLevel, todayKey, touchStreak, TZ } from './tasks.js';
 import { BUILDING_CATALOG, CATALOG_MAP, DEMOLISH_REFUND_RATE, SLOT_COUNT, districtVitality } from './sandbox.js';
 import { communityRouter } from './community.js';
+import { messagesRouter } from './messages.js';
+import { createActivitiesRouter } from './activities.js';
 
 const PORT = Number(process.env.PORT || 3100);
 const BASE_URL = (process.env.BASE_URL || 'http://127.0.0.1:3100').replace(/\/$/, '');
@@ -12,6 +14,8 @@ const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || '';
 const SESSION_DAYS = 30;
 const COOKIE = 'macao_sid';
 const STATE_COOKIE = 'macao_oauth_state';
+const NEXT_COOKIE = 'macao_oauth_next';
+const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || 'paul.ccp@gmail.com').toLowerCase();
 
 if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
   console.warn('[auth] 尚未設定 GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET，登入功能將停用');
@@ -99,8 +103,19 @@ app.use(async (req, res, next) => {
   }
 });
 
+const isAdminUser = (u) => Boolean(u) && (
+  u.role === 'admin' || String(u.email || '').toLowerCase() === ADMIN_EMAIL
+);
+
 const requireUser = (req, res, next) => {
   if (!req.user) return res.status(401).json({ error: 'unauthorized' });
+  if (req.user.banned && !isAdminUser(req.user)) return res.status(403).json({ error: 'banned' });
+  next();
+};
+
+const requireAdmin = (req, res, next) => {
+  if (!req.user) return res.status(401).json({ error: 'unauthorized' });
+  if (!isAdminUser(req.user)) return res.status(403).json({ error: 'forbidden' });
   next();
 };
 
@@ -118,6 +133,11 @@ function publicUser(u, extra = {}) {
     xp: u.xp,
     streak: u.streak_days,
     onboarded: u.onboarded,
+    gender: u.gender || null,
+    bio: u.bio || '',
+    avatarEmoji: u.avatar_emoji || '🙂',
+    figureColor: u.figure_color || '#db6a41',
+    figureStyle: u.figure_style || 'casual',
     ...extra,
   };
 }
@@ -151,6 +171,10 @@ app.get('/api/auth/google', (req, res) => {
   if (!rateLimit(`auth:${req.ip}`, 20, 60_000)) return res.status(429).send('請求過於頻繁');
   const state = randomToken();
   setCookie(res, STATE_COOKIE, state, { maxAge: 600 });
+  const next = String(req.query.next || '');
+  if (next.startsWith('/') && !next.startsWith('//')) {
+    setCookie(res, NEXT_COOKIE, next, { maxAge: 600 });
+  }
   const params = new URLSearchParams({
     client_id: GOOGLE_CLIENT_ID,
     redirect_uri: `${BASE_URL}/api/auth/google/callback`,
@@ -164,8 +188,12 @@ app.get('/api/auth/google', (req, res) => {
 
 app.get('/api/auth/google/callback', wrap(async (req, res) => {
   const { code, state, error } = req.query;
-  const expected = parseCookies(req.headers.cookie)[STATE_COOKIE];
+  const cookies = parseCookies(req.headers.cookie);
+  const expected = cookies[STATE_COOKIE];
+  const nextRaw = cookies[NEXT_COOKIE] || '';
   clearCookie(res, STATE_COOKIE);
+  clearCookie(res, NEXT_COOKIE);
+  const next = nextRaw.startsWith('/') && !nextRaw.startsWith('//') ? nextRaw : '/';
   if (error || !code || !state || !expected || state !== expected) {
     return res.redirect('/?login=failed');
   }
@@ -208,7 +236,7 @@ app.get('/api/auth/google/callback', wrap(async (req, res) => {
     [sha256(sid), userId]
   );
   setCookie(res, COOKIE, sid, { maxAge: SESSION_DAYS * 86400 });
-  res.redirect('/');
+  res.redirect(next);
 }));
 
 app.post('/api/auth/logout', (req, res) => {
@@ -222,6 +250,7 @@ app.post('/api/auth/logout', (req, res) => {
 app.get('/api/me', wrap(async (req, res) => {
   if (!req.user) return res.json({ authenticated: false });
   const u = req.user;
+  if (u.banned && !isAdminUser(u)) return res.status(403).json({ authenticated: false, error: 'banned' });
   const streak = await touchStreak(u.id);
   const { day, tasks } = await computeTasks(u.id);
   const level = await refreshLevel(u.id);
@@ -231,6 +260,7 @@ app.get('/api/me', wrap(async (req, res) => {
        (SELECT count(*)::int FROM proposals WHERE user_id=$1) AS proposals,
        (SELECT count(*)::int FROM proposal_votes WHERE user_id=$1) AS votes,
        (SELECT count(*)::int FROM greets WHERE to_user_id=$1) AS greets_received,
+       (SELECT count(*)::int FROM messages WHERE to_user_id=$1 AND read_at IS NULL) AS unread_messages,
        (SELECT coins FROM users WHERE id=$1) AS coins`,
     [u.id]
   );
@@ -238,13 +268,17 @@ app.get('/api/me', wrap(async (req, res) => {
     `SELECT ${REPUTATION_SQL} AS reputation FROM users u WHERE u.id=$1`, [u.id]
   );
   countRows[0].reputation = repRows[0].reputation;
+  countRows[0].unreadMessages = countRows[0].unread_messages;
   const { rows: districtRows } = u.district_id
     ? await query('SELECT id, name, icon, macro_region FROM districts WHERE id=$1', [u.district_id])
     : { rows: [] };
   res.json({
     authenticated: true,
     user: publicUser({ ...u, coins: countRows[0].coins },
-      { levelInfo: level, counts: countRows[0], district: districtRows[0] || null }),
+      {
+        levelInfo: level, counts: countRows[0], district: districtRows[0] || null,
+        isAdmin: isAdminUser(u),
+      }),
     streak: streak.streak,
     streakBonus: streak.bonus,
     day,
@@ -266,6 +300,38 @@ app.post('/api/onboard', requireUser, wrap(async (req, res) => {
     [req.user.id, districtId]);
   const level = await refreshLevel(req.user.id);
   return res.json({ ok: true, levelInfo: level });
+}));
+
+app.post('/api/profile', requireUser, wrap(async (req, res) => {
+  const nickname = String(req.body.nickname || '').trim().slice(0, 20);
+  const gender = String(req.body.gender || 'other');
+  const bio = String(req.body.bio || '').trim().slice(0, 120);
+  const avatarEmoji = String(req.body.avatarEmoji || '🙂').slice(0, 8);
+  const figureColor = String(req.body.figureColor || '#db6a41');
+  const figureStyle = String(req.body.figureStyle || 'casual');
+  const districtId = req.body.districtId ? String(req.body.districtId) : null;
+
+  if (nickname.length < 2) return res.status(400).json({ error: 'nickname_too_short' });
+  if (!['male', 'female', 'other'].includes(gender)) return res.status(400).json({ error: 'bad_gender' });
+  if (!['casual', 'formal', 'sport'].includes(figureStyle)) return res.status(400).json({ error: 'bad_style' });
+  if (!/^#[0-9a-fA-F]{6}$/.test(figureColor)) return res.status(400).json({ error: 'bad_color' });
+  if (districtId) {
+    const { rows } = await query('SELECT id FROM districts WHERE id=$1', [districtId]);
+    if (!rows[0]) return res.status(400).json({ error: 'bad_district' });
+  }
+
+  const { rows } = await query(
+    `UPDATE users SET nickname=$2, gender=$3, bio=$4, avatar_emoji=$5,
+            figure_color=$6, figure_style=$7,
+            district_id = COALESCE($8, district_id),
+            onboarded = TRUE
+      WHERE id=$1
+      RETURNING *`,
+    [req.user.id, nickname, gender, bio, avatarEmoji, figureColor, figureStyle, districtId]
+  );
+  const level = await refreshLevel(req.user.id);
+  const { tasks } = await computeTasks(req.user.id);
+  res.json({ ok: true, user: publicUser(rows[0], { levelInfo: level }), tasks });
 }));
 
 app.post('/api/discover', requireUser, wrap(async (req, res) => {
@@ -695,10 +761,141 @@ app.get('/api/festival', wrap(async (req, res) => {
   res.json({ day, festival: festivalForDay(day) });
 }));
 
+// ---------- 管理員 ----------
+app.get('/api/admin/stats', requireAdmin, wrap(async (req, res) => {
+  const { day } = await todayKey();
+  const { rows } = await query(
+    `SELECT
+       (SELECT count(*)::int FROM users) AS users_total,
+       (SELECT count(*)::int FROM users WHERE onboarded) AS users_onboarded,
+       (SELECT count(*)::int FROM users WHERE banned) AS users_banned,
+       (SELECT count(*)::int FROM users
+         WHERE (last_active_on AT TIME ZONE $1)::date = $2::date) AS active_today,
+       (SELECT count(*)::int FROM discoveries) AS discoveries,
+       (SELECT count(*)::int FROM proposals) AS proposals,
+       (SELECT count(*)::int FROM proposal_votes) AS votes,
+       (SELECT count(*)::int FROM messages) AS messages,
+       (SELECT count(*)::int FROM greets WHERE day = $2::date) AS greets_today,
+       (SELECT count(*)::int FROM user_buildings) AS buildings,
+       (SELECT count(*)::int FROM activities) AS activities_total,
+       (SELECT count(*)::int FROM activities WHERE status='published' AND end_at > now()) AS activities_open,
+       (SELECT count(*)::int FROM activity_signups WHERE status='going') AS activity_signups,
+       (SELECT count(*)::int FROM activities WHERE status='draft') AS activities_draft`,
+    [TZ, day]
+  );
+  res.json({ day, stats: rows[0] });
+}));
+
+app.get('/api/admin/users', requireAdmin, wrap(async (req, res) => {
+  const q = String(req.query.q || '').trim().slice(0, 40);
+  const params = [];
+  let where = 'TRUE';
+  if (q) {
+    params.push(`%${q}%`);
+    where = `(u.nickname ILIKE $1 OR u.name ILIKE $1 OR u.email ILIKE $1)`;
+  }
+  const { rows } = await query(
+    `SELECT u.id, u.nickname, u.name, u.email, u.avatar_url, u.avatar_emoji,
+            u.level, u.xp, u.coins, u.role, u.banned, u.banned_reason,
+            u.onboarded, u.gender, u.streak_days, u.last_active_on, u.created_at,
+            d.name AS district_name, d.icon AS district_icon,
+            (SELECT count(*)::int FROM user_buildings b WHERE b.user_id = u.id) AS buildings,
+            ${REPUTATION_SQL} AS reputation
+       FROM users u
+       LEFT JOIN districts d ON d.id = u.district_id
+      WHERE ${where}
+      ORDER BY u.banned DESC, u.last_active_on DESC NULLS LAST, u.id
+      LIMIT 100`,
+    params
+  );
+  res.json({
+    users: rows.map((u) => ({
+      id: u.id,
+      nickname: u.nickname || u.name || '（未設定）',
+      name: u.name,
+      email: u.email,
+      avatarUrl: u.avatar_url,
+      avatarEmoji: u.avatar_emoji || '🙂',
+      level: u.level,
+      xp: u.xp,
+      coins: u.coins,
+      role: u.role,
+      banned: u.banned,
+      bannedReason: u.banned_reason,
+      onboarded: u.onboarded,
+      gender: u.gender,
+      streak: u.streak_days,
+      lastActiveOn: u.last_active_on,
+      createdAt: u.created_at,
+      districtName: u.district_name,
+      districtIcon: u.district_icon,
+      buildings: u.buildings,
+      reputation: u.reputation,
+    })),
+  });
+}));
+
+app.post('/api/admin/users/:id/ban', requireAdmin, wrap(async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isFinite(id)) return res.status(400).json({ error: 'bad_id' });
+  if (id === Number(req.user.id)) return res.status(400).json({ error: 'cannot_ban_self' });
+  const banned = Boolean(req.body.banned);
+  const reason = String(req.body.reason || '').trim().slice(0, 200);
+  const { rows } = await query(
+    `UPDATE users SET banned=$2, banned_reason=$3 WHERE id=$1 RETURNING id, banned`,
+    [id, banned, banned ? reason || null : null]
+  );
+  if (!rows[0]) return res.status(404).json({ error: 'not_found' });
+  if (banned) {
+    await query(
+      `DELETE FROM sessions WHERE user_id=$1`, [id]
+    );
+    await query(`UPDATE activity_signups SET status='cancelled'
+                  WHERE user_id=$1 AND checked_in_at IS NULL`, [id]);
+  }
+  res.json({ ok: true, id: rows[0].id, banned: rows[0].banned });
+}));
+
+app.post('/api/admin/users/:id/role', requireAdmin, wrap(async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isFinite(id)) return res.status(400).json({ error: 'bad_id' });
+  const role = String(req.body.role || '');
+  if (!['citizen', 'admin'].includes(role)) return res.status(400).json({ error: 'bad_role' });
+  if (id === Number(req.user.id) && role !== 'admin') {
+    return res.status(400).json({ error: 'cannot_demote_self' });
+  }
+  const { rows } = await query(
+    `UPDATE users SET role=$2 WHERE id=$1 RETURNING id, role`, [id, role]
+  );
+  if (!rows[0]) return res.status(404).json({ error: 'not_found' });
+  res.json({ ok: true, id: rows[0].id, role: rows[0].role });
+}));
+
+app.post('/api/admin/users/:id/grant', requireAdmin, wrap(async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isFinite(id)) return res.status(400).json({ error: 'bad_id' });
+  let coins = Math.round(Number(req.body.coins) || 0);
+  let xp = Math.round(Number(req.body.xp) || 0);
+  coins = Math.max(-10000, Math.min(10000, coins));
+  xp = Math.max(-10000, Math.min(10000, xp));
+  if (coins === 0 && xp === 0) return res.status(400).json({ error: 'nothing_to_grant' });
+  const { rows } = await query(
+    `UPDATE users SET coins = GREATEST(0, coins + $2), xp = GREATEST(0, xp + $3)
+      WHERE id=$1 RETURNING id, coins, xp`,
+    [id, coins, xp]
+  );
+  if (!rows[0]) return res.status(404).json({ error: 'not_found' });
+  await query(`INSERT INTO events (user_id,type,ref_id,xp,coins) VALUES ($1,'admin_grant',$2,$3,$4)`,
+    [id, String(req.user.id), xp, coins]);
+  await refreshLevel(id);
+  res.json({ ok: true, id: rows[0].id, coins: rows[0].coins, xp: rows[0].xp });
+}));
+
 // ---------- 3D 場景中的真實市民 ----------
 app.get('/api/citizens', wrap(async (req, res) => {
   const { rows } = await query(
     `SELECT u.id, u.nickname, u.name, u.level, u.district_id,
+            u.gender, u.avatar_emoji, u.figure_color, u.figure_style,
             (SELECT count(*)::int FROM user_buildings b WHERE b.user_id = u.id) AS buildings,
             ${REPUTATION_SQL} AS reputation,
             EXISTS (
@@ -706,7 +903,7 @@ app.get('/api/citizens', wrap(async (req, res) => {
                WHERE e.user_id = u.id AND e.created_at > now() - interval '30 minutes'
             ) AS online
        FROM users u
-      WHERE u.onboarded AND u.district_id IS NOT NULL
+      WHERE u.onboarded AND u.district_id IS NOT NULL AND u.banned = FALSE
       ORDER BY online DESC, u.level DESC, u.id
       LIMIT 60`
   );
@@ -719,6 +916,10 @@ app.get('/api/citizens', wrap(async (req, res) => {
       buildings: c.buildings,
       reputation: c.reputation,
       online: c.online,
+      gender: c.gender || 'other',
+      avatarEmoji: c.avatar_emoji || '🙂',
+      figureColor: c.figure_color || '#db6a41',
+      figureStyle: c.figure_style || 'casual',
     })),
   });
 }));
@@ -800,6 +1001,8 @@ app.post('/api/sandbox/visit/:userId', requireUser, wrap(async (req, res) => {
 }));
 
 // ---------- 好友與社團 ----------
+app.use('/api', messagesRouter);
+app.use('/api', createActivitiesRouter({ requireUser, requireAdmin }));
 app.use('/api', communityRouter);
 
 app.use((req, res) => res.status(404).json({ error: 'not_found' }));

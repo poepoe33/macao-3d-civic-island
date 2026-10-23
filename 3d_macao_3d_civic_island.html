@@ -8483,29 +8483,64 @@
           return 0xdb6a41;
         }
 
-        function buildCitizenFigure(level) {
+        function buildCitizenFigure(level, opts = {}) {
           const g = new THREE.Group();
-          const color = citizenColor(level);
+          const color = opts.figureColor ? new THREE.Color(opts.figureColor).getHex() : citizenColor(level);
           const skin = new THREE.MeshStandardMaterial({ color: 0xfce2ce, roughness: 0.75 });
           const cloth = new THREE.MeshStandardMaterial({ color, roughness: 0.7 });
-          const dark = new THREE.MeshStandardMaterial({ color: 0x3b3533, roughness: 0.8 });
+          const hairColor = opts.gender === 'female' ? 0x4a3328 : 0x2f2622;
 
           const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.026, 0.04, 4, 8), cloth);
           body.position.y = 0.055;
           body.castShadow = true;
           g.add(body);
 
+          // 依性別微調身形與髮型，讓自訂公仔可辨識
+          if (opts.gender === 'female') {
+            const skirt = new THREE.Mesh(new THREE.ConeGeometry(0.038, 0.038, 10, 1, true), cloth);
+            skirt.position.y = 0.028;
+            g.add(skirt);
+          } else if (opts.gender === 'male') {
+            const shoulder = new THREE.Mesh(new THREE.BoxGeometry(0.062, 0.016, 0.024), cloth);
+            shoulder.position.y = 0.081;
+            g.add(shoulder);
+          }
+
+          if (opts.figureStyle === 'formal') {
+            const badge = new THREE.Mesh(
+              new THREE.BoxGeometry(0.008, 0.02, 0.006),
+              new THREE.MeshStandardMaterial({ color: 0xf2f2f2, roughness: 0.5 })
+            );
+            badge.position.set(0.016, 0.065, 0.021);
+            g.add(badge);
+          } else if (opts.figureStyle === 'sport') {
+            const band = new THREE.Mesh(
+              new THREE.TorusGeometry(0.03, 0.005, 6, 14),
+              new THREE.MeshStandardMaterial({ color: 0xf7f7f7, roughness: 0.6 })
+            );
+            band.rotation.x = Math.PI / 2;
+            band.position.y = 0.098;
+            g.add(band);
+          }
+
           const head = new THREE.Mesh(new THREE.SphereGeometry(0.032, 12, 10), skin);
           head.position.y = 0.115;
           head.castShadow = true;
           g.add(head);
 
+          const hairMat = new THREE.MeshStandardMaterial({ color: hairColor, roughness: 0.8 });
           const hair = new THREE.Mesh(
             new THREE.SphereGeometry(0.034, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.55),
-            dark
+            hairMat
           );
           hair.position.y = 0.122;
           g.add(hair);
+
+          if (opts.gender === 'female') {
+            const tail = new THREE.Mesh(new THREE.CapsuleGeometry(0.011, 0.038, 3, 6), hairMat);
+            tail.position.set(0, 0.098, -0.025);
+            g.add(tail);
+          }
 
           const shadow = new THREE.Mesh(
             new THREE.CircleGeometry(0.042, 10),
@@ -8544,7 +8579,11 @@
           list.forEach((c, idx) => {
             const isl = worldData.islandMap.get(c.districtId);
             if (!isl) return;
-            const fig = buildCitizenFigure(c.level || 1);
+            const fig = buildCitizenFigure(c.level || 1, {
+              gender: c.gender,
+              figureColor: c.figureColor,
+              figureStyle: c.figureStyle,
+            });
             const radius = 0.33 + (idx % 3) * 0.05;
             fig.scale.setScalar(CITIZEN_SCALE);
             fig.position.set(isl.worldPos.x, TOP + 0.02, isl.worldPos.z);
@@ -8560,7 +8599,7 @@
             dotEl.className = c.online ? "online" : "offline";
             const nameEl = document.createElement("span");
             nameEl.className = "name";
-            nameEl.textContent = c.nickname;
+            nameEl.textContent = (c.avatarEmoji ? `${c.avatarEmoji} ` : "") + c.nickname;
             const lvEl = document.createElement("span");
             lvEl.className = "lv";
             lvEl.textContent = `Lv.${c.level}` + (c.buildings ? ` · ${c.buildings}建` : "");

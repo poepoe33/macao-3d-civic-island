@@ -188,3 +188,56 @@ CREATE TABLE IF NOT EXISTS sandbox_visits (
   UNIQUE (visitor_id, host_id, day)
 );
 CREATE INDEX IF NOT EXISTS sandbox_visits_host_idx ON sandbox_visits (host_id, day);
+
+-- 市民個人化資料、管理員與封禁狀態
+ALTER TABLE users ADD COLUMN IF NOT EXISTS gender TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS bio TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_emoji TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS figure_color TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS figure_style TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS role TEXT NOT NULL DEFAULT 'citizen';
+ALTER TABLE users ADD COLUMN IF NOT EXISTS banned BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS banned_reason TEXT;
+
+-- 私人訊息（PM）
+CREATE TABLE IF NOT EXISTS messages (
+  id           BIGSERIAL PRIMARY KEY,
+  from_user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  to_user_id   BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  body         TEXT NOT NULL,
+  read_at      TIMESTAMPTZ,
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CHECK (from_user_id <> to_user_id)
+);
+CREATE INDEX IF NOT EXISTS messages_pair_idx ON messages (from_user_id, to_user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS messages_to_unread_idx ON messages (to_user_id, read_at);
+
+-- 城市活動
+CREATE TABLE IF NOT EXISTS activities (
+  id           BIGSERIAL PRIMARY KEY,
+  title        TEXT NOT NULL,
+  category     TEXT NOT NULL DEFAULT 'community',
+  description  TEXT NOT NULL,
+  district_id  TEXT REFERENCES districts(id) ON DELETE SET NULL,
+  location     TEXT,
+  start_at     TIMESTAMPTZ NOT NULL,
+  end_at       TIMESTAMPTZ NOT NULL,
+  capacity     INT,
+  reward_coins INT NOT NULL DEFAULT 30,
+  reward_xp    INT NOT NULL DEFAULT 20,
+  status       TEXT NOT NULL DEFAULT 'draft',
+  created_by   BIGINT REFERENCES users(id) ON DELETE SET NULL,
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CHECK (end_at > start_at)
+);
+CREATE INDEX IF NOT EXISTS activities_time_idx ON activities (start_at, status);
+
+CREATE TABLE IF NOT EXISTS activity_signups (
+  activity_id   BIGINT NOT NULL REFERENCES activities(id) ON DELETE CASCADE,
+  user_id       BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  status        TEXT NOT NULL DEFAULT 'going' CHECK (status IN ('going','cancelled')),
+  checked_in_at TIMESTAMPTZ,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (activity_id, user_id)
+);
+CREATE INDEX IF NOT EXISTS activity_signups_user_idx ON activity_signups (user_id, status);

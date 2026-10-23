@@ -113,6 +113,8 @@
 - **頂部工具列（由左至右）**：市民、全景、清單、EN。市民入口與視角控制同排，不再浮在畫面中間。
 - **右側資訊欄預設收起**：按「清單」才展開，避免遮擋 3D 地圖。
 - 官方數據入口整合至左上角品牌卡。
+- 市民中心分頁：市民檔案、探索圖鑑、建設沙盤、好友社團、私訊、每日任務、提案牆、城市活動、排行榜。
+- 管理員在市民檔案可看到「🛠 管理後台」入口，前往 `/admin.html`。
 - 底部 HUD 為**單一合併列**：煙花、輕軌跟車、光雕、時鐘、地區名、暫停、鳥瞰、日誌。
 - 繁中／英文即時切換。
 - 首次進入的三步操作引導。
@@ -189,6 +191,36 @@
 - 四種榜單：本週 XP、探索王（累計收集）、城市幣、城市聲望。
 - 全城共創目標：本週探索地標累計進度，達標後解鎖限定效果（後續階段）。
 
+### 個人資料與 3D 公仔
+
+- 「市民檔案」頁可直接編輯 **暱稱、性別、頭像 Emoji、公仔顏色、公仔造型（休閒／正式／運動）、居住分區、自我介紹**。
+- 儲存後即時同步：3D 地圖上的公仔會依性別改變身形與髮型，依顏色改變衣著，依造型加上領章或運動髮帶；名牌亦顯示頭像 Emoji。
+- 居住分區可隨時更改，公仔會搬到新分區中心。
+
+### 私訊（PM）
+
+- 每位已建檔市民可與其他市民一對一私訊，訊息上限 500 字。
+- 入口：好友名單的「私訊」按鈕、他人沙盤頁的「私訊」按鈕，或「私訊」分頁的對話列表。
+- 對話列表顯示最後一則訊息、未讀數與時間；開啟對話後自動標記已讀。
+- 被封禁的市民無法收發私訊。
+
+### 城市活動
+
+- 由管理員在後台建立，分為六大類：社區共融、文化藝術、體育康樂、環保綠化、智慧城市、節慶慶典。
+- 每場活動包含：名稱、類別、分區、地點、起訖時間、名額（可留空為不限）、獎勵城市幣與 XP、活動說明、狀態（草稿／已發佈／已取消／已結束）。
+- 市民可在「城市活動」分頁按類別瀏覽、報名、取消報名；活動名額依 `activity_signups` 即時統計，額滿即截止。
+- **現場簽到**：活動開始前 30 分鐘至結束期間可簽到，簽到即發放該活動設定的城市幣與 XP，並計入每日任務「參加 1 個城市活動」（每場活動每人只獎勵一次）。
+- 管理員可查看每場活動的報名與簽到名單。
+
+### 管理後台
+
+- 網址：`/admin.html`；預設管理員為 **paul.ccp@gmail.com**（可用環境變數 `ADMIN_EMAIL` 覆寫）。
+- 三個模組：
+  1. **概覽**：註冊／已建檔／今日活躍／封禁人數、探索、提案、私訊、打招呼、建設、活動與報名統計。
+  2. **市民管理**：搜尋市民、查看等級／幣／XP／聲望／分區、調整城市幣與 XP、設為管理員或降回市民、封禁／解封（封禁會強制登出並取消未簽到報名）。
+  3. **活動管理**：建立／編輯／刪除活動、切換狀態、查看報名與簽到名單。
+- 非管理員開啟頁面會顯示權限不足；未登入則引導以 Google 登入並自動回到後台。
+
 ### 技術實作
 
 | 層級 | 內容 |
@@ -239,7 +271,128 @@
 | POST | `/api/greet/:userId` | 向鄰居打招呼（每日 5 次，對方獲得城市幣） |
 | POST | `/api/sandbox/visit/:userId` | 記錄沙盤巡訪（好友才計入每日任務） |
 | GET | `/api/festival` | 依澳門日期回傳今日節慶（無則為 null） |
+| POST | `/api/profile` | 更新暱稱、性別、頭像、公仔顏色／造型、分區、自我介紹 |
+| GET | `/api/messages` | 私訊會話列表（含未讀數） |
+| GET | `/api/messages/:userId` | 與指定市民的對話（讀取即標記已讀） |
+| POST | `/api/messages/:userId` | 發送私訊（上限 500 字） |
+| GET | `/api/activities` | 已發佈活動列表（可依類別篩選） |
+| GET | `/api/activities/:id` | 活動詳情（管理員另含報名名單） |
+| POST | `/api/activities/:id/signup` | 報名活動（名額上限檢查） |
+| POST | `/api/activities/:id/cancel` | 取消報名 |
+| POST | `/api/activities/:id/checkin` | 現場簽到並發放獎勵 |
+| GET | `/api/admin/stats` | 管理員：全站統計 |
+| GET | `/api/admin/users?q=` | 管理員：市民清單與搜尋 |
+| POST | `/api/admin/users/:id/ban` | 管理員：封禁／解封 |
+| POST | `/api/admin/users/:id/role` | 管理員：設定管理員或降回市民 |
+| POST | `/api/admin/users/:id/grant` | 管理員：調整城市幣與 XP |
+| GET | `/api/admin/activities` | 管理員：活動清單（含草稿） |
+| POST | `/api/admin/activities` | 管理員：建立活動 |
+| POST | `/api/admin/activities/:id` | 管理員：更新活動 |
+| POST | `/api/admin/activities/:id/status` | 管理員：變更活動狀態 |
+| DELETE | `/api/admin/activities/:id` | 管理員：刪除活動 |
 
+---
+
+## 資料庫結構
+
+資料庫：**PostgreSQL 18 · `macao_city`**。所有建表語句位於 [schema.sql](file:///Users/paulchang/Library/Mobile%20Documents/com~apple~CloudDocs/PDF/NexusTech/project/NexusIsland_MO/server/src/schema.sql)，部署時由 `npm run migrate` 執行；語句皆為 idempotent（`CREATE TABLE IF NOT EXISTS` / `ADD COLUMN IF NOT EXISTS` / `CREATE UNIQUE INDEX IF NOT EXISTS`），可重複執行。
+
+### 地理與地標
+
+| 資料表 | 主鍵 | 主要欄位 | 說明 |
+| --- | --- | --- | --- |
+| `districts` | `id` TEXT | `code, name, name_en, parish, macro_region, landmass, icon, color, population, area_km2, summary, lat, lng` | 23 個分區的靜態資料 |
+| `landmarks` | `id` TEXT | `district_id → districts.id, name, description, facts JSONB, model, schedule, sort_order` | 82 個地標；`facts` 存重點數據陣列 |
+
+### 會員與認證
+
+| 資料表 | 主鍵 | 主要欄位 | 說明 |
+| --- | --- | --- | --- |
+| `users` | `id` BIGSERIAL | `google_sub UNIQUE, email, name, avatar_url, nickname, district_id → districts.id, level, xp, coins, streak_days, last_active_on, onboarded, gender, bio, avatar_emoji, figure_color, figure_style, role, banned, banned_reason, created_at` | 市民主檔；`role` 為 `citizen`／`admin`，`banned` 為封禁旗標 |
+| `sessions` | `token_hash` TEXT | `user_id → users.id, created_at, expires_at` | HttpOnly Cookie Session（30 天），封禁時刪除 |
+
+### 探索、任務與互動紀錄
+
+| 資料表 | 主鍵 | 主要欄位 | 說明 |
+| --- | --- | --- | --- |
+| `discoveries` | `(user_id, landmark_id)` | `discovered_at` | 地標收藏（每人每地標一次） |
+| `events` | `id` BIGSERIAL | `user_id, type, ref_id, xp, coins, created_at` | 所有獎勵事件；兼作每日任務計數與在線判定（30 分鐘內有事件視為在線） |
+| `task_completions` | `(user_id, task_key, day)` | `xp, coins, created_at` | 每日任務去重與發獎紀錄 |
+
+### 提案與投票
+
+| 資料表 | 主鍵 | 主要欄位 | 說明 |
+| --- | --- | --- | --- |
+| `proposals` | `id` BIGSERIAL | `user_id, district_id, category, title, body, status, created_at` | 城市提案 |
+| `proposal_votes` | `(proposal_id, user_id)` | `created_at` | 支持紀錄 |
+
+### 建設沙盤與鄰里
+
+| 資料表 | 主鍵 | 主要欄位 | 說明 |
+| --- | --- | --- | --- |
+| `user_buildings` | `id` BIGSERIAL，`UNIQUE(user_id, slot)` | `district_id, slot 0–11, building_type, vitality, created_at` | 每人 12 格建設；`vitality` 計入分區活力 |
+| `sandbox_likes` | `(owner_id, liker_id)` | `created_at` | 鄰里點讚；`liker_id` 為按讚者 |
+| `greets` | `id`，`UNIQUE(from_user_id, to_user_id, day)` | `day, created_at` | 打招呼；同時計入城市聲望 |
+| `sandbox_visits` | `id`，`UNIQUE(visitor_id, host_id, day)` | `day, created_at` | 沙盤巡訪；好友巡訪計入任務 |
+
+### 好友與社團
+
+| 資料表 | 主鍵 | 主要欄位 | 說明 |
+| --- | --- | --- | --- |
+| `friendships` | `id` BIGSERIAL，`UNIQUE(requester_id, addressee_id)` | `status pending／accepted, created_at, responded_at` | 約束 `requester_id < addressee_id`，一對好友只有一列 |
+| `guilds` | `id` BIGSERIAL | `name UNIQUE, icon, description, owner_id, created_at` | 社團 |
+| `guild_members` | `(guild_id, user_id)`，`UNIQUE(user_id)` | `role owner／member, joined_at` | 每人僅可加入一個社團 |
+| `guild_claims` | `(guild_id, week_start)` | `claimed_by, claimed_at` | 每週共同目標獎勵領取紀錄 |
+
+### 私訊與城市活動
+
+| 資料表 | 主鍵 | 主要欄位 | 說明 |
+| --- | --- | --- | --- |
+| `messages` | `id` BIGSERIAL | `from_user_id, to_user_id, body, read_at, created_at` | 一對一私訊；`CHECK(from_user_id <> to_user_id)`，讀取時寫入 `read_at` |
+| `activities` | `id` BIGSERIAL | `title, category, description, district_id, location, start_at, end_at, capacity, reward_coins, reward_xp, status, created_by, created_at` | 活動主檔；`status` 為 `draft／published／cancelled／finished` |
+| `activity_signups` | `(activity_id, user_id)` | `status going／cancelled, checked_in_at, created_at` | 報名與簽到；簽到即發獎並寫入 `events(type='activity')` |
+
+### 關聯摘要
+
+```
+districts 1 ─ n landmarks
+districts 1 ─ n users / proposals / user_buildings / activities
+users 1 ─ n discoveries / events / task_completions / user_buildings / messages / activity_signups
+users 1 ─ n proposals / sandbox_likes（owner、liker）/ greets（from、to）
+users n ─ n users  friendships（requester / addressee）
+guilds 1 ─ n guild_members、guild_claims
+activities 1 ─ n activity_signups
+```
+
+### 常用查詢
+
+```sql
+-- 分區活力（建設活力 + 點讚×2 + 該區地標探索數）
+SELECT d.id, d.name,
+       COALESCE(SUM(b.vitality), 0)
+     + (SELECT count(*) * 2 FROM sandbox_likes sl
+          JOIN users u ON u.id = sl.owner_id
+         WHERE u.district_id = d.id)
+     + (SELECT count(*) FROM discoveries ds
+          JOIN landmarks l ON l.id = ds.landmark_id
+         WHERE l.district_id = d.id) AS vitality
+  FROM districts d
+  LEFT JOIN user_buildings b ON b.district_id = d.id
+ GROUP BY d.id, d.name
+ ORDER BY vitality DESC;
+
+-- 未讀私訊數
+SELECT count(*) FROM messages WHERE to_user_id = $1 AND read_at IS NULL;
+
+-- 活動報名與簽到數
+SELECT a.id, a.title,
+       count(*) FILTER (WHERE s.status = 'going') AS going,
+       count(*) FILTER (WHERE s.checked_in_at IS NOT NULL) AS checked
+  FROM activities a LEFT JOIN activity_signups s ON s.activity_id = a.id
+ GROUP BY a.id, a.title;
+```
+
+---
 
 ### 啟用 Google 登入
 
@@ -256,6 +409,16 @@ https://city.nexuslinktech.com/api/auth/google/callback
 ## 升級日誌
 
 > 每次修改／升級後在此補一筆，格式：`日期 · 版本 · 內容 · 影響檔案`。
+
+### 2026-10-24 · v12 · 管理後台、個人化公仔、私訊與城市活動
+- README 新增完整「資料庫結構」章節：20 張資料表的主鍵、欄位、關聯與常用查詢。
+- 新增管理後台 `/admin.html`：概覽統計、市民管理（搜尋／封禁／權限／調整幣與 XP）、活動管理（建立／編輯／刪除／狀態／報名名單）；預設管理員 `paul.ccp@gmail.com`（可用 `ADMIN_EMAIL` 覆寫）。
+- 新增 `POST /api/profile`：可自訂暱稱、性別、頭像 Emoji、公仔顏色與造型、居住分區、自我介紹；3D 公仔依性別／顏色／造型即時變化。
+- 新增私訊系統：`messages` 表、會話列表（未讀數）、對話讀取自動已讀、好友列與沙盤頁可直接私訊。
+- 新增城市活動系統：`activities`、`activity_signups` 表、六類活動、報名／取消／現場簽到發獎，並計入每日任務「參加 1 個城市活動」。
+- 登入流程支援 `next` 參數（`/api/auth/google?next=/admin.html`），登入後回到指定頁面。
+- 封禁市民會強制登出、取消未簽到報名，並從 3D 市民清單與私訊中排除。
+- 影響檔案：`server/src/schema.sql`、`server/src/index.js`、`server/src/tasks.js`、`server/src/messages.js`、`server/src/activities.js`、`web/social.js`、`web/social.css`、`3d_macao_3d_civic_island.html`、`admin.html`、`README.md`。
 
 ### 2026-10-24 · v11 · 鄰里互動、城市聲望與節慶事件
 - 新增「👋 打招呼」：好友列與市民沙盤頁可直接打招呼，每日 5 次上限，同一位鄰居每日一次；打招呼者 +4 幣／+5 XP，對方 +2 幣。
@@ -463,6 +626,7 @@ python3 -m http.server 8080
 NexusIsland_MO/
 ├── README.md                      # 本說明文件
 ├── 3d_macao_3d_civic_island.html  # 單檔 3D 互動城市應用
+├── admin.html                     # 管理後台（概覽／市民／活動）
 ├── web/
 │   ├── social.css                 # 市民中心 overlay 樣式
 │   └── social.js                  # 市民中心互動邏輯
@@ -470,9 +634,11 @@ NexusIsland_MO/
 │   ├── package.json
 │   ├── data/seed.json             # 23 分區 + 82 地標種子資料
 │   └── src/
-│       ├── index.js               # API 與 Google OAuth
+│       ├── index.js               # API、Google OAuth、管理員端點
 │       ├── sandbox.js             # 建設目錄與分區活力計算
 │       ├── community.js           # 好友與社團 API
+│       ├── messages.js            # 私訊 API
+│       ├── activities.js          # 城市活動與活動管理 API
 │       ├── tasks.js               # 等級、任務、事件獎勵
 │       ├── db.js
 │       ├── migrate.js             # 建表與種子匯入
