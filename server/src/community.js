@@ -251,7 +251,7 @@ communityRouter.get('/guilds/:id', requireUser, wrap(async (req, res) => {
   const target = Math.max(GUILD_TARGET_MIN, GUILD_TARGET_PER_MEMBER * members.length);
   const weeklyXp = members.reduce((sum, m) => sum + m.weekly_xp, 0);
   const { rows: claims } = await query(
-    `SELECT claimed_at FROM guild_claims WHERE guild_id=$1 AND week_start = ${WEEK_START_SQL}::date`,
+    `SELECT claimed_at FROM guild_claims WHERE guild_id=$1 AND week_start = (${WEEK_START_SQL})::date`,
     [id]
   );
   const myRole = members.find((m) => Number(m.id) === Number(req.user.id)) || null;
@@ -367,7 +367,7 @@ communityRouter.post('/guilds/:id/claim', requireOnboarded, wrap(async (req, res
   }
   try {
     await query(
-      `INSERT INTO guild_claims (guild_id, week_start, claimed_by) VALUES ($1, ${WEEK_START_SQL}::date, $2)`,
+      `INSERT INTO guild_claims (guild_id, week_start, claimed_by) VALUES ($1, (${WEEK_START_SQL})::date, $2)`,
       [id, req.user.id]
     );
   } catch (err) {
