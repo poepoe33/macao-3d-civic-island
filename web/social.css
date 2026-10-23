@@ -442,6 +442,8 @@
 .mc-build-cost small { font-size: 9.5px; color: #7c6b5e; font-weight: 600; }
 .mc-build-locked { opacity: 0.55; }
 .mc-build-locked .mc-build-cost { color: #7c6b5e; }
+.mc-build-poor { opacity: 0.72; border-style: dashed; }
+.mc-build-poor .mc-build-cost { color: #9a8a7c; font-size: 10.5px; }
 
 /* ---- 排行 ---- */
 .mc-rank-row {

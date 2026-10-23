@@ -44,6 +44,7 @@
     if (!res.ok) {
       const err = new Error((data && data.error) || `HTTP ${res.status}`);
       err.status = res.status;
+      err.data = data;
       throw err;
     }
     return data;
@@ -448,24 +449,41 @@
         }
       });
     } else {
-      const catalog = sb.catalog.map((c) => `
-        <button class="mc-build ${c.locked ? 'mc-build-locked' : ''}" data-build="${esc(c.type)}" type="button" ${c.locked ? 'disabled' : ''}>
+      const affordable = sb.catalog.filter((c) => !c.locked && sb.coins >= c.cost).length;
+      const catalog = sb.catalog.map((c) => {
+        const poor = !c.locked && sb.coins < c.cost;
+        return `
+        <button class="mc-build ${c.locked ? 'mc-build-locked' : ''} ${poor ? 'mc-build-poor' : ''}" data-build="${esc(c.type)}" type="button" ${c.locked || poor ? 'disabled' : ''}>
           <span class="mc-build-icon">${esc(c.icon)}</span>
           <span class="mc-build-main">
             <b>${esc(c.name)}</b>
             <small>${esc(c.desc)}</small>
           </span>
           <span class="mc-build-cost">
-            ${c.locked ? `Lv.${c.level} 解鎖` : `💰 ${c.cost}`}
+            ${c.locked ? `Lv.${c.level} 解鎖` : poor ? `幣不足 · 需 ${c.cost}` : `💰 ${c.cost}`}
             <small>活力 +${c.vitality}</small>
           </span>
-        </button>`).join('');
+        </button>`;
+      }).join('');
       panel.innerHTML = `
         <div class="mc-card">
           <b style="font-size:12.5px;">${sel == null ? '點選一個空格開始建設' : `第 ${sel + 1} 格 · 選擇設施`}</b>
           <div class="mc-muted" style="margin:4px 0 8px;">建設會永久增加分區活力，其他市民可前來參觀與點讚。</div>
+          ${sel != null && affordable === 0
+            ? `<div class="mc-empty" style="padding:14px 6px;">目前城市幣 ${sb.coins}，尚不足以建設已解鎖設施。<br>
+                 <button class="mc-btn ghost" id="mc-go-tasks" type="button" style="margin-top:10px;">去完成每日任務賺幣</button></div>`
+            : ''}
           ${sel == null ? '' : catalog}
         </div>`;
+      const goTasks = $('#mc-go-tasks');
+      if (goTasks) {
+        goTasks.addEventListener('click', () => {
+          state.tab = 'tasks';
+          state.sandboxSlot = null;
+          syncTabs();
+          render();
+        });
+      }
       if (sel != null) {
         panel.querySelectorAll('[data-build]').forEach((b) => {
           b.addEventListener('click', async () => {
@@ -483,7 +501,10 @@
                 slot_taken: '這一格已經有建設',
                 level_locked: '等級不足，繼續探索升級吧',
               };
-              toast(map[err.message] || '建設失敗');
+              const detail = err.message === 'not_enough_coins' && err.data
+                ? `（需 ${err.data.cost}，現有 ${sb.coins}）`
+                : '';
+              toast((map[err.message] || '建設失敗') + detail);
               b.disabled = false;
             }
           });
