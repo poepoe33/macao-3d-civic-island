@@ -363,6 +363,36 @@
   }
 
   // ---------- 建設沙盤 ----------
+  // 把沙盤資料送到 3D 場景（模組載入較慢時自動重試）
+  let sandboxPushTimer = null;
+  function pushSandbox3D(districtId, slots) {
+    if (!districtId || !Array.isArray(slots)) return;
+    if (sandboxPushTimer) { clearInterval(sandboxPushTimer); sandboxPushTimer = null; }
+    const apply = () => {
+      if (window.macaoBridge && typeof window.macaoBridge.renderSandbox === 'function') {
+        window.macaoBridge.renderSandbox(districtId, slots);
+        return true;
+      }
+      return false;
+    };
+    if (apply()) return;
+    let tries = 0;
+    sandboxPushTimer = setInterval(() => {
+      tries += 1;
+      if (apply() || tries > 40) {
+        clearInterval(sandboxPushTimer);
+        sandboxPushTimer = null;
+      }
+    }, 250);
+  }
+
+  function focusSandbox3D(districtId) {
+    if (!districtId || !window.macaoBridge) { toast('3D 場景尚未就緒'); return; }
+    window.macaoBridge.focusDistrict(districtId);
+    closePanel();
+    toast('已帶你到分區，可查看你的建設');
+  }
+
   function slotGrid(slots, interactive) {
     return `<div class="mc-slot-grid">${slots.map((s) => (s.type
       ? `<button class="mc-slot mc-slot-filled" data-slot="${s.slot}" type="button" ${interactive ? '' : 'disabled'}>
@@ -424,8 +454,11 @@
       <div id="mc-neigh"></div>
 
       <div style="text-align:center;margin-top:12px;">
+        <button class="mc-btn ghost" id="mc-sand-3d" type="button">🎥 在 3D 場景查看</button>
         <button class="mc-btn ghost" id="mc-sand-refresh" type="button">更新沙盤</button>
       </div>`;
+
+    if (sb.district) pushSandbox3D(sb.district.id, sb.slots);
 
     const panel = $('#mc-slot-panel');
     if (selSlot && selSlot.type) {
@@ -524,6 +557,9 @@
       await loadMe(true);
       toast('沙盤已更新');
     });
+    $('#mc-sand-3d').addEventListener('click', () => {
+      focusSandbox3D(sb.district ? sb.district.id : null);
+    });
   }
 
   async function loadSandbox() {
@@ -601,7 +637,14 @@
         <span class="mc-muted">沙盤活力 ${d.vitality} · ${d.built} 項建設</span>
         ${d.isOwner ? '<span class="mc-muted">這是你的沙盤</span>'
           : `<button class="mc-vote ${d.liked ? 'mc-voted' : ''}" id="mc-visit-like" type="button">👍 ${d.likes}</button>`}
+      </div>
+      <div style="text-align:center;margin-top:12px;">
+        <button class="mc-btn ghost" id="mc-visit-3d" type="button">🎥 在 3D 場景參觀</button>
       </div>`;
+
+    if (d.owner.districtId) pushSandbox3D(d.owner.districtId, d.slots);
+
+    $('#mc-visit-3d').addEventListener('click', () => focusSandbox3D(d.owner.districtId));
 
     $('#mc-sand-back').addEventListener('click', () => {
       state.sandboxVisit = null;
@@ -854,6 +897,12 @@
     try { state.city = await api('/api/city'); } catch { /* 非必要 */ }
     if (state.me && state.me.authenticated) {
       try { await ensureDistricts(); } catch { /* 非必要 */ }
+      if (state.me.user.onboarded) {
+        try {
+          state.sandbox = await api('/api/sandbox/me');
+          if (state.sandbox.district) pushSandbox3D(state.sandbox.district.id, state.sandbox.slots);
+        } catch { /* 沙盤非必要 */ }
+      }
     }
     if (state.tab === 'atlas' || state.tab === 'proposals') state.landmarks = null;
   }
@@ -907,6 +956,15 @@
 
   window.addEventListener('macao:landmark', onLandmark);
   window.addEventListener('macao:island', onIsland);
+  // 在 3D 場景點擊自己的建設，直接打開沙盤對應格子
+  window.addEventListener('macao:sandbox-slot', (ev) => {
+    const d = ev.detail || {};
+    if (d.slot === undefined) return;
+    if (!state.me || !state.me.authenticated) { flashDot(); return; }
+    state.sandboxVisit = null;
+    state.sandboxSlot = d.slot;
+    openPanel('sandbox');
+  });
 
   const HOOKS = [
     ['#btn-fireworks', 'fireworks'],

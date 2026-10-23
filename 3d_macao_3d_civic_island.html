@@ -8108,8 +8108,155 @@
           }));
         }
 
-        // 供市民中心（社交層）從圖鑑直接飛往地標
-        window.macaoBridge = { selectItem, selectIsland };
+        // ---- 市民建設：把沙盤建設以立體模型放進所屬分區 ----
+        const sandboxGroup = new THREE.Group();
+        sandboxGroup.name = "citizen-sandbox";
+        scene.add(sandboxGroup);
+
+        const sandboxMatCache = new Map();
+        function sandboxMat(color, opts = {}) {
+          const key = `${color}-${opts.emissive || 0}-${opts.roughness || 0.85}`;
+          if (!sandboxMatCache.has(key)) {
+            sandboxMatCache.set(key, new THREE.MeshStandardMaterial({
+              color,
+              roughness: opts.roughness || 0.85,
+              metalness: 0,
+              emissive: opts.emissive || 0x000000,
+              emissiveIntensity: opts.emissive ? 0.6 : 0
+            }));
+          }
+          return sandboxMatCache.get(key);
+        }
+
+        // 依設施類型組合簡易立體模型
+        function buildSandboxBuilding(type) {
+          const g = new THREE.Group();
+          const add = (geo, mat, x, y, z, ry = 0) => {
+            const m = new THREE.Mesh(geo, mat);
+            m.position.set(x, y, z);
+            m.rotation.y = ry;
+            m.castShadow = true;
+            m.receiveShadow = true;
+            g.add(m);
+            return m;
+          };
+
+          if (type === "park") {
+            add(new THREE.CylinderGeometry(0.13, 0.13, 0.02, 12), sandboxMat(0x8fbf6f), 0, 0.01, 0);
+            add(new THREE.CylinderGeometry(0.012, 0.016, 0.10, 6), sandboxMat(0x8a6a4a), 0, 0.07, 0);
+            add(new THREE.IcosahedronGeometry(0.075, 0), sandboxMat(0x4f8f52), 0, 0.16, 0);
+          } else if (type === "busstop") {
+            add(new THREE.BoxGeometry(0.20, 0.02, 0.10), sandboxMat(0x5e7f8c), 0, 0.03, 0);
+            add(new THREE.BoxGeometry(0.02, 0.14, 0.02), sandboxMat(0x6b6b6b), -0.08, 0.10, 0);
+            add(new THREE.BoxGeometry(0.18, 0.015, 0.08), sandboxMat(0xdb6a41), 0, 0.18, 0);
+            add(new THREE.BoxGeometry(0.06, 0.07, 0.012), sandboxMat(0xa8d8e8, { emissive: 0x2b6b7c }), 0.04, 0.10, 0.02);
+          } else if (type === "garden") {
+            add(new THREE.BoxGeometry(0.24, 0.06, 0.18), sandboxMat(0x9db98a), 0, 0.03, 0);
+            [[-0.06, 0.05], [0.05, 0.02], [0.01, -0.05]].forEach(([x, z], i) => {
+              add(new THREE.SphereGeometry(0.026, 8, 6), sandboxMat(i === 1 ? 0xe8a0b4 : 0xf2c14e), x, 0.08, z);
+            });
+          } else if (type === "bike") {
+            add(new THREE.BoxGeometry(0.30, 0.012, 0.07), sandboxMat(0xb8a99a), 0, 0.01, 0);
+            add(new THREE.TorusGeometry(0.035, 0.008, 6, 10), sandboxMat(0x3e7c8c), -0.07, 0.045, 0);
+            add(new THREE.TorusGeometry(0.035, 0.008, 6, 10), sandboxMat(0x3e7c8c), 0.07, 0.045, 0);
+          } else if (type === "market") {
+            add(new THREE.BoxGeometry(0.18, 0.10, 0.14), sandboxMat(0xc9a67f), 0, 0.05, 0);
+            add(new THREE.ConeGeometry(0.15, 0.09, 8), sandboxMat(0xdb6a41), 0, 0.145, 0);
+            add(new THREE.CylinderGeometry(0.012, 0.012, 0.02, 6), sandboxMat(0xfff8f4), 0, 0.195, 0);
+          } else if (type === "solar") {
+            add(new THREE.BoxGeometry(0.02, 0.10, 0.02), sandboxMat(0x9a9a9a), -0.07, 0.05, 0);
+            add(new THREE.BoxGeometry(0.02, 0.10, 0.02), sandboxMat(0x9a9a9a), 0.07, 0.05, 0);
+            const panel = add(new THREE.BoxGeometry(0.24, 0.012, 0.16), sandboxMat(0x2f4f6b, { emissive: 0x1b3550 }), 0, 0.12, 0);
+            panel.rotation.z = -0.22;
+          } else if (type === "clinic") {
+            add(new THREE.BoxGeometry(0.18, 0.20, 0.16), sandboxMat(0xf2efe8), 0, 0.10, 0);
+            add(new THREE.BoxGeometry(0.10, 0.03, 0.005), sandboxMat(0xd94b3f, { emissive: 0x8c2f28 }), 0, 0.14, 0.082);
+            add(new THREE.BoxGeometry(0.03, 0.10, 0.005), sandboxMat(0xd94b3f, { emissive: 0x8c2f28 }), 0, 0.14, 0.082);
+          } else if (type === "housing") {
+            add(new THREE.BoxGeometry(0.19, 0.40, 0.17), sandboxMat(0xd7c3ae), 0, 0.20, 0);
+            for (let i = 0; i < 3; i++) {
+              add(new THREE.BoxGeometry(0.13, 0.025, 0.005), sandboxMat(0x6f8f9c, { emissive: 0x2a5a6b }), 0, 0.10 + i * 0.10, 0.088);
+            }
+          } else if (type === "library") {
+            add(new THREE.BoxGeometry(0.22, 0.18, 0.17), sandboxMat(0xe4d8c6), 0, 0.09, 0);
+            add(new THREE.BoxGeometry(0.25, 0.02, 0.20), sandboxMat(0x8b6f57), 0, 0.19, 0);
+            add(new THREE.BoxGeometry(0.08, 0.05, 0.005), sandboxMat(0x5b7f8c, { emissive: 0x29465a }), 0, 0.12, 0.088);
+          } else if (type === "pier") {
+            add(new THREE.BoxGeometry(0.26, 0.02, 0.12), sandboxMat(0xb08d63), 0, 0.02, 0);
+            [[-0.10, -0.04], [0, 0.04], [0.10, -0.04]].forEach(([x, z]) => {
+              add(new THREE.CylinderGeometry(0.012, 0.012, 0.08, 6), sandboxMat(0x8a6a4a), x, 0.005, z);
+            });
+          } else {
+            add(new THREE.BoxGeometry(0.16, 0.14, 0.16), sandboxMat(0xc5b5a7), 0, 0.07, 0);
+          }
+          return g;
+        }
+
+        const SANDBOX_SLOT_COLS = 4;
+        const SANDBOX_CELL = 0.285;
+
+        // 清空並重繪某分區的市民建設（同時只顯示一位市民的沙盤）
+        function renderSandbox(districtId, buildings) {
+          while (sandboxGroup.children.length) {
+            const child = sandboxGroup.children[0];
+            sandboxGroup.remove(child);
+            child.traverse((o) => {
+              if (o.geometry) o.geometry.dispose();
+            });
+          }
+          const isl = worldData.islandMap.get(districtId);
+          if (!isl || !Array.isArray(buildings)) return false;
+          const filled = buildings.filter((b) => b && b.type);
+          if (!filled.length) return true;
+
+          const center = isl.worldPos;
+          const baseY = TOP + 0.035;
+          const width = SANDBOX_SLOT_COLS * SANDBOX_CELL;
+          const rows = Math.ceil(12 / SANDBOX_SLOT_COLS);
+          const depth = rows * SANDBOX_CELL;
+
+          const plate = new THREE.Mesh(
+            new THREE.BoxGeometry(width + 0.06, 0.02, depth + 0.06),
+            new THREE.MeshStandardMaterial({ color: 0x3e7c8c, transparent: true, opacity: 0.28, roughness: 0.6 })
+          );
+          plate.position.set(center.x, baseY - 0.012, center.z);
+          sandboxGroup.add(plate);
+
+          filled.forEach((slotData) => {
+            if (!slotData || !slotData.type) return;
+            const col = slotData.slot % SANDBOX_SLOT_COLS;
+            const row = Math.floor(slotData.slot / SANDBOX_SLOT_COLS);
+            const px = center.x + (col - (SANDBOX_SLOT_COLS - 1) / 2) * SANDBOX_CELL;
+            const pz = center.z + (row - (rows - 1) / 2) * SANDBOX_CELL;
+            const model = buildSandboxBuilding(slotData.type);
+            model.position.set(px, baseY, pz);
+            model.traverse((o) => {
+              if (o.isMesh) {
+                o.userData.sandboxSlot = slotData.slot;
+                o.userData.sandboxDistrictId = districtId;
+              }
+            });
+            sandboxGroup.add(model);
+          });
+          return true;
+        }
+
+        function clearSandbox() {
+          renderSandbox(null, []);
+        }
+
+        // 供市民中心（社交層）直接控制 3D 場景
+        window.macaoBridge = {
+          selectItem,
+          selectIsland,
+          renderSandbox,
+          clearSandbox,
+          focusDistrict: (districtId) => selectIsland(districtId),
+          districtCenter: (districtId) => {
+            const isl = worldData.islandMap.get(districtId);
+            return isl ? { x: isl.worldPos.x, z: isl.worldPos.z } : null;
+          }
+        };
 
         function selectBridge(bridgeId) {
           const bm = worldData.bridgeMap.get(bridgeId);
@@ -8824,6 +8971,17 @@
             const flowHits = raycaster.intersectObjects(visibleFlows, false);
             if (flowHits.length > 0 && flowHits[0].object.userData.flowId) {
               selectFlow(flowHits[0].object.userData.flowId);
+              return;
+            }
+          }
+
+          const sandboxHits = raycaster.intersectObjects(sandboxGroup.children, true);
+          if (sandboxHits.length > 0) {
+            const ud = sandboxHits[0].object.userData;
+            if (ud && ud.sandboxSlot !== undefined) {
+              window.dispatchEvent(new CustomEvent("macao:sandbox-slot", {
+                detail: { slot: ud.sandboxSlot, districtId: ud.sandboxDistrictId }
+              }));
               return;
             }
           }
