@@ -19,6 +19,8 @@
     sandboxVisit: null,
     guildView: null,
     friendSearch: null,
+    festival: null,
+    festivalFired: false,
     open: false,
   };
 
@@ -173,8 +175,9 @@
       : '🏙';
     const lv = u.levelInfo || { level: 1, title: '城市觀察員', progress: 0 };
     $('#mc-head-name').textContent = `${u.nickname} · Lv.${lv.level} ${lv.title}`;
+    const reputation = u.counts ? (u.counts.reputation || 0) : 0;
     $('#mc-head-sub').textContent =
-      `💰 ${u.coins} 城市幣 · ⭐ ${u.xp} XP · 🔥 連續 ${me.streak} 天`
+      `💰 ${u.coins} 城市幣 · ⭐ ${u.xp} XP · 🏅 聲望 ${reputation} · 🔥 連續 ${me.streak} 天`
       + (u.district ? ` · ${u.district.icon} ${u.district.name.slice(0, 14)}` : '');
     xpbar.hidden = false;
     xpbar.querySelector('i').style.width = `${Math.round((lv.progress || 0) * 100)}%`;
@@ -247,8 +250,16 @@
         <div class="mc-stat"><b>${counts.discoveries}<span style="font-size:11px;opacity:.6">/82</span></b><span>地標收集</span></div>
         <div class="mc-stat"><b>${counts.proposals}</b><span>城市提案</span></div>
         <div class="mc-stat"><b>${counts.votes}</b><span>參與投票</span></div>
-        <div class="mc-stat"><b>${me.streak}</b><span>連續登入</span></div>
+        <div class="mc-stat"><b>${counts.reputation || 0}</b><span>城市聲望</span></div>
       </div>
+
+      ${state.festival ? `
+      <div class="mc-card">
+        <div class="mc-row" style="justify-content:space-between;">
+          <b style="font-size:13px;">${esc(state.festival.emoji)} 今日節慶 · ${esc(state.festival.name)}</b>
+        </div>
+        <div class="mc-muted" style="margin-top:4px;">${esc(state.festival.message)}</div>
+      </div>` : ''}
 
       <div class="mc-card">
         <div class="mc-row" style="justify-content:space-between;">
@@ -689,7 +700,7 @@
           </div>
           <div style="min-width:0;">
             <div style="font-size:13px;font-weight:800;">${esc(d.owner.nickname || '市民')} Lv.${d.owner.level}</div>
-            <div class="mc-muted">${esc(d.owner.districtIcon || '')} ${esc(d.owner.districtName || '')}</div>
+            <div class="mc-muted">${esc(d.owner.districtIcon || '')} ${esc(d.owner.districtName || '')}${d.reputation ? ` · 🏅 聲望 ${d.reputation}` : ''}</div>
           </div>
         </div>
       </div>
@@ -697,13 +708,26 @@
       <div class="mc-row" style="margin-top:12px;justify-content:space-between;">
         <span class="mc-muted">沙盤活力 ${d.vitality} · ${d.built} 項建設</span>
         ${d.isOwner ? '<span class="mc-muted">這是你的沙盤</span>'
-          : `<button class="mc-vote ${d.liked ? 'mc-voted' : ''}" id="mc-visit-like" type="button">👍 ${d.likes}</button>`}
+          : `<div class="mc-row" style="gap:6px;">
+               <button class="mc-btn ghost" id="mc-visit-greet" type="button">👋 打招呼</button>
+               <button class="mc-vote ${d.liked ? 'mc-voted' : ''}" id="mc-visit-like" type="button">👍 ${d.likes}</button>
+             </div>`}
       </div>
       <div style="text-align:center;margin-top:12px;">
         <button class="mc-btn ghost" id="mc-visit-3d" type="button">🎥 在 3D 場景參觀</button>
       </div>`;
 
     if (d.owner.districtId) pushSandbox3D(d.owner.districtId, d.slots);
+
+    // 好友巡訪：只記錄一次，好友才計入每日任務
+    if (!d.isOwner && state.me && state.me.authenticated) {
+      api(`/api/sandbox/visit/${d.owner.id}`, { method: 'POST', body: '{}' })
+        .then((r) => {
+          if (r.tasks) state.me.tasks = r.tasks;
+          if (r.isFriend && !r.already) toast(`🤝 已巡訪好友沙盤 +${r.reward.coins} 城市幣`);
+        })
+        .catch(() => { /* 巡訪記錄屬非必要 */ });
+    }
 
     $('#mc-visit-3d').addEventListener('click', () => focusSandbox3D(d.owner.districtId));
 
@@ -726,6 +750,24 @@
         } catch {
           toast('點讚失敗');
           likeBtn.disabled = false;
+        }
+      });
+    }
+
+    const greetBtn = $('#mc-visit-greet');
+    if (greetBtn) {
+      greetBtn.addEventListener('click', async () => {
+        if (!state.me || !state.me.authenticated) { toast('請先登入'); return; }
+        greetBtn.disabled = true;
+        try {
+          const r = await api(`/api/greet/${d.owner.id}`, { method: 'POST', body: '{}' });
+          if (r.tasks) state.me.tasks = r.tasks;
+          greetBtn.textContent = r.already ? '👋 今日已打招呼' : '👋 已打招呼 +4 幣';
+          toast(r.already ? '今天已經和這位鄰居打過招呼了' : `👋 已打招呼 +4 城市幣，對方 +2`);
+          if (!r.already) loadMe(true);
+        } catch (err) {
+          toast(err.message === 'daily_limit' ? '今日打招呼已達 5 次上限' : '打招呼失敗');
+          greetBtn.disabled = false;
         }
       });
     }
@@ -933,7 +975,8 @@
       : '';
     const friendList = friends.friends.length
       ? friends.friends.map((p) => personRow(p,
-        `<button class="mc-btn ghost" data-visit-friend="${p.id}" type="button">參觀</button>
+        `<button class="mc-btn ghost" data-greet="${p.id}" type="button">👋 打招呼</button>
+         <button class="mc-btn ghost" data-visit-friend="${p.id}" type="button">參觀</button>
          <button class="mc-btn ghost" data-remove-friend="${p.id}" type="button">移除</button>`
       )).join('')
       : '<div class="mc-empty">還沒有好友，搜尋市民名稱加為好友吧。</div>';
@@ -1038,6 +1081,23 @@
         state.tab = 'sandbox';
         syncTabs();
         await renderSandbox();
+      });
+    });
+    body.querySelectorAll('[data-greet]').forEach((b) => {
+      b.addEventListener('click', async () => {
+        b.disabled = true;
+        try {
+          const r = await api(`/api/greet/${b.dataset.greet}`, { method: 'POST', body: '{}' });
+          if (r.tasks) state.me.tasks = r.tasks;
+          toast(r.already ? '今天已經和這位鄰居打過招呼了' : `👋 已打招呼 +${r.reward.coins} 城市幣`);
+          if (!r.already) {
+            b.textContent = '👋 今日已打招呼';
+            await loadMe(true);
+          }
+        } catch (err) {
+          toast(err.message === 'daily_limit' ? '今日打招呼已達 5 次上限' : '打招呼失敗');
+          b.disabled = false;
+        }
       });
     });
 
@@ -1206,6 +1266,7 @@
         <button class="mc-tab ${state.board === 'weekly' ? 'mc-active' : ''}" data-board="weekly" type="button">本週 XP</button>
         <button class="mc-tab ${state.board === 'discoveries' ? 'mc-active' : ''}" data-board="discoveries" type="button">探索王</button>
         <button class="mc-tab ${state.board === 'coins' ? 'mc-active' : ''}" data-board="coins" type="button">城市幣</button>
+        <button class="mc-tab ${state.board === 'reputation' ? 'mc-active' : ''}" data-board="reputation" type="button">聲望</button>
       </div>
       <div id="mc-rank-list"><div class="mc-empty">載入中…</div></div>`;
     try {
@@ -1284,6 +1345,37 @@
     }
     refreshWorld();
     if (state.tab === 'atlas' || state.tab === 'proposals') state.landmarks = null;
+  }
+
+  // ---------- 節慶事件 ----------
+  async function loadFestival() {
+    try {
+      const d = await api('/api/festival');
+      state.festival = d.festival || null;
+    } catch {
+      state.festival = null;
+    }
+    if (!state.festival) return;
+    const f = state.festival;
+    toast(`${f.emoji} ${f.name}：${f.message}`);
+    if (state.festivalFired) return;
+    let tries = 0;
+    const timer = setInterval(() => {
+      tries += 1;
+      const bridge = window.macaoBridge;
+      if (bridge && typeof bridge.fireworks === 'function') {
+        bridge.fireworks();
+        state.festivalFired = true;
+        setTimeout(() => {
+          if (window.macaoBridge && typeof window.macaoBridge.fireworks === 'function') {
+            window.macaoBridge.fireworks();
+          }
+        }, 2200);
+        clearInterval(timer);
+      } else if (tries > 40) {
+        clearInterval(timer);
+      }
+    }, 400);
   }
 
   // ---------- 3D 事件整合 ----------
@@ -1385,6 +1477,7 @@
       flashDot();
     }
     await loadAll();
+    loadFestival();
     if (params.get('login') === 'failed') openPanel('profile');
   })();
 })();

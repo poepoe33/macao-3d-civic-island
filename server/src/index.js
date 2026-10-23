@@ -122,6 +122,27 @@ function publicUser(u, extra = {}) {
   };
 }
 
+// 城市聲望 ＝ 鄰里點讚 × 2 ＋ 收到的打招呼 ＋ 建設數 × 3（別名固定為 u）
+const REPUTATION_SQL = `(
+  (SELECT count(*)::int FROM sandbox_likes sl WHERE sl.owner_id = u.id) * 2
+  + (SELECT count(*)::int FROM greets g WHERE g.to_user_id = u.id)
+  + (SELECT count(*)::int FROM user_buildings b WHERE b.user_id = u.id) * 3
+)`;
+
+// 節慶（西曆固定日期）：當日載入自動在旅遊塔施放煙花
+const FESTIVALS = [
+  { id: 'newyear', date: '01-01', name: '元旦', nameEn: "New Year's Day", emoji: '🎆', message: '新年快樂！全城煙花陪你迎接新一年。' },
+  { id: 'labour', date: '05-01', name: '勞動節', nameEn: 'Labour Day', emoji: '🎉', message: '向每一位建設這座城市的勞動者致敬。' },
+  { id: 'national', date: '10-01', name: '國慶日', nameEn: 'National Day', emoji: '🇨🇳', message: '祝祖國繁榮昌盛，澳門與你同慶。' },
+  { id: 'handover', date: '12-20', name: '澳門回歸紀念日', nameEn: 'Macao SAR Establishment Day', emoji: '🏛', message: '慶祝澳門特別行政區成立，煙花在旅遊塔上空綻放。' },
+  { id: 'xmas', date: '12-25', name: '聖誕節', nameEn: 'Christmas Day', emoji: '🎄', message: '聖誕快樂！願這座城市處處有溫暖。' },
+];
+
+function festivalForDay(day) {
+  const md = day.slice(5);
+  return FESTIVALS.find((f) => f.date === md) || null;
+}
+
 // ---------- 認證 ----------
 app.get('/api/health', (req, res) => res.json({ ok: true, service: 'macao-city' }));
 
@@ -209,9 +230,14 @@ app.get('/api/me', wrap(async (req, res) => {
        (SELECT count(*)::int FROM discoveries WHERE user_id=$1) AS discoveries,
        (SELECT count(*)::int FROM proposals WHERE user_id=$1) AS proposals,
        (SELECT count(*)::int FROM proposal_votes WHERE user_id=$1) AS votes,
+       (SELECT count(*)::int FROM greets WHERE to_user_id=$1) AS greets_received,
        (SELECT coins FROM users WHERE id=$1) AS coins`,
     [u.id]
   );
+  const { rows: repRows } = await query(
+    `SELECT ${REPUTATION_SQL} AS reputation FROM users u WHERE u.id=$1`, [u.id]
+  );
+  countRows[0].reputation = repRows[0].reputation;
   const { rows: districtRows } = u.district_id
     ? await query('SELECT id, name, icon, macro_region FROM districts WHERE id=$1', [u.district_id])
     : { rows: [] };
@@ -339,6 +365,13 @@ app.get('/api/leaderboard', wrap(async (req, res) => {
               u.coins AS score
          FROM users u LEFT JOIN districts d ON d.id=u.district_id
         WHERE u.onboarded ORDER BY u.coins DESC, u.id LIMIT 20`
+    ));
+  } else if (board === 'reputation') {
+    ({ rows } = await query(
+      `SELECT u.id, u.nickname, u.name, u.avatar_url, u.level, d.name AS district_name,
+              ${REPUTATION_SQL} AS score
+         FROM users u LEFT JOIN districts d ON d.id=u.district_id
+        WHERE u.onboarded ORDER BY score DESC, u.id LIMIT 20`
     ));
   } else {
     ({ rows } = await query(
@@ -489,7 +522,8 @@ app.get('/api/sandbox/user/:id', wrap(async (req, res) => {
   if (!Number.isFinite(ownerId)) return res.status(400).json({ error: 'bad_id' });
   const { rows: owners } = await query(
     `SELECT u.id, u.nickname, u.name, u.avatar_url, u.level, u.district_id,
-            d.name AS district_name, d.icon AS district_icon
+            d.name AS district_name, d.icon AS district_icon,
+            ${REPUTATION_SQL} AS reputation
        FROM users u LEFT JOIN districts d ON d.id=u.district_id
       WHERE u.id=$1 AND u.onboarded`,
     [ownerId]
@@ -511,7 +545,7 @@ app.get('/api/sandbox/user/:id', wrap(async (req, res) => {
       id: owners[0].id, nickname: owners[0].nickname || owners[0].name,
       avatarUrl: owners[0].avatar_url, level: owners[0].level,
       districtId: owners[0].district_id, districtName: owners[0].district_name,
-      districtIcon: owners[0].district_icon,
+      districtIcon: owners[0].district_icon, reputation: owners[0].reputation,
     },
     likes: likes[0].n,
     liked,
@@ -655,11 +689,18 @@ app.get('/api/city', wrap(async (req, res) => {
   });
 }));
 
+// ---------- 節慶事件 ----------
+app.get('/api/festival', wrap(async (req, res) => {
+  const { day } = await todayKey();
+  res.json({ day, festival: festivalForDay(day) });
+}));
+
 // ---------- 3D 場景中的真實市民 ----------
 app.get('/api/citizens', wrap(async (req, res) => {
   const { rows } = await query(
     `SELECT u.id, u.nickname, u.name, u.level, u.district_id,
             (SELECT count(*)::int FROM user_buildings b WHERE b.user_id = u.id) AS buildings,
+            ${REPUTATION_SQL} AS reputation,
             EXISTS (
               SELECT 1 FROM events e
                WHERE e.user_id = u.id AND e.created_at > now() - interval '30 minutes'
@@ -676,9 +717,86 @@ app.get('/api/citizens', wrap(async (req, res) => {
       level: c.level,
       districtId: c.district_id,
       buildings: c.buildings,
+      reputation: c.reputation,
       online: c.online,
     })),
   });
+}));
+
+// ---------- 鄰里打招呼 ----------
+const GREET_DAILY_LIMIT = 5;
+
+app.post('/api/greet/:userId', requireUser, wrap(async (req, res) => {
+  const target = Number(req.params.userId);
+  if (!Number.isFinite(target)) return res.status(400).json({ error: 'bad_id' });
+  if (target === Number(req.user.id)) return res.status(400).json({ error: 'self_greet' });
+  const { rows: users } = await query('SELECT id, onboarded FROM users WHERE id=$1', [target]);
+  if (!users[0] || !users[0].onboarded) return res.status(404).json({ error: 'not_found' });
+
+  const { day } = await todayKey();
+  const { rows: todayRows } = await query(
+    `SELECT count(*)::int AS n FROM greets
+      WHERE from_user_id=$1 AND (created_at AT TIME ZONE $2)::date=$3::date`,
+    [req.user.id, TZ, day]
+  );
+  if (todayRows[0].n >= GREET_DAILY_LIMIT) {
+    return res.status(429).json({ error: 'daily_limit', limit: GREET_DAILY_LIMIT });
+  }
+  const ins = await query(
+    `INSERT INTO greets (from_user_id, to_user_id, day) VALUES ($1,$2,$3::date)
+     ON CONFLICT DO NOTHING RETURNING id`,
+    [req.user.id, target, day]
+  );
+  if (ins.rowCount === 0) {
+    const { tasks } = await computeTasks(req.user.id);
+    return res.json({ ok: true, already: true, tasks, remaining: Math.max(0, GREET_DAILY_LIMIT - todayRows[0].n) });
+  }
+
+  const reward = await recordEvent(req.user.id, 'greet', String(target));
+  await query('UPDATE users SET coins = coins + 2 WHERE id=$1', [target]);
+  await query(
+    `INSERT INTO events (user_id, type, ref_id, xp, coins) VALUES ($1,'greet_received',$2,0,2)`,
+    [target, String(req.user.id)]
+  );
+  await refreshLevel(req.user.id);
+  const { tasks } = await computeTasks(req.user.id);
+  res.json({
+    ok: true, already: false, reward, tasks,
+    remaining: Math.max(0, GREET_DAILY_LIMIT - todayRows[0].n - 1),
+  });
+}));
+
+// ---------- 好友沙盤巡訪 ----------
+app.post('/api/sandbox/visit/:userId', requireUser, wrap(async (req, res) => {
+  const host = Number(req.params.userId);
+  if (!Number.isFinite(host)) return res.status(400).json({ error: 'bad_id' });
+  if (host === Number(req.user.id)) return res.status(400).json({ error: 'self_visit' });
+  const { rows: users } = await query('SELECT id, onboarded FROM users WHERE id=$1', [host]);
+  if (!users[0] || !users[0].onboarded) return res.status(404).json({ error: 'not_found' });
+
+  const { rows: friendRows } = await query(
+    `SELECT 1 FROM friendships
+      WHERE status='accepted'
+        AND requester_id = LEAST($1::bigint,$2::bigint)
+        AND addressee_id = GREATEST($1::bigint,$2::bigint)`,
+    [req.user.id, host]
+  );
+  const isFriend = Boolean(friendRows[0]);
+
+  const { day } = await todayKey();
+  const ins = await query(
+    `INSERT INTO sandbox_visits (visitor_id, host_id, day) VALUES ($1,$2,$3::date)
+     ON CONFLICT DO NOTHING RETURNING id`,
+    [req.user.id, host, day]
+  );
+  const already = ins.rowCount === 0;
+  let reward = { xp: 0, coins: 0 };
+  if (!already && isFriend) {
+    reward = await recordEvent(req.user.id, 'visit', String(host));
+    await refreshLevel(req.user.id);
+  }
+  const { tasks } = await computeTasks(req.user.id);
+  res.json({ ok: true, isFriend, already, reward, tasks });
 }));
 
 // ---------- 好友與社團 ----------

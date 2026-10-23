@@ -42,6 +42,8 @@ const TASK_POOL = [
   { key: 'proposal1', title: '提交 1 個城市提案', type: 'proposal', goal: 1, xp: 35, coins: 25 },
   { key: 'island4', title: '瀏覽 4 個不同分區', type: 'island', goal: 4, xp: 25, coins: 15 },
   { key: 'build1', title: '完成 1 次分區建設', type: 'build', goal: 1, xp: 30, coins: 20 },
+  { key: 'greet3', title: '向 3 位鄰居打招呼', type: 'greet', goal: 3, xp: 30, coins: 20 },
+  { key: 'visit3', title: '巡訪 3 位好友的沙盤', type: 'visit', goal: 3, xp: 35, coins: 25 },
 ];
 
 export async function todayKey() {
@@ -66,6 +68,8 @@ const EVENT_RULES = {
   lightshow: { xp: 6, coins: 3, dailyCap: 3 },
   build: { xp: 15, coins: 0, dailyCap: 5 },
   like: { xp: 4, coins: 2, dailyCap: 10 },
+  greet: { xp: 5, coins: 4, dailyCap: 5 },
+  visit: { xp: 6, coins: 4, dailyCap: 8 },
 };
 
 /**

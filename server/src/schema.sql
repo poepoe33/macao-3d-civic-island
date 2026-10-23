@@ -166,3 +166,25 @@ CREATE TABLE IF NOT EXISTS guild_claims (
   claimed_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   PRIMARY KEY (guild_id, week_start)
 );
+
+-- 鄰里打招呼：每人每天對同一位市民只能打招呼一次
+CREATE TABLE IF NOT EXISTS greets (
+  id           BIGSERIAL PRIMARY KEY,
+  from_user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  to_user_id   BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  day          DATE NOT NULL,
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (from_user_id, to_user_id, day)
+);
+CREATE INDEX IF NOT EXISTS greets_to_day_idx ON greets (to_user_id, day);
+
+-- 好友沙盤巡訪：每人每天對同一沙盤只計一次
+CREATE TABLE IF NOT EXISTS sandbox_visits (
+  id         BIGSERIAL PRIMARY KEY,
+  visitor_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  host_id    BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  day        DATE NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (visitor_id, host_id, day)
+);
+CREATE INDEX IF NOT EXISTS sandbox_visits_host_idx ON sandbox_visits (host_id, day);
