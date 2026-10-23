@@ -4,7 +4,7 @@
 
 > 打開一個 HTML 檔，即可瀏覽整個澳門半島、氹仔、路氹、路環與橫琴澳大校區，並即時查看官方統計基準、城市流動與互動體驗。
 
-**線上示範**：<http://43.156.106.40/macao/>
+**線上示範**：<https://city.nexuslinktech.com/>（舊址：<http://43.156.106.40/macao/>）
 
 ---
 
@@ -103,6 +103,81 @@
 - 一鍵下載獨立 HTML（`macao_policy_island_3d.html`）。
 - 桌面與手機自適應版面，手機支援底部抽屜拖曳。
 - 減少動態效果偏好支援與完整鍵盤焦點樣式。
+
+---
+
+## 會員系統與社區（城市模擬 MVP）
+
+在原有 3D 沙盤上疊加一層「市民中心」，把瀏覽數據變成可經營、可比較、可討論的城市遊戲。
+
+### 市民檔案
+
+- Google 帳戶登入，選擇暱稱與「居住分區」，建立個人市民卡。
+- 等級與稱號：城市觀察員 → 規劃見習生 → 社區設計師 → 澳門城市大使 → 澳門共創夥伴。
+- 城市幣與 XP：探索、投票、提案、模擬互動皆可獲得；連續登入另有連擊獎勵。
+- 個人統計：地標收集數、提案數、投票數、連續登入天數、探索進度條。
+
+### 探索圖鑑
+
+- 收錄全部 82 個地標徽章，按 23 個分區分組展示。
+- 在 3D 場景點擊地標會自動登錄圖鑑（每個地標只計一次）。
+- 圖鑑可直接點擊飛往對應地標，形成「收集 → 導覽 → 再探索」循環。
+
+### 每日任務
+
+- 每天依日期輪換 3 項任務，例如探索 3 個地標、參與 2 次投票、模擬潮位防洪、搭乘輕軌、點亮光雕、提交提案。
+- 任務進度由真實互動事件即時計算，達標自動發放 XP 與城市幣，每日 00:00（澳門時間）重置。
+
+### 提案牆與投票
+
+- 六類提案：交通改善、防災與氣候、公共空間、文旅活動、社區設施、環境與綠化。
+- 可按分區、類別、最多支持／最新排序瀏覽；每人每日最多提交 3 篇。
+- 一鍵支持提案，支持數即時更新，並計入每日任務。
+
+### 排行榜與共創目標
+
+- 三種榜單：本週 XP、探索王（累計收集）、城市幣。
+- 全城共創目標：本週探索地標累計進度，達標後解鎖限定效果（後續階段）。
+
+### 技術實作
+
+| 層級 | 內容 |
+| --- | --- |
+| 前端 | `web/social.css`、`web/social.js`，以 overlay 掛載，不影響原 3D 場景 |
+| 後端 | `server/`（Node 22 + Express），提供 `/api/*` |
+| 資料庫 | PostgreSQL 18，`macao_city` 資料庫 |
+| 認證 | Google OAuth 2.0 + HttpOnly Session Cookie（30 天） |
+| 安全 | 同源 Origin 檢查、速率限制、參數化 SQL、伺服器端輸入驗證 |
+| 部署 | systemd `macao-city.service` + Nginx 反向代理 `/api/` |
+
+### API 一覽
+
+| 方法 | 路徑 | 說明 |
+| --- | --- | --- |
+| GET | `/api/auth/google` | 發起 Google 登入 |
+| GET | `/api/auth/google/callback` | OAuth 回調、建立 session |
+| POST | `/api/auth/logout` | 登出 |
+| GET | `/api/me` | 市民檔案、等級、任務與統計 |
+| POST | `/api/onboard` | 建立暱稱與居住分區 |
+| GET | `/api/districts` | 23 分區與收集進度 |
+| GET | `/api/landmarks?district=` | 分區地標清單 |
+| POST | `/api/discover` | 登錄地標收藏 |
+| POST | `/api/events` | 回報互動事件（煙花、光雕、輕軌、潮位等） |
+| GET | `/api/proposals` | 提案列表（分區／類別／排序） |
+| POST | `/api/proposals` | 提交提案 |
+| POST | `/api/proposals/:id/vote` | 支持／取消支持 |
+| GET | `/api/leaderboard?board=` | 排行榜 |
+| GET | `/api/city` | 全城統計與共創目標 |
+
+### 啟用 Google 登入
+
+需在 Google Cloud Console 的 OAuth 用戶端（與 NexusSpin 共用）加入已授權的重新導向 URI：
+
+```
+https://city.nexuslinktech.com/api/auth/google/callback
+```
+
+加入後重新整理頁面即可登入。
 
 ---
 
@@ -246,7 +321,20 @@ python3 -m http.server 8080
 ```
 NexusIsland_MO/
 ├── README.md                      # 本說明文件
-└── 3d_macao_3d_civic_island.html  # 單檔 3D 互動城市應用
+├── 3d_macao_3d_civic_island.html  # 單檔 3D 互動城市應用
+├── web/
+│   ├── social.css                 # 市民中心 overlay 樣式
+│   └── social.js                  # 市民中心互動邏輯
+├── server/
+│   ├── package.json
+│   ├── data/seed.json             # 23 分區 + 82 地標種子資料
+│   └── src/
+│       ├── index.js               # API 與 Google OAuth
+│       ├── tasks.js               # 等級、任務、事件獎勵
+│       ├── db.js
+│       ├── migrate.js             # 建表與種子匯入
+│       └── schema.sql
+└── .github/workflows/deploy.yml   # 自動部署
 ```
 
 ---
@@ -266,11 +354,13 @@ NexusIsland_MO/
 
 ## 部署與自動更新
 
-- **線上網址**：<http://43.156.106.40/macao/>
+- **線上網址**：<https://city.nexuslinktech.com/>（舊址：<http://43.156.106.40/macao/>）
 - **伺服器**：騰訊雲 Ubuntu 24.04 + Nginx，網站根目錄 `/var/www/macao-3d-civic-island`
-- **自動部署**：推送至 `main` 分支後，GitHub Actions 會透過 SSH 將伺服器上的程式碼強制同步至最新版本，無需手動登入伺服器。
+- **自動部署**：推送至 `main` 分支後，GitHub Actions 會透過 SSH 同步程式碼、安裝依賴、執行資料庫遷移並重啟 API，無需手動登入伺服器。
 - **Workflow**：`.github/workflows/deploy.yml`
 - **手動觸發**：在 GitHub Actions 頁面選擇 `Deploy to Tencent Cloud` → `Run workflow`。
+- **後端服務**：systemd `macao-city.service`（`127.0.0.1:3100`），環境變數置於 `/etc/macao-city.env`。
+- **資料庫**：PostgreSQL `macao_city`，首次部署由 `npm run seed` 自動建表與匯入分區／地標。
 
 ---
 
