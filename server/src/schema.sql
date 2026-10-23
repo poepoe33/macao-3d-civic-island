@@ -126,3 +126,43 @@ CREATE TABLE IF NOT EXISTS sandbox_likes (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   PRIMARY KEY (owner_id, liker_id)
 );
+
+-- 社群：好友關係（requester_id 永遠存較小 id）與社團
+CREATE TABLE IF NOT EXISTS friendships (
+  id           BIGSERIAL PRIMARY KEY,
+  requester_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  addressee_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  status       TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','accepted')),
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+  responded_at TIMESTAMPTZ,
+  CHECK (requester_id < addressee_id)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS friendships_pair_idx ON friendships (requester_id, addressee_id);
+CREATE INDEX IF NOT EXISTS friendships_addressee_idx ON friendships (addressee_id, status);
+
+CREATE TABLE IF NOT EXISTS guilds (
+  id          BIGSERIAL PRIMARY KEY,
+  name        TEXT NOT NULL UNIQUE,
+  icon        TEXT NOT NULL DEFAULT '🏙',
+  description TEXT,
+  owner_id    BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS guild_members (
+  guild_id  BIGINT NOT NULL REFERENCES guilds(id) ON DELETE CASCADE,
+  user_id   BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  role      TEXT NOT NULL DEFAULT 'member' CHECK (role IN ('owner','member')),
+  joined_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (guild_id, user_id)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS guild_members_user_idx ON guild_members (user_id);
+CREATE INDEX IF NOT EXISTS guild_members_guild_idx ON guild_members (guild_id);
+
+CREATE TABLE IF NOT EXISTS guild_claims (
+  guild_id   BIGINT NOT NULL REFERENCES guilds(id) ON DELETE CASCADE,
+  week_start DATE NOT NULL,
+  claimed_by BIGINT REFERENCES users(id) ON DELETE SET NULL,
+  claimed_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (guild_id, week_start)
+);

@@ -445,6 +445,31 @@
 .mc-build-poor { opacity: 0.72; border-style: dashed; }
 .mc-build-poor .mc-build-cost { color: #9a8a7c; font-size: 10.5px; }
 
+/* ---- 好友與社團 ---- */
+.mc-person-avatar {
+  width: 34px;
+  height: 34px;
+  font-size: 14px;
+  flex: 0 0 auto;
+}
+.mc-progress {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(33, 29, 29, 0.1);
+  overflow: hidden;
+  margin-top: 10px;
+}
+.mc-progress span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #4f8f52, #007562);
+  transition: width 0.3s ease;
+}
+.mc-input#mc-user-q { flex: 1 1 auto; }
+.mc-input#mc-guild-name { flex: 1 1 auto; }
+.mc-input#mc-guild-icon { padding: 8px 6px; }
+
 /* ---- 排行 ---- */
 .mc-rank-row {
   display: flex;

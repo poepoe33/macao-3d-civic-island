@@ -17,6 +17,8 @@
     sandbox: null,
     sandboxSlot: null,
     sandboxVisit: null,
+    guildView: null,
+    friendSearch: null,
     open: false,
   };
 
@@ -74,6 +76,7 @@
         <button class="mc-tab mc-active" data-tab="profile" type="button">市民檔案</button>
         <button class="mc-tab" data-tab="atlas" type="button">探索圖鑑</button>
         <button class="mc-tab" data-tab="sandbox" type="button">建設沙盤</button>
+        <button class="mc-tab" data-tab="community" type="button">好友社團</button>
         <button class="mc-tab" data-tab="tasks" type="button">每日任務</button>
         <button class="mc-tab" data-tab="proposals" type="button">提案牆</button>
         <button class="mc-tab" data-tab="ranking" type="button">排行榜</button>
@@ -824,6 +827,321 @@
     await loadList();
   }
 
+  // ---------- 好友與社團 ----------
+  const GUILD_ICONS = ['🏙', '🏛', '🎡', '🚝', '🌉', '🏖', '🎓', '🌳', '⚓', '🏮'];
+
+  function personRow(p, actions) {
+    return `<div class="mc-rank-row">
+      <div class="mc-head-avatar mc-person-avatar">${p.avatarUrl
+        ? `<img src="${esc(p.avatarUrl)}" alt="" referrerpolicy="no-referrer">` : '🏙'}</div>
+      <div class="mc-rank-name">${esc(p.nickname)}
+        <div class="mc-rank-sub">${p.districtIcon ? `${esc(p.districtIcon)} ` : ''}${esc(p.districtName || '未選分區')} · Lv.${p.level}${p.buildings !== undefined ? ` · ${p.buildings} 項建設` : ''}</div>
+      </div>
+      <div class="mc-row" style="gap:6px;flex:0 0 auto;">${actions}</div>
+    </div>`;
+  }
+
+  async function renderCommunity() {
+    const me = state.me;
+    if (!me || !me.authenticated) {
+      body.innerHTML = loginCard('登入後可加好友、組社團，一起經營分區');
+      return;
+    }
+    if (!me.user.onboarded) {
+      body.innerHTML = '<div class="mc-empty">請先到「市民檔案」建立暱稱與居住分區。</div>';
+      return;
+    }
+    if (state.guildView) {
+      await renderGuildDetail(state.guildView);
+      return;
+    }
+    body.innerHTML = '<div class="mc-empty">載入中…</div>';
+    let friends, guilds;
+    try {
+      [friends, guilds] = await Promise.all([api('/api/friends'), api('/api/guilds')]);
+    } catch {
+      body.innerHTML = '<div class="mc-empty">讀取社群資料失敗，請稍後再試。</div>';
+      return;
+    }
+
+    const myGuild = guilds.myGuildId ? guilds.guilds.find((g) => g.id === guilds.myGuildId) : null;
+    const incomingHtml = friends.incoming.map((p) => personRow(p,
+      `<button class="mc-vote" data-accept="${p.requestId}" type="button">接受</button>
+       <button class="mc-btn ghost" data-decline="${p.requestId}" type="button">拒絕</button>`
+    )).join('');
+    const outgoingHtml = friends.outgoing.length
+      ? `<div class="mc-muted" style="margin:8px 0 2px;">已送出邀請</div>${friends.outgoing.map((p) => personRow(p,
+        `<span class="mc-muted">等待回應</span>`)).join('')}`
+      : '';
+    const friendList = friends.friends.length
+      ? friends.friends.map((p) => personRow(p,
+        `<button class="mc-btn ghost" data-visit-friend="${p.id}" type="button">參觀</button>
+         <button class="mc-btn ghost" data-remove-friend="${p.id}" type="button">移除</button>`
+      )).join('')
+      : '<div class="mc-empty">還沒有好友，搜尋市民名稱加為好友吧。</div>';
+
+    const guildSection = myGuild
+      ? `<div class="mc-card">
+           <div class="mc-row" style="justify-content:space-between;">
+             <b style="font-size:13px;">${esc(myGuild.icon)} ${esc(myGuild.name)}</b>
+             <span class="mc-muted">${myGuild.members} 位成員</span>
+           </div>
+           ${myGuild.description ? `<div class="mc-muted" style="margin-top:4px;">${esc(myGuild.description)}</div>` : ''}
+           <div class="mc-progress"><span style="width:${Math.min(100, Math.round((myGuild.weeklyXp / myGuild.target) * 100))}%"></span></div>
+           <div class="mc-row" style="justify-content:space-between;margin-top:6px;">
+             <span class="mc-muted">本週 ${myGuild.weeklyXp} / ${myGuild.target} XP</span>
+             <span class="mc-muted">活力 ${myGuild.vitality}</span>
+           </div>
+           <button class="mc-btn" id="mc-guild-open" type="button" style="margin-top:10px;">查看社團與共同目標</button>
+         </div>`
+      : `<div class="mc-card">
+           <b style="font-size:13px;">🏛 成立社團</b>
+           <div class="mc-muted" style="margin:4px 0 8px;">社團成員的探索與建設 XP 會累積成共同目標，達標全員可領獎勵。</div>
+           <div class="mc-row" style="gap:6px;">
+             <select class="mc-input" id="mc-guild-icon" style="flex:0 0 72px;">
+               ${GUILD_ICONS.map((i) => `<option value="${i}">${i}</option>`).join('')}
+             </select>
+             <input class="mc-input" id="mc-guild-name" maxlength="24" placeholder="社團名稱（2–24 字）">
+           </div>
+           <input class="mc-input" id="mc-guild-desc" maxlength="200" placeholder="一句話介紹（選填）" style="margin-top:6px;">
+           <button class="mc-btn" id="mc-guild-create" type="button" style="margin-top:8px;">建立社團</button>
+         </div>
+         <div class="mc-card" style="margin-top:10px;">
+           <b style="font-size:13px;">社團列表</b>
+           ${guilds.guilds.length
+             ? guilds.guilds.map((g) => `<div class="mc-rank-row">
+                 <div class="mc-rank-no">${esc(g.icon)}</div>
+                 <div class="mc-rank-name">${esc(g.name)}
+                   <div class="mc-rank-sub">${g.members} 位成員 · 活力 ${g.vitality} · 本週 ${g.weeklyXp} XP</div>
+                 </div>
+                 <button class="mc-btn ghost" data-join-guild="${g.id}" type="button">加入</button>
+               </div>`).join('')
+             : '<div class="mc-empty">還沒有社團，成為第一個吧。</div>'}
+         </div>`;
+
+    body.innerHTML = `
+      <div class="mc-card">
+        <div class="mc-row" style="justify-content:space-between;">
+          <b style="font-size:13px;">👥 好友</b>
+          <span class="mc-muted">${friends.friends.length} 位${friends.incoming.length ? ` · ${friends.incoming.length} 個邀請` : ''}</span>
+        </div>
+        ${incomingHtml ? `<div class="mc-muted" style="margin:8px 0 2px;">待處理邀請</div>${incomingHtml}` : ''}
+        ${outgoingHtml}
+        <div class="mc-row" style="gap:6px;margin-top:10px;">
+          <input class="mc-input" id="mc-user-q" maxlength="20" placeholder="搜尋市民暱稱（至少 2 字）">
+          <button class="mc-btn" id="mc-user-search" type="button">搜尋</button>
+        </div>
+        <div id="mc-user-results"></div>
+        <div style="margin-top:8px;">${friendList}</div>
+      </div>
+      <div style="margin-top:10px;">${guildSection}</div>`;
+
+    body.querySelectorAll('[data-accept]').forEach((b) => {
+      b.addEventListener('click', async () => {
+        b.disabled = true;
+        try {
+          await api('/api/friends/respond', { method: 'POST', body: JSON.stringify({ requestId: Number(b.dataset.accept), accept: true }) });
+          toast('已成為好友');
+          await renderCommunity();
+        } catch {
+          toast('操作失敗');
+          b.disabled = false;
+        }
+      });
+    });
+    body.querySelectorAll('[data-decline]').forEach((b) => {
+      b.addEventListener('click', async () => {
+        b.disabled = true;
+        try {
+          await api('/api/friends/respond', { method: 'POST', body: JSON.stringify({ requestId: Number(b.dataset.decline), accept: false }) });
+          await renderCommunity();
+        } catch {
+          toast('操作失敗');
+          b.disabled = false;
+        }
+      });
+    });
+    body.querySelectorAll('[data-remove-friend]').forEach((b) => {
+      b.addEventListener('click', async () => {
+        b.disabled = true;
+        try {
+          await api('/api/friends/remove', { method: 'POST', body: JSON.stringify({ userId: Number(b.dataset.removeFriend) }) });
+          toast('已移除好友');
+          await renderCommunity();
+        } catch {
+          toast('操作失敗');
+          b.disabled = false;
+        }
+      });
+    });
+    body.querySelectorAll('[data-visit-friend]').forEach((b) => {
+      b.addEventListener('click', async () => {
+        state.sandboxVisit = Number(b.dataset.visitFriend);
+        state.tab = 'sandbox';
+        syncTabs();
+        await renderSandbox();
+      });
+    });
+
+    const searchBtn = $('#mc-user-search');
+    const searchInput = $('#mc-user-q');
+    const doSearch = async () => {
+      const q = searchInput.value.trim();
+      if (q.length < 2) { toast('請輸入至少 2 個字'); return; }
+      const box = $('#mc-user-results');
+      box.innerHTML = '<div class="mc-muted" style="margin-top:8px;">搜尋中…</div>';
+      try {
+        const d = await api(`/api/users/search?q=${encodeURIComponent(q)}`);
+        if (!d.users.length) {
+          box.innerHTML = '<div class="mc-empty" style="padding:8px 0;">找不到符合的市民</div>';
+          return;
+        }
+        box.innerHTML = `<div class="mc-muted" style="margin-top:8px;">搜尋結果</div>${d.users.map((u) => {
+          const action = u.relation === 'friend' ? '<span class="mc-muted">已是好友</span>'
+            : u.relation === 'sent' ? '<span class="mc-muted">已邀請</span>'
+              : u.relation === 'incoming'
+                ? `<button class="mc-vote" data-add-friend="${u.id}" type="button">接受</button>`
+                : `<button class="mc-btn ghost" data-add-friend="${u.id}" type="button">邀請</button>`;
+          return personRow(u, action);
+        }).join('')}`;
+        box.querySelectorAll('[data-add-friend]').forEach((b) => {
+          b.addEventListener('click', async () => {
+            b.disabled = true;
+            try {
+              const r = await api('/api/friends/request', { method: 'POST', body: JSON.stringify({ userId: Number(b.dataset.addFriend) }) });
+              toast(r.autoAccepted ? '已成為好友' : '邀請已送出');
+              await renderCommunity();
+            } catch (err) {
+              toast(err.message === 'already_friends' ? '已經是好友' : '邀請失敗');
+              b.disabled = false;
+            }
+          });
+        });
+      } catch {
+        box.innerHTML = '<div class="mc-empty">搜尋失敗</div>';
+      }
+    };
+    searchBtn.addEventListener('click', doSearch);
+    searchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') doSearch(); });
+
+    const createBtn = $('#mc-guild-create');
+    if (createBtn) {
+      createBtn.addEventListener('click', async () => {
+        const name = $('#mc-guild-name').value.trim();
+        if (name.length < 2) { toast('名稱至少 2 個字'); return; }
+        createBtn.disabled = true;
+        try {
+          const r = await api('/api/guilds', {
+            method: 'POST',
+            body: JSON.stringify({ name, icon: $('#mc-guild-icon').value, description: $('#mc-guild-desc').value.trim() }),
+          });
+          toast('社團已成立');
+          state.guildView = r.id;
+          await renderCommunity();
+        } catch (err) {
+          toast(err.message === 'name_taken' ? '這個名稱已被使用'
+            : err.message === 'already_in_guild' ? '你已經加入社團'
+              : err.message === 'level_too_low' ? '需要 Lv.2 才能成立社團' : '建立失敗');
+          createBtn.disabled = false;
+        }
+      });
+    }
+    body.querySelectorAll('[data-join-guild]').forEach((b) => {
+      b.addEventListener('click', async () => {
+        b.disabled = true;
+        try {
+          await api(`/api/guilds/${b.dataset.joinGuild}/join`, { method: 'POST', body: '{}' });
+          toast('已加入社團');
+          await renderCommunity();
+        } catch {
+          toast('加入失敗');
+          b.disabled = false;
+        }
+      });
+    });
+    const openBtn = $('#mc-guild-open');
+    if (openBtn) {
+      openBtn.addEventListener('click', () => {
+        state.guildView = guilds.myGuildId;
+        renderCommunity();
+      });
+    }
+  }
+
+  async function renderGuildDetail(id) {
+    body.innerHTML = '<div class="mc-empty">載入中…</div>';
+    let d;
+    try {
+      d = await api(`/api/guilds/${id}`);
+    } catch {
+      state.guildView = null;
+      body.innerHTML = '<div class="mc-empty">找不到這個社團。</div>';
+      return;
+    }
+    const pct = Math.min(100, Math.round((d.weeklyXp / d.target) * 100));
+    const canClaim = d.weeklyXp >= d.target && !d.claimed;
+    const claimArea = d.claimed
+      ? '<span class="mc-muted">本週獎勵已領取</span>'
+      : canClaim
+        ? `<button class="mc-vote" id="mc-guild-claim" type="button">領取獎勵 +${d.rewardCoins} 幣</button>`
+        : `<span class="mc-muted">還差 ${d.target - d.weeklyXp} XP 達標</span>`;
+
+    body.innerHTML = `
+      <button class="mc-btn ghost" id="mc-guild-back" type="button">← 返回社群</button>
+      <div class="mc-card" style="margin-top:10px;">
+        <div class="mc-row" style="justify-content:space-between;">
+          <b style="font-size:14px;">${esc(d.guild.icon)} ${esc(d.guild.name)}</b>
+          <span class="mc-muted">${d.members.length} 位成員</span>
+        </div>
+        ${d.guild.description ? `<div class="mc-muted" style="margin-top:4px;">${esc(d.guild.description)}</div>` : ''}
+        <div class="mc-progress"><span style="width:${pct}%"></span></div>
+        <div class="mc-row" style="justify-content:space-between;margin-top:6px;">
+          <span class="mc-muted">本週共同目標 ${d.weeklyXp} / ${d.target} XP</span>
+          <span class="mc-muted">全員 +${d.rewardCoins} 幣</span>
+        </div>
+        <div class="mc-row" style="justify-content:space-between;margin-top:10px;">
+          ${claimArea}
+          <button class="mc-btn ghost" id="mc-guild-leave" type="button">離開社團</button>
+        </div>
+      </div>
+      <div class="mc-card" style="margin-top:10px;">
+        <b style="font-size:13px;">成員（本週貢獻）</b>
+        ${d.members.map((m) => personRow(m,
+          `<span class="mc-muted" style="font-size:11.5px;">${m.weeklyXp} XP</span>`
+        )).join('')}
+      </div>`;
+
+    $('#mc-guild-back').addEventListener('click', () => {
+      state.guildView = null;
+      renderCommunity();
+    });
+    $('#mc-guild-leave').addEventListener('click', async () => {
+      try {
+        await api('/api/guilds/leave', { method: 'POST', body: '{}' });
+        state.guildView = null;
+        toast('已離開社團');
+        await renderCommunity();
+      } catch {
+        toast('操作失敗');
+      }
+    });
+    const claimBtn = $('#mc-guild-claim');
+    if (claimBtn) {
+      claimBtn.addEventListener('click', async () => {
+        claimBtn.disabled = true;
+        try {
+          const r = await api(`/api/guilds/${id}/claim`, { method: 'POST', body: '{}' });
+          toast(`🎉 達標！全員獲得 ${r.coins} 城市幣`);
+          await loadMe(true);
+          await renderCommunity();
+        } catch (err) {
+          toast(err.message === 'already_claimed' ? '本週已領取' : '尚未達標');
+          claimBtn.disabled = false;
+        }
+      });
+    }
+  }
+
   async function renderRanking() {
     body.innerHTML = `
       <div class="mc-row" style="gap:6px;margin-bottom:10px;">
@@ -861,6 +1179,8 @@
       await renderAtlas();
     } else if (state.tab === 'sandbox') {
       await renderSandbox();
+    } else if (state.tab === 'community') {
+      await renderCommunity();
     } else if (state.tab === 'tasks') {
       renderTasks();
     } else if (state.tab === 'proposals') {

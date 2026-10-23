@@ -3,6 +3,7 @@ import express from 'express';
 import { pool, query } from './db.js';
 import { computeTasks, levelInfo, recordEvent, refreshLevel, todayKey, touchStreak, TZ } from './tasks.js';
 import { BUILDING_CATALOG, CATALOG_MAP, DEMOLISH_REFUND_RATE, SLOT_COUNT, districtVitality } from './sandbox.js';
+import { communityRouter } from './community.js';
 
 const PORT = Number(process.env.PORT || 3100);
 const BASE_URL = (process.env.BASE_URL || 'http://127.0.0.1:3100').replace(/\/$/, '');
@@ -653,6 +654,9 @@ app.get('/api/city', wrap(async (req, res) => {
     goal: { key: 'weekly_discoveries', title: '本週全城探索地標', target: 500, progress: Math.min(goalRows[0].n, 500) },
   });
 }));
+
+// ---------- 好友與社團 ----------
+app.use('/api', communityRouter);
 
 app.use((req, res) => res.status(404).json({ error: 'not_found' }));
 app.use((err, req, res, next) => {

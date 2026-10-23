@@ -8193,7 +8193,8 @@
         }
 
         const SANDBOX_SLOT_COLS = 4;
-        const SANDBOX_CELL = 0.285;
+        const SANDBOX_CELL = 0.37;
+        const SANDBOX_MODEL_SCALE = 1.9;
 
         // 清空並重繪某分區的市民建設（同時只顯示一位市民的沙盤）
         function renderSandbox(districtId, buildings) {
@@ -8230,6 +8231,7 @@
             const pz = center.z + (row - (rows - 1) / 2) * SANDBOX_CELL;
             const model = buildSandboxBuilding(slotData.type);
             model.position.set(px, baseY, pz);
+            model.scale.setScalar(SANDBOX_MODEL_SCALE);
             model.userData.sandboxSlot = slotData.slot;
             model.traverse((o) => {
               if (o.isMesh) {
