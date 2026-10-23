@@ -198,11 +198,12 @@
       display: none !important;
     }
 
-    /* 市民小人頭頂名牌 */
+    /* 市民小人頭頂名牌：遠景自動收成小圓點，避免遮擋地圖與人物 */
     .citizen-tag {
       display: inline-flex;
       align-items: center;
       gap: 4px;
+      position: relative;
       padding: 2px 7px;
       border-radius: 999px;
       background: rgba(255, 248, 244, 0.94);
@@ -216,6 +217,44 @@
       pointer-events: auto;
       cursor: pointer;
       user-select: none;
+      transition: opacity 0.18s ease, transform 0.18s ease;
+    }
+
+    .citizen-tag:hover {
+      background: #fff;
+      box-shadow: 0 4px 14px rgba(40, 25, 15, 0.24);
+    }
+
+    /* 遠景精簡態：只剩一顆在線／離線小圓點 */
+    .citizen-tag.citizen-tag-compact {
+      padding: 0;
+      gap: 0;
+      width: 9px;
+      height: 9px;
+      min-width: 0;
+      border-color: rgba(255, 255, 255, 0.9);
+      background: transparent;
+      box-shadow: none;
+      opacity: 0.9;
+    }
+
+    .citizen-tag.citizen-tag-compact .name,
+    .citizen-tag.citizen-tag-compact .lv {
+      display: none;
+    }
+
+    .citizen-tag.citizen-tag-compact .online,
+    .citizen-tag.citizen-tag-compact .offline {
+      width: 9px;
+      height: 9px;
+    }
+
+    /* 精簡態放大小圓點的點擊範圍，方便手機點選 */
+    .citizen-tag.citizen-tag-compact::after {
+      content: "";
+      position: absolute;
+      inset: -8px;
+      border-radius: 50%;
     }
 
     .citizen-tag .lv {
@@ -8434,6 +8473,7 @@
         const EMOTES = ["💬", "❤️", "🏗", "✨", "👍", "🏙"];
         let championTag = null;
         let emoteTimer = 0;
+        let hoveredTagId = null;
         const CITIZEN_SCALE = 2.4;
 
         function citizenColor(level) {
@@ -8515,13 +8555,22 @@
 
             const tag = document.createElement("button");
             tag.type = "button";
-            tag.className = "citizen-tag";
-            tag.innerHTML = `<span class="${c.online ? "online" : "offline"}"></span>${c.nickname}` +
-              `<span class="lv">Lv.${c.level}` + (c.buildings ? ` · ${c.buildings}建` : "") + `</span>`;
+            tag.className = "citizen-tag citizen-tag-compact";
+            const dotEl = document.createElement("span");
+            dotEl.className = c.online ? "online" : "offline";
+            const nameEl = document.createElement("span");
+            nameEl.className = "name";
+            nameEl.textContent = c.nickname;
+            const lvEl = document.createElement("span");
+            lvEl.className = "lv";
+            lvEl.textContent = `Lv.${c.level}` + (c.buildings ? ` · ${c.buildings}建` : "");
+            tag.append(dotEl, nameEl, lvEl);
             tag.addEventListener("pointerup", (e) => {
               e.stopPropagation();
               window.dispatchEvent(new CustomEvent("macao:citizen", { detail: { userId: c.id } }));
             });
+            tag.addEventListener("pointerenter", () => { hoveredTagId = c.id; });
+            tag.addEventListener("pointerleave", () => { if (hoveredTagId === c.id) hoveredTagId = null; });
             const tagObj = new CSS2DObject(tag);
             tagObj.position.set(0, 0.21, 0);
             fig.add(tagObj);
@@ -8712,6 +8761,13 @@
               c.emoteEl.classList.remove("show");
               c.emoteObj.visible = false;
               c.emoteHideAt = 0;
+            }
+            // 名牌 LOD：相機遠時只留一顆小圓點，靠近或滑鼠移到名牌上才展開全名
+            const near = camera.position.distanceTo(c.fig.position) < 11;
+            const compact = !near && hoveredTagId !== c.id;
+            if (compact !== c.compact) {
+              c.compact = compact;
+              c.tag.classList.toggle("citizen-tag-compact", compact);
             }
           });
 
