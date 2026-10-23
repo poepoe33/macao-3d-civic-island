@@ -239,6 +239,42 @@
       background: #b9aca0;
     }
 
+    /* 市民互動氣泡（愛心、對話、施工） */
+    .citizen-emote {
+      font-size: 15px;
+      line-height: 1;
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(6px) scale(0.7);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      filter: drop-shadow(0 2px 6px rgba(40, 25, 15, 0.28));
+    }
+
+    .citizen-emote.show {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    /* 分區活力冠軍徽章 */
+    .district-champion {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: linear-gradient(120deg, rgba(242, 193, 78, 0.96), rgba(219, 106, 65, 0.94));
+      color: #fff8f4;
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      box-shadow: 0 6px 18px rgba(120, 70, 20, 0.3);
+      font-family: var(--font-sans);
+      font-size: 10.5px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+      pointer-events: none;
+      user-select: none;
+    }
+
     .brand-badge {
       width: 38px;
       height: 38px;
@@ -8353,9 +8389,18 @@
         celebrationGroup.name = "celebrations";
         scene.add(celebrationGroup);
 
+        // 分區活力光柱（前三名）與冠軍徽章
+        const vitalityBeaconGroup = new THREE.Group();
+        vitalityBeaconGroup.name = "vitality-beacons";
+        scene.add(vitalityBeaconGroup);
+
         const citizens = [];
         const vitalityRings = [];
         const celebrations = [];
+        const vitalityBeacons = [];
+        const EMOTES = ["💬", "❤️", "🏗", "✨", "👍", "🏙"];
+        let championTag = null;
+        let emoteTimer = 0;
 
         function citizenColor(level) {
           if (level >= 8) return 0xf2c14e;
@@ -8446,12 +8491,25 @@
             tagObj.position.set(0, 0.21, 0);
             fig.add(tagObj);
 
+            const emoteEl = document.createElement("div");
+            emoteEl.className = "citizen-emote";
+            const emoteObj = new CSS2DObject(emoteEl);
+            emoteObj.position.set(0, 0.27, 0);
+            emoteObj.visible = false;
+            fig.add(emoteObj);
+
             citizenGroup.add(fig);
             citizens.push({
               id: c.id,
+              districtId: c.districtId,
+              online: !!c.online,
               fig,
               tag,
               tagObj,
+              emoteEl,
+              emoteObj,
+              emoteHideAt: 0,
+              cheerUntil: 0,
               center: new THREE.Vector3(isl.worldPos.x, TOP + 0.02, isl.worldPos.z),
               radius,
               angle: (idx / Math.max(1, list.length)) * Math.PI * 2,
@@ -8469,8 +8527,54 @@
             if (child.geometry) child.geometry.dispose();
           }
           vitalityRings.length = 0;
+
+          while (vitalityBeaconGroup.children.length) {
+            const child = vitalityBeaconGroup.children[0];
+            vitalityBeaconGroup.remove(child);
+            if (child.geometry) child.geometry.dispose();
+            if (child.material) child.material.dispose();
+          }
+          vitalityBeacons.length = 0;
+          if (championTag) {
+            if (championTag.parent) championTag.parent.remove(championTag);
+            championTag = null;
+          }
           if (!Array.isArray(districts)) return;
           const max = districts.reduce((m, d) => Math.max(m, d.vitality || 0), 1);
+
+          // 活力前三名：地面光柱 + 冠軍徽章
+          const ranked = districts.filter((d) => (d.vitality || 0) > 0).sort((a, b) => b.vitality - a.vitality);
+          const rankColors = [0xf2c14e, 0xd8d2c6, 0xdb9a6a];
+          ranked.slice(0, 3).forEach((d, rank) => {
+            const isl = worldData.islandMap.get(d.id);
+            if (!isl) return;
+            const ratio = Math.min(1, d.vitality / max);
+            const mat = new THREE.MeshBasicMaterial({
+              color: rankColors[rank],
+              transparent: true,
+              opacity: 0.1 + ratio * 0.1,
+              side: THREE.DoubleSide,
+              depthWrite: false,
+              blending: THREE.AdditiveBlending
+            });
+            const beam = new THREE.Mesh(
+              new THREE.CylinderGeometry(0.16, 0.3, 2.2, 18, 1, true),
+              mat
+            );
+            beam.position.set(isl.worldPos.x, TOP + 1.15, isl.worldPos.z);
+            vitalityBeaconGroup.add(beam);
+            vitalityBeacons.push({ beam, mat, baseOpacity: 0.1 + ratio * 0.1, phase: rank * 1.3 });
+
+            if (rank === 0) {
+              const el = document.createElement("div");
+              el.className = "district-champion";
+              el.textContent = `👑 活力冠軍 · ${d.vitality}`;
+              championTag = new CSS2DObject(el);
+              championTag.position.set(isl.worldPos.x, TOP + 2.55, isl.worldPos.z);
+              scene.add(championTag);
+            }
+          });
+
           districts.forEach((d) => {
             if (!d.vitality) return;
             const isl = worldData.islandMap.get(d.id);
@@ -8536,25 +8640,68 @@
           flash.position.set(px, TOP + 0.03, pz);
           celebrationGroup.add(flash);
           celebrations.push({ flash, age: 0, ttl: 0.9, isFlash: true });
+
+          // 同分區市民歡呼：跳得更高並冒出愛心
+          const now = performance.now();
+          citizens.forEach((c, i) => {
+            if (c.districtId !== districtId) return;
+            c.cheerUntil = now + 2200;
+            if (i % 2 === 0) showCitizenEmote(c, "🎉", 1.6);
+          });
+        }
+
+        function showCitizenEmote(c, emoji, seconds) {
+          c.emoteEl.textContent = emoji;
+          c.emoteObj.visible = true;
+          c.emoteEl.classList.remove("show");
+          void c.emoteEl.offsetWidth;
+          c.emoteEl.classList.add("show");
+          c.emoteHideAt = performance.now() + seconds * 1000;
         }
 
         function updateCitizensAndEffects(dt, t) {
+          const nowMs = performance.now();
           citizens.forEach((c) => {
             c.angle += c.speed * dt;
             const x = c.center.x + Math.cos(c.angle) * c.radius;
             const z = c.center.z + Math.sin(c.angle) * c.radius;
-            c.fig.position.set(x, c.center.y + Math.abs(Math.sin(t * 3.2 + c.phase)) * 0.014, z);
+            const cheering = c.cheerUntil > nowMs;
+            const hopHeight = cheering ? 0.05 : 0.014;
+            const hopSpeed = cheering ? 7.5 : 3.2;
+            c.fig.position.set(x, c.center.y + Math.abs(Math.sin(t * hopSpeed + c.phase)) * hopHeight, z);
             c.fig.rotation.y = -c.angle + Math.PI / 2;
             if (c.fig.userData.halo) {
               c.fig.userData.halo.material.opacity = 0.28 + Math.sin(t * 2.4 + c.phase) * 0.18;
             }
+            if (c.emoteHideAt && nowMs > c.emoteHideAt) {
+              c.emoteEl.classList.remove("show");
+              c.emoteObj.visible = false;
+              c.emoteHideAt = 0;
+            }
           });
+
+          // 市民隨機冒出互動氣泡，讓街區看起來有人氣
+          emoteTimer -= dt;
+          if (emoteTimer <= 0 && citizens.length) {
+            emoteTimer = 3.5 + Math.random() * 3.5;
+            const c = citizens[Math.floor(Math.random() * citizens.length)];
+            showCitizenEmote(c, EMOTES[Math.floor(Math.random() * EMOTES.length)], 1.8);
+          }
 
           vitalityRings.forEach((r) => {
             const pulse = 0.75 + Math.sin(t * 1.4 + r.phase) * 0.25;
             r.ring.material.opacity = r.baseOpacity * pulse;
             r.ring.scale.setScalar(1 + Math.sin(t * 1.4 + r.phase) * 0.05);
           });
+
+          vitalityBeacons.forEach((b) => {
+            const pulse = 0.7 + Math.sin(t * 1.1 + b.phase) * 0.3;
+            b.mat.opacity = b.baseOpacity * pulse;
+            b.beam.scale.set(1 + Math.sin(t * 0.9 + b.phase) * 0.04, 1, 1 + Math.sin(t * 0.9 + b.phase) * 0.04);
+          });
+          if (championTag) {
+            championTag.position.y = TOP + 2.55 + Math.sin(t * 1.6) * 0.035;
+          }
 
           for (let i = celebrations.length - 1; i >= 0; i--) {
             const c = celebrations[i];
