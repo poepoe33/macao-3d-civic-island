@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>頁尾與意見反映 · NexusLink Tech</title>
+<style>
+  /* ============ 主題變數 ============ */
+  :root {
+    --blue: #2563eb;
+    --blue-dark: #1d4ed8;
+    --blue-soft: #eff6ff;
+    --ink: #111827;
+    --ink-2: #374151;
+    --muted: #6b7280;
+    --line: #e5e7eb;
+    --bg: #f4f6fa;
+    --card: #ffffff;
+    --ok: #15803d;
+    --err: #b91c1c;
+    --radius: 16px;
+    --shadow-sm: 0 1px 2px rgba(17, 24, 39, .06), 0 6px 18px rgba(17, 24, 39, .05);
+    --shadow-lg: 0 24px 64px rgba(17, 24, 39, .24);
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC",
+            "Noto Sans TC", "Microsoft JhengHei", Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body { height: 100%; }
+
+  body {
+    margin: 0;
+    font-family: var(--font);
+    color: var(--ink);
+    background:
+      radial-gradient(900px 420px at 12% -10%, #e6edff 0%, transparent 60%),
+      radial-gradient(800px 420px at 94% 0%, #e8f7f2 0%, transparent 55%),
+      var(--bg);
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    flex-direction: column;
+  }
+
+  body.is-locked { overflow: hidden; }
+
+  /* ============ 頁面示意內容（可整段刪除） ============ */
+  .page {
+    flex: 1 0 auto;
+    width: 100%;
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 56px 20px 72px;
+  }
+
+  .page-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    padding: 40px 32px;
+    box-shadow: var(--shadow-sm);
+    text-align: center;
+  }
+
+  .page-badge {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: var(--blue-soft);
+    color: var(--blue-dark);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    margin-bottom: 16px;
+  }
+
+  .page-card h1 {
+    margin: 0 0 10px;
+    font-size: clamp(24px, 4vw, 34px);
+    letter-spacing: -.02em;
+  }
+
+  .page-card p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 15px;
+    line-height: 1.7;
+  }
+
+  /* ============ 頁尾 ============ */
+  .site-footer {
+    flex: 0 0 auto;
+    width: 100%;
+    padding: 0 20px 36px;
+  }
+
+  .site-footer__inner {
+    max-width: 1080px;
+    margin: 0 auto;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+
+  .site-footer__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 28px;
+    padding: 32px;
+  }
+
+  .site-footer__col--contact {
+    border-left: 1px solid var(--line);
+    padding-left: 28px;
+  }
+
+  .footer-title {
+    margin: 0 0 10px;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+  }
+
+  .footer-text {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--muted);
+  }
+
+  .team-line {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--ink-2);
+  }
+
+  .team-link {
+    color: var(--blue);
+    font-weight: 700;
+    text-decoration: none;
+    border-radius: 4px;
+  }
+
+  .team-link:hover { text-decoration: underline; }
+
+  .team-link:focus-visible {
+    outline: 2px solid var(--blue);
+    outline-offset: 3px;
+  }
+
+  .contact-desc { margin: 0 0 16px; }
+
+  .btn {
+    appearance: none;
+    border: 0;
+    cursor: pointer;
+    font: inherit;
+    font-weight: 700;
+    border-radius: 12px;
+    padding: 12px 20px;
+    transition: background .16s ease, transform .16s ease, box-shadow .16s ease;
+  }
+
+  .btn--primary {
+    background: var(--blue);
+    color: #fff;
+    box-shadow: 0 10px 22px rgba(37, 99, 235, .26);
+  }
+
+  .btn--primary:hover { background: var(--blue-dark); transform: translateY(-1px); }
+  .btn--primary:active { transform: translateY(0); }
+
+  .btn:focus-visible {
+    outline: 2px solid var(--blue);
+    outline-offset: 3px;
+  }
+
+  .btn[disabled] {
+    cursor: not-allowed;
+    opacity: .62;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .site-footer__bottom {
+    border-top: 1px solid var(--line);
+    padding: 16px 24px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--muted);
+    background: #fbfcfe;
+  }
+
+  /* ============ Modal ============ */
+  .modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(17, 24, 39, .56);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .18s ease, visibility .18s ease;
+  }
+
+  .modal.is-open { opacity: 1; visibility: visible; }
+
+  .modal__card {
+    position: relative;
+    width: 100%;
+    max-width: 480px;
+    max-height: min(88vh, 720px);
+    overflow-y: auto;
+    background: var(--card);
+    border-radius: 20px;
+    box-shadow: var(--shadow-lg);
+    padding: 26px 24px 24px;
+    transform: translateY(12px) scale(.98);
+    transition: transform .2s ease;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .modal.is-open .modal__card { transform: translateY(0) scale(1); }
+
+  .modal__close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 36px;
+    height: 36px;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--muted);
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    transition: background .15s ease, color .15s ease;
+  }
+
+  .modal__close:hover { background: #f3f4f6; color: var(--ink); }
+
+  .modal__close:focus-visible {
+    outline: 2px solid var(--blue);
+    outline-offset: 2px;
+  }
+
+  .modal__title {
+    margin: 0 0 6px;
+    font-size: 20px;
+    letter-spacing: -.01em;
+    padding-right: 36px;
+  }
+
+  .modal__sub {
+    margin: 0 0 20px;
+    font-size: 13.5px;
+    line-height: 1.65;
+    color: var(--muted);
+  }
+
+  .field { margin-bottom: 16px; }
+
+  .field__label {
+    display: block;
+    margin-bottom: 7px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink-2);
+  }
+
+  .field__control {
+    display: block;
+    width: 100%;
+    font: inherit;
+    font-size: 14px;
+    color: var(--ink);
+    background: #fbfcfe;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 11px 13px;
+    transition: border-color .16s ease, box-shadow .16s ease, background .16s ease;
+  }
+
+  .field__control::placeholder { color: #9ca3af; }
+
+  .field__control:focus {
+    outline: none;
+    background: #fff;
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, .14);
+  }
+
+  textarea.field__control {
+    min-height: 104px;
+    resize: vertical;
+    line-height: 1.6;
+  }
+
+  .status {
+    margin: 0 0 14px;
+    font-size: 13.5px;
+    font-weight: 600;
+    line-height: 1.6;
+    min-height: 20px;
+    display: none;
+  }
+
+  .status.is-visible { display: block; }
+  .status.is-loading { color: var(--muted); }
+  .status.is-success { color: var(--ok); }
+  .status.is-error { color: var(--err); }
+
+  .modal__submit { width: 100%; }
+
+  /* ============ 手機版 ============ */
+  @media (max-width: 640px) {
+    .page { padding: 32px 16px 48px; }
+    .page-card { padding: 28px 20px; border-radius: 18px; }
+    .site-footer { padding: 0 16px 28px; }
+    .site-footer__grid { padding: 24px 20px; gap: 22px; }
+    .site-footer__col--contact {
+      border-left: 0;
+      border-top: 1px solid var(--line);
+      padding-left: 0;
+      padding-top: 22px;
+    }
+    .btn--primary { width: 100%; }
+    .modal { padding: 12px; align-items: flex-end; }
+    .modal__card {
+      max-height: 92vh;
+      border-radius: 18px;
+      padding: 22px 18px 18px;
+    }
+    .modal__title { font-size: 18px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- 頁面示意內容：接入現有專案時可整段刪除 -->
+<main class="page">
+  <div class="page-card">
+    <span class="page-badge">NexusLink Tech</span>
+    <h1>頁尾與意見反映元件</h1>
+    <p>下方為頁尾卡片，點擊「打開意見表」即可預覽彈出卡片。</p>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="site-footer__inner">
+    <div class="site-footer__grid">
+
+      <div class="site-footer__col">
+        <h2 class="footer-title">製作團隊</h2>
+        <p class="team-line">
+          <a class="team-link" href="mailto:paul@ebeesnet.com" title="聯絡 Paul Chang">Paul Chang</a>
+          @ NexusLink Tech
+        </p>
+      </div>
+
+      <div class="site-footer__col site-footer__col--contact">
+        <h2 class="footer-title">聯絡我哋</h2>
+        <p class="footer-text contact-desc">有建議或者遇到問題？話畀我哋知。</p>
+        <button class="btn btn--primary" id="openFeedback" type="button" aria-haspopup="dialog">
+          打開意見表
+        </button>
+      </div>
+
+    </div>
+    <div class="site-footer__bottom">© 2026 NexusLink Tech · 澳門城市島 v1.0</div>
+  </div>
+</footer>
+
+<!-- 意見反映彈出卡片 -->
+<div class="modal" id="feedbackModal" aria-hidden="true">
+  <div class="modal__card" role="dialog" aria-modal="true" aria-labelledby="feedbackTitle">
+    <button class="modal__close" id="closeFeedback" type="button" aria-label="關閉">✕</button>
+    <h2 class="modal__title" id="feedbackTitle">聯絡我哋</h2>
+    <p class="modal__sub">留下電郵與意見，我哋會盡快跟進。</p>
+
+    <form id="feedbackForm" novalidate>
+      <div class="field">
+        <label class="field__label" for="fbEmail">電郵</label>
+        <input class="field__control" id="fbEmail" name="email" type="email"
+               inputmode="email" autocomplete="email" placeholder="you@example.com" required>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="fbMessage">意見內容</label>
+        <textarea class="field__control" id="fbMessage" name="message" rows="4"
+                  placeholder="講下你嘅建議或者遇到嘅問題…" required></textarea>
+      </div>
+
+      <p class="status" id="feedbackStatus" role="status" aria-live="polite"></p>
+
+      <button class="btn btn--primary modal__submit" id="submitFeedback" type="submit">送出意見</button>
+    </form>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ===== 設定 =====
+  var APP_NAME = '澳門城市島'; // 【App 名稱】：同時用於 payload 與意見前綴
+  var WEBHOOK_URL = 'https://n8n.nexuslinktech.com/webhook/ebees_app_website_contact';
+
+  var modal = document.getElementById('feedbackModal');
+  var card = modal.querySelector('.modal__card');
+  var openBtn = document.getElementById('openFeedback');
+  var closeBtn = document.getElementById('closeFeedback');
+  var form = document.getElementById('feedbackForm');
+  var emailInput = document.getElementById('fbEmail');
+  var messageInput = document.getElementById('fbMessage');
+  var statusEl = document.getElementById('feedbackStatus');
+  var submitBtn = document.getElementById('submitFeedback');
+
+  var lastFocused = null;
+  var hideTimer = null;
+
+  // ===== Modal 開關 =====
+  function setStatus(text, state) {
+    statusEl.textContent = text || '';
+    statusEl.className = 'status' + (text ? ' is-visible' : '') + (state ? ' is-' + state : '');
+  }
+
+  function openModal() {
+    clearTimeout(hideTimer);
+    lastFocused = document.activeElement;
+    modal.classList.add('is-open');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('is-locked');
+    window.setTimeout(function () { emailInput.focus(); }, 60);
+  }
+
+  function closeModal() {
+    clearTimeout(hideTimer);
+    modal.classList.remove('is-open');
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('is-locked');
+    if (lastFocused && typeof lastFocused.focus === 'function') lastFocused.focus();
+  }
+
+  function resetForm() {
+    form.reset();
+    setStatus('', null);
+    submitBtn.disabled = false;
+    submitBtn.textContent = '送出意見';
+  }
+
+  openBtn.addEventListener('click', openModal);
+  closeBtn.addEventListener('click', closeModal);
+
+  // 點遮罩空白處關閉
+  modal.addEventListener('click', function (e) {
+    if (!card.contains(e.target)) closeModal();
+  });
+
+  // Esc 關閉
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && modal.classList.contains('is-open')) closeModal();
+  });
+
+  // modal 內 Tab 循環，避免焦點跑到背景
+  modal.addEventListener('keydown', function (e) {
+    if (e.key !== 'Tab') return;
+    var focusable = card.querySelectorAll(
+      'button:not([disabled]), input:not([disabled]), textarea:not([disabled]), a[href]'
+    );
+    if (!focusable.length) return;
+    var first = focusable[0];
+    var last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  });
+
+  // ===== 送出 =====
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (submitBtn.disabled) return;
+
+    var email = emailInput.value.trim();
+    var message = messageInput.value.trim();
+
+    emailInput.setCustomValidity('');
+    if (!email) {
+      emailInput.setCustomValidity('請輸入電郵');
+      emailInput.reportValidity();
+      return;
+    }
+    if (!message) {
+      messageInput.setCustomValidity('請輸入意見內容');
+      messageInput.reportValidity();
+      return;
+    }
+    messageInput.setCustomValidity('');
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+
+    var payload = {
+      event: 'feedback',
+      app_name: APP_NAME,
+      name: email,
+      userId: email,
+      content: '【' + APP_NAME + '】' + message,
+      timestamp: new Date().toISOString()
+    };
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = '傳送緊…';
+    setStatus('傳送緊…', 'loading');
+
+    fetch(WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+      .then(function (res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res;
+      })
+      .then(function () {
+        setStatus('多謝你嘅意見！', 'success');
+        form.reset();
+        submitBtn.textContent = '已送出';
+        hideTimer = window.setTimeout(function () {
+          closeModal();
+          resetForm();
+        }, 1400);
+      })
+      .catch(function () {
+        setStatus('傳送失敗，請稍後再試。', 'error');
+        submitBtn.disabled = false;
+        submitBtn.textContent = '送出意見';
+      });
+  });
+
+  // 使用者重新輸入時清掉自訂錯誤
+  [emailInput, messageInput].forEach(function (el) {
+    el.addEventListener('input', function () { el.setCustomValidity(''); });
+  });
+})();
+</script>
+</body>
+</html>

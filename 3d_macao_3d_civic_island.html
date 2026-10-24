@@ -1503,6 +1503,333 @@
         font-size: 19px;
       }
     }
+
+    /* ============ 底部浮動頁尾 ============ */
+    #site-footer {
+      position: absolute;
+      right: 16px;
+      bottom: 74px;
+      z-index: 23;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+      pointer-events: none;
+    }
+
+    #site-footer > * { pointer-events: auto; }
+
+    .sf-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 32px;
+      padding: 6px 12px;
+      border: 1px solid rgba(33, 29, 29, 0.12);
+      border-radius: 999px;
+      background: rgba(255, 248, 244, 0.9);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      box-shadow: var(--shadow-chip);
+      color: #6b5a4d;
+      font-family: var(--font-sans);
+      font-size: 11.5px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.16s ease, color 0.16s ease;
+    }
+
+    .sf-toggle:hover { background: #fff; color: var(--ink); }
+
+    .sf-toggle:focus-visible {
+      outline: 2px solid #2563eb;
+      outline-offset: 2px;
+    }
+
+    .sf-toggle .sf-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--coral);
+      flex: 0 0 auto;
+    }
+
+    .sf-card {
+      width: min(420px, calc(100vw - 32px));
+      max-height: min(62vh, 520px);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      background: rgba(255, 248, 244, 0.97);
+      -webkit-backdrop-filter: blur(18px);
+      backdrop-filter: blur(18px);
+      border: 1px solid rgba(33, 29, 29, 0.1);
+      border-radius: 18px;
+      box-shadow: var(--shadow-soft);
+      padding: 18px 18px 0;
+      animation: sf-card-in 0.18s ease;
+    }
+
+    .sf-card[hidden] { display: none; }
+
+    @keyframes sf-card-in {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .sf-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 18px;
+    }
+
+    .sf-col-contact {
+      border-left: 1px solid rgba(33, 29, 29, 0.1);
+      padding-left: 18px;
+    }
+
+    .sf-title {
+      font-size: 10.5px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #8a7566;
+      margin-bottom: 7px;
+    }
+
+    .sf-team {
+      font-size: 13px;
+      line-height: 1.7;
+      color: #4a3f36;
+      user-select: text;
+    }
+
+    .sf-link {
+      color: #2563eb;
+      font-weight: 700;
+      text-decoration: none;
+      border-radius: 4px;
+    }
+
+    .sf-link:hover { text-decoration: underline; }
+
+    .sf-link:focus-visible {
+      outline: 2px solid #2563eb;
+      outline-offset: 3px;
+    }
+
+    .sf-text {
+      font-size: 12px;
+      line-height: 1.65;
+      color: #7c6b5e;
+      margin-bottom: 10px;
+    }
+
+    .sf-btn {
+      appearance: none;
+      border: 0;
+      border-radius: 10px;
+      padding: 9px 14px;
+      background: #2563eb;
+      color: #fff;
+      font-family: var(--font-sans);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 8px 18px rgba(37, 99, 235, 0.24);
+      transition: background 0.16s ease, transform 0.16s ease;
+    }
+
+    .sf-btn:hover { background: #1d4ed8; transform: translateY(-1px); }
+
+    .sf-btn:focus-visible {
+      outline: 2px solid #2563eb;
+      outline-offset: 3px;
+    }
+
+    .sf-bottom {
+      margin: 14px -18px 0;
+      padding: 10px 18px;
+      border-top: 1px solid rgba(33, 29, 29, 0.08);
+      background: rgba(255, 255, 255, 0.5);
+      text-align: center;
+      font-size: 10.5px;
+      color: #8a7566;
+    }
+
+    /* ============ 意見反映彈出卡片 ============ */
+    .sf-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(17, 24, 39, 0.56);
+      -webkit-backdrop-filter: blur(4px);
+      backdrop-filter: blur(4px);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.18s ease, visibility 0.18s ease;
+    }
+
+    .sf-modal.is-open { opacity: 1; visibility: visible; }
+
+    .sf-dialog {
+      position: relative;
+      width: 100%;
+      max-width: 480px;
+      max-height: min(86vh, 720px);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 30px 70px rgba(17, 24, 39, 0.32);
+      padding: 24px 22px 22px;
+      transform: translateY(12px) scale(0.98);
+      transition: transform 0.2s ease;
+    }
+
+    .sf-modal.is-open .sf-dialog { transform: translateY(0) scale(1); }
+
+    .sf-close {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 34px;
+      height: 34px;
+      border: 0;
+      border-radius: 9px;
+      background: transparent;
+      color: #6b7280;
+      font-size: 18px;
+      line-height: 1;
+      cursor: pointer;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .sf-close:hover { background: #f3f4f6; color: var(--ink); }
+
+    .sf-close:focus-visible {
+      outline: 2px solid #2563eb;
+      outline-offset: 2px;
+    }
+
+    .sf-modal-title {
+      font-size: 19px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      margin-bottom: 5px;
+      padding-right: 34px;
+    }
+
+    .sf-modal-sub {
+      font-size: 12px;
+      line-height: 1.6;
+      color: #7c6b5e;
+      margin-bottom: 18px;
+    }
+
+    .sf-field { margin-bottom: 14px; }
+
+    .sf-label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #4a3f36;
+    }
+
+    .sf-input {
+      display: block;
+      width: 100%;
+      font-family: var(--font-sans);
+      font-size: 13px;
+      color: var(--ink);
+      background: #fbfcfe;
+      border: 1px solid #e5e7eb;
+      border-radius: 11px;
+      padding: 10px 12px;
+      user-select: text;
+      -webkit-user-select: text;
+      transition: border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+    }
+
+    .sf-input::placeholder { color: #9ca3af; }
+
+    .sf-input:focus {
+      outline: none;
+      background: #fff;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+    }
+
+    textarea.sf-input {
+      min-height: 96px;
+      resize: vertical;
+      line-height: 1.6;
+    }
+
+    .sf-status {
+      display: none;
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1.6;
+      margin-bottom: 12px;
+    }
+
+    .sf-status.is-visible { display: block; }
+    .sf-status.is-loading { color: #6b7280; }
+    .sf-status.is-success { color: #15803d; }
+    .sf-status.is-error { color: #b91c1c; }
+
+    .sf-submit {
+      width: 100%;
+      border: 0;
+      border-radius: 11px;
+      padding: 12px 18px;
+      background: #2563eb;
+      color: #fff;
+      font-family: var(--font-sans);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 10px 22px rgba(37, 99, 235, 0.26);
+      transition: background 0.16s ease;
+    }
+
+    .sf-submit:hover { background: #1d4ed8; }
+    .sf-submit:disabled { opacity: 0.62; cursor: not-allowed; box-shadow: none; }
+
+    .sf-submit:focus-visible {
+      outline: 2px solid #2563eb;
+      outline-offset: 3px;
+    }
+
+    @media (max-width: 720px) {
+      #site-footer {
+        right: 12px;
+        bottom: 70px;
+      }
+      .sf-card {
+        width: calc(100vw - 24px);
+        max-height: 56vh;
+      }
+      .sf-col-contact {
+        border-left: 0;
+        border-top: 1px solid rgba(33, 29, 29, 0.1);
+        padding-left: 0;
+        padding-top: 16px;
+      }
+      .sf-btn { width: 100%; }
+      .sf-modal { padding: 12px; align-items: flex-end; }
+      .sf-dialog {
+        max-height: 90vh;
+        border-radius: 18px;
+        padding: 20px 16px 16px;
+      }
+      .sf-modal-title { font-size: 17px; }
+    }
   </style>
   <link rel="stylesheet" href="./web/social.css?v=dev">
 </head>
@@ -1675,6 +2002,54 @@
             <span data-en="Log">日誌</span>
           </button>
         </div>
+      </div>
+    </div>
+
+    <!-- 底部浮動頁尾 -->
+    <section id="site-footer" aria-label="頁尾">
+      <button class="sf-toggle" id="sf-toggle" type="button" aria-expanded="false" aria-controls="sf-card">
+        <span class="sf-dot" aria-hidden="true"></span>
+        <span id="sf-toggle-label">關於本站</span>
+      </button>
+      <div class="sf-card" id="sf-card" hidden>
+        <div class="sf-grid">
+          <div>
+            <h3 class="sf-title">製作團隊</h3>
+            <p class="sf-team">
+              <a class="sf-link" href="mailto:paul@ebeesnet.com" title="聯絡 Paul Chang">Paul Chang</a>
+              @ NexusLink Tech
+            </p>
+          </div>
+          <div class="sf-col-contact">
+            <h3 class="sf-title">聯絡我哋</h3>
+            <p class="sf-text">有建議或者遇到問題？話畀我哋知。</p>
+            <button class="sf-btn" id="sf-open-feedback" type="button" aria-haspopup="dialog">打開意見表</button>
+          </div>
+        </div>
+        <div class="sf-bottom">© 2026 NexusLink Tech · 澳門城市島 v1.0</div>
+      </div>
+    </section>
+
+    <!-- 意見反映彈出卡片 -->
+    <div class="sf-modal" id="sf-feedback-modal" aria-hidden="true">
+      <div class="sf-dialog" role="dialog" aria-modal="true" aria-labelledby="sf-feedback-title">
+        <button class="sf-close" id="sf-close-feedback" type="button" aria-label="關閉">✕</button>
+        <h2 class="sf-modal-title" id="sf-feedback-title">聯絡我哋</h2>
+        <p class="sf-modal-sub">留下電郵與意見，我哋會盡快跟進。</p>
+        <form id="sf-feedback-form" novalidate>
+          <div class="sf-field">
+            <label class="sf-label" for="sf-email">電郵</label>
+            <input class="sf-input" id="sf-email" name="email" type="email"
+                   inputmode="email" autocomplete="email" placeholder="you@example.com" required>
+          </div>
+          <div class="sf-field">
+            <label class="sf-label" for="sf-message">意見內容</label>
+            <textarea class="sf-input" id="sf-message" name="message" rows="4"
+                      placeholder="講下你嘅建議或者遇到嘅問題…" required></textarea>
+          </div>
+          <p class="sf-status" id="sf-status" role="status" aria-live="polite"></p>
+          <button class="sf-submit" id="sf-submit" type="submit">送出意見</button>
+        </form>
       </div>
     </div>
 
@@ -10532,5 +10907,171 @@
     initPolicyIslandApp();
   </script>
   <script src="./web/social.js?v=dev" defer></script>
+  <script>
+  // ===== 頁尾與意見反映 =====
+  (function () {
+    'use strict';
+
+    var APP_NAME = '澳門城市島';
+    var WEBHOOK_URL = 'https://n8n.nexuslinktech.com/webhook/ebees_app_website_contact';
+
+    var toggleBtn = document.getElementById('sf-toggle');
+    var card = document.getElementById('sf-card');
+    var openBtn = document.getElementById('sf-open-feedback');
+    var modal = document.getElementById('sf-feedback-modal');
+    var dialog = modal.querySelector('.sf-dialog');
+    var closeBtn = document.getElementById('sf-close-feedback');
+    var form = document.getElementById('sf-feedback-form');
+    var emailInput = document.getElementById('sf-email');
+    var messageInput = document.getElementById('sf-message');
+    var statusEl = document.getElementById('sf-status');
+    var submitBtn = document.getElementById('sf-submit');
+
+    if (!toggleBtn || !modal) return;
+
+    var lastFocused = null;
+    var hideTimer = null;
+
+    // ---- 頁尾卡片展開／收起 ----
+    function setExpanded(open) {
+      card.hidden = !open;
+      toggleBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+
+    toggleBtn.addEventListener('click', function () {
+      setExpanded(card.hidden);
+    });
+
+    document.addEventListener('click', function (e) {
+      if (card.hidden) return;
+      if (e.target.closest('#site-footer')) return;
+      setExpanded(false);
+    });
+
+    // ---- 意見彈窗 ----
+    function setStatus(text, state) {
+      statusEl.textContent = text || '';
+      statusEl.className = 'sf-status' + (text ? ' is-visible' : '') + (state ? ' is-' + state : '');
+    }
+
+    function openModal() {
+      clearTimeout(hideTimer);
+      lastFocused = document.activeElement;
+      modal.classList.add('is-open');
+      modal.setAttribute('aria-hidden', 'false');
+      window.setTimeout(function () { emailInput.focus(); }, 60);
+    }
+
+    function closeModal() {
+      clearTimeout(hideTimer);
+      modal.classList.remove('is-open');
+      modal.setAttribute('aria-hidden', 'true');
+      if (lastFocused && typeof lastFocused.focus === 'function') lastFocused.focus();
+    }
+
+    function resetForm() {
+      form.reset();
+      setStatus('', null);
+      submitBtn.disabled = false;
+      submitBtn.textContent = '送出意見';
+    }
+
+    openBtn.addEventListener('click', openModal);
+    closeBtn.addEventListener('click', closeModal);
+
+    modal.addEventListener('click', function (e) {
+      if (!dialog.contains(e.target)) closeModal();
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') return;
+      if (modal.classList.contains('is-open')) { closeModal(); return; }
+      if (!card.hidden) setExpanded(false);
+    });
+
+    // Tab 焦點鎖在彈窗內
+    modal.addEventListener('keydown', function (e) {
+      if (e.key !== 'Tab') return;
+      var focusable = dialog.querySelectorAll('button:not([disabled]), input:not([disabled]), textarea:not([disabled]), a[href]');
+      if (!focusable.length) return;
+      var first = focusable[0];
+      var last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    });
+
+    // ---- 送出 ----
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (submitBtn.disabled) return;
+
+      var email = emailInput.value.trim();
+      var message = messageInput.value.trim();
+
+      emailInput.setCustomValidity('');
+      messageInput.setCustomValidity('');
+      if (!email) {
+        emailInput.setCustomValidity('請輸入電郵');
+        emailInput.reportValidity();
+        return;
+      }
+      if (!message) {
+        messageInput.setCustomValidity('請輸入意見內容');
+        messageInput.reportValidity();
+        return;
+      }
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+
+      var payload = {
+        event: 'feedback',
+        app_name: APP_NAME,
+        name: email,
+        userId: email,
+        content: '【' + APP_NAME + '】' + message,
+        timestamp: new Date().toISOString()
+      };
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = '傳送緊…';
+      setStatus('傳送緊…', 'loading');
+
+      fetch(WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+        .then(function (res) {
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          return res;
+        })
+        .then(function () {
+          setStatus('多謝你嘅意見！', 'success');
+          form.reset();
+          submitBtn.textContent = '已送出';
+          hideTimer = window.setTimeout(function () {
+            closeModal();
+            resetForm();
+          }, 1400);
+        })
+        .catch(function () {
+          setStatus('傳送失敗，請稍後再試。', 'error');
+          submitBtn.disabled = false;
+          submitBtn.textContent = '送出意見';
+        });
+    });
+
+    [emailInput, messageInput].forEach(function (el) {
+      el.addEventListener('input', function () { el.setCustomValidity(''); });
+    });
+  })();
+  </script>
 </body>
 </html>

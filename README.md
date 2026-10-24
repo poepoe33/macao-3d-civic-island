@@ -117,6 +117,7 @@
 - 管理員在市民檔案可看到「🛠 管理後台」入口，前往 `/admin.html`。
 - 底部 HUD 為**單一合併列**：煙花、輕軌跟車、光雕、時鐘、地區名、暫停、鳥瞰、日誌。
 - 繁中／英文即時切換。
+- 右下角浮動頁尾（「關於本站」）：製作團隊、聯絡我哋與意見反映表單，不佔用主要操作區。
 - 首次進入的三步操作引導。
 - 桌面與手機自適應版面，手機支援底部抽屜拖曳。
 - 減少動態效果偏好支援與完整鍵盤焦點樣式。
@@ -434,6 +435,14 @@ https://city.nexuslinktech.com/api/auth/google/callback
 ## 升級日誌
 
 > 每次修改／升級後在此補一筆，格式：`日期 · 版本 · 內容 · 影響檔案`。
+
+### 2026-10-24 · v14 · 底部浮動頁尾與意見反映卡片
+- 3D 主頁右下角新增浮動頁尾（HUD 上方），收起時為「關於本站」小藥丸，展開為頁尾卡片：製作團隊（Paul Chang → mailto:paul@ebeesnet.com，藍色粗體、不顯示電郵）、聯絡我哋（描述＋打開意見表按鈕）、置中版權「© 2026 NexusLink Tech · 澳門城市島 v1.0」。
+- 新增意見反映 modal：深色遮罩、白色圓角卡片（max-width 480px、內容過高可捲動）、右上 ✕；支援點遮罩、Esc 關閉、Tab 焦點鎖定、關閉後焦點還原。
+- 送出流程：按鈕禁用並顯示「傳送緊…」→ `fetch` POST JSON 至 `https://n8n.nexuslinktech.com/webhook/ebees_app_website_contact`；成功顯示「多謝你嘅意見！」、清空表單並 1.4 秒後自動收起；失敗顯示「傳送失敗，請稍後再試。」並恢復按鈕。
+- Payload 欄位：`event`（feedback）、`app_name`、`name`／`userId`（電郵）、`content`（自動前置「【澳門城市島】」）、`timestamp`（ISO）。
+- 手機版（≤720px）頁尾改為單欄、按鈕全寬，modal 貼底顯示且不超出視窗。
+- 影響檔案：`3d_macao_3d_civic_island.html`（頁尾樣式、標記與原生 JS）、`README.md`；另保留 `web/footer-feedback.html` 作為獨立示範頁。
 
 ### 2026-10-24 · v13 · 公仔建構器（SimCity 式角色組合）
 - 新增 `users.avatar_config JSONB`：16 個部位選項（臉型／眼／眉／鼻／嘴／鬍／髮型／身型／身高／上衣／下身／鞋／外套／眼鏡／帽／配件）＋ 8 組顏色，全部白名單驗證。
