@@ -437,6 +437,12 @@ https://city.nexuslinktech.com/api/auth/google/callback
 
 > 每次修改／升級後在此補一筆，格式：`日期 · 版本 · 內容 · 影響檔案`。
 
+### 2026-10-24 · v16 · 銷售工具包與 Landing Page
+- 新增 `saleskit.md`：完整功能盤點、八項客戶痛點與對應解法、差異化比較、八個可落地商業場景（政府／旅遊／學校／商場／品牌／展館／媒體／ESG）、四級方案與參考報價、15 分鐘 Demo 腳本、異議處理、金句與社交貼文格式。
+- 新增 `sales.html`：行銷用 Landing Page，含 Hero（3D 全景 + 浮動數據卡）、數據條、痛點卡片、五個功能模組（配實機截圖）、場景截圖區、遊戲循環、商業場景、方案卡、Demo 流程、FAQ、最終 CTA；桌面與手機（≤800px 單欄 + 固定底部 CTA）皆自適應，含進場動畫並支援 `prefers-reduced-motion`。
+- 新增 `assets/sales/` 十一張行銷截圖（全部由線上版本實機截取）：全島全景、夜間橋樑、橋樑詳情卡（直向）、官方數據面板（直向）、詳情卡合成圖、煙花、輕軌視角、市民中心、官方數據合成圖、手機 HUD、手機彈出選單。
+- 影響檔案：`saleskit.md`、`sales.html`、`assets/sales/*`、`README.md`。
+
 ### 2026-10-24 · v15 · HUD 重構：關於本站整合、暫停隱藏、手機彈出式分組選單
 - 「關於本站」由右下角浮動藥丸移入底部 HUD「關於」分組，點擊即展開頁尾卡片（`aria-expanded` 同步）；卡片內容與意見表流程不變。
 - 底部 HUD 新增「城市體驗／顯示與視角／關於」三個功能分組（`.hud-group`）；桌面以 `display: contents` 併回單一合併列，視覺與原本一致。
@@ -678,6 +684,9 @@ NexusIsland_MO/
 ├── README.md                      # 本說明文件
 ├── 3d_macao_3d_civic_island.html  # 單檔 3D 互動城市應用
 ├── admin.html                     # 管理後台（概覽／市民／活動）
+├── sales.html                     # 行銷 Landing Page
+├── saleskit.md                    # 銷售工具包（痛點／場景／方案／話術）
+├── assets/sales/                  # 行銷截圖（9 張，線上實機截取）
 ├── web/
 │   ├── social.css                 # 市民中心 overlay 樣式
 │   └── social.js                  # 市民中心互動邏輯
@@ -696,6 +705,14 @@ NexusIsland_MO/
 │       └── schema.sql
 └── .github/workflows/deploy.yml   # 自動部署
 ```
+
+---
+
+## 行銷與銷售素材
+
+- **Landing Page**：`/sales.html`（線上：<https://city.nexuslinktech.com/sales.html>），含實機截圖、痛點解法、商業場景、方案與 FAQ。
+- **Sales Kit**：`saleskit.md`，內含功能盤點、八個可落地場景、報價區間、15 分鐘 Demo 腳本、異議處理與貼文格式。
+- **截圖素材**：`assets/sales/`（9 張，全部由線上版本實機截取，可直接用於提案與社交貼文）。
 
 ---
 

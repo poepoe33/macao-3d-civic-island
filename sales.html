@@ -1,0 +1,1635 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>澳門城市島 · 把一座城市變成可玩的 3D 數據沙盤</title>
+<meta name="description" content="澳門城市島：23 個分區、82 個地標、四條跨海大橋與三條輕軌，全部即時 3D。結合官方開放數據、城市體驗、市民遊戲化與分區建設，一個連結即可在電腦與手機遊玩。" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="澳門城市島 · 3D 城市數據沙盤" />
+<meta property="og:description" content="23 個分區、82 個地標、真實輕軌與跨海大橋，即時 3D 互動。政府展示、旅遊推廣、學校教材、商場活動，一個連結搞定。" />
+<meta property="og:image" content="assets/sales/hero-city.jpg" />
+<meta name="theme-color" content="#101614" />
+<style>
+  :root {
+    --ink: #101614;
+    --ink-2: #17201d;
+    --ink-3: #22302b;
+    --cream: #fff8f4;
+    --sand: #f1e3d4;
+    --coral: #db6a41;
+    --coral-soft: #f0a25e;
+    --sea: #2f7f8c;
+    --mint: #7ad0b6;
+    --gold: #f2c14e;
+    --line: rgba(255, 255, 255, 0.12);
+    --line-dark: rgba(16, 22, 20, 0.1);
+    --shadow: 0 28px 70px rgba(3, 12, 10, 0.42);
+    --font: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", "Helvetica Neue", system-ui, sans-serif;
+    --mono: "SF Mono", "Roboto Mono", ui-monospace, monospace;
+    --radius: 22px;
+    --max: 1160px;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--ink);
+    color: var(--cream);
+    font-family: var(--font);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.65;
+  }
+
+  img { max-width: 100%; display: block; }
+
+  a { color: inherit; text-decoration: none; }
+
+  ::selection { background: var(--coral); color: #fff; }
+
+  .wrap {
+    width: min(var(--max), calc(100% - 48px));
+    margin: 0 auto;
+  }
+
+  /* ---------- 導覽 ---------- */
+  .nav {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 12px 24px;
+    background: rgba(16, 22, 20, 0.6);
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid transparent;
+    transition: background 0.25s ease, border-color 0.25s ease;
+  }
+
+  .nav.is-solid {
+    background: rgba(12, 17, 15, 0.92);
+    border-bottom-color: var(--line);
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-right: auto;
+  }
+
+  .brand-mark {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    background: linear-gradient(140deg, var(--coral), #b14b2a);
+    color: #fff;
+    font-weight: 900;
+    font-size: 16px;
+    box-shadow: 0 8px 20px rgba(219, 106, 65, 0.35);
+  }
+
+  .brand b {
+    display: block;
+    font-size: 14px;
+    letter-spacing: 0.02em;
+  }
+
+  .brand small {
+    display: block;
+    font-size: 10px;
+    color: rgba(255, 248, 244, 0.55);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 22px;
+    font-size: 13px;
+    color: rgba(255, 248, 244, 0.7);
+  }
+
+  .nav-links a:hover { color: var(--cream); }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 20px;
+    border-radius: 999px;
+    font-size: 13.5px;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: transform 0.18s ease, filter 0.18s ease, background 0.18s ease;
+    white-space: nowrap;
+  }
+
+  .btn:hover { transform: translateY(-2px); }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--coral), #c9532d);
+    color: #fff;
+    box-shadow: 0 12px 30px rgba(219, 106, 65, 0.34);
+  }
+
+  .btn-primary:hover { filter: brightness(1.06); }
+
+  .btn-ghost {
+    border-color: rgba(255, 248, 244, 0.28);
+    color: var(--cream);
+    background: rgba(255, 255, 255, 0.06);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+  }
+
+  .btn-ghost:hover { background: rgba(255, 255, 255, 0.14); }
+
+  .nav-cta { min-height: 40px; padding: 0 18px; font-size: 13px; }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    position: relative;
+    padding: 148px 0 0;
+    overflow: hidden;
+    background:
+      radial-gradient(1100px 620px at 78% -8%, rgba(47, 127, 140, 0.5), transparent 62%),
+      radial-gradient(860px 520px at 8% 12%, rgba(219, 106, 65, 0.24), transparent 60%),
+      linear-gradient(180deg, #0b1210 0%, #101614 60%, #131b18 100%);
+  }
+
+  .hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1px);
+    background-size: 26px 26px;
+    opacity: 0.25;
+    mask-image: radial-gradient(circle at 50% 0%, #000 0%, transparent 68%);
+    -webkit-mask-image: radial-gradient(circle at 50% 0%, #000 0%, transparent 68%);
+    pointer-events: none;
+  }
+
+  .hero-inner {
+    position: relative;
+    z-index: 2;
+    width: min(var(--max), calc(100% - 48px));
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 248, 244, 0.18);
+    background: rgba(255, 255, 255, 0.05);
+    font-size: 11.5px;
+    letter-spacing: 0.06em;
+    color: rgba(255, 248, 244, 0.78);
+  }
+
+  .badge .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--mint);
+    box-shadow: 0 0 0 4px rgba(122, 208, 182, 0.16);
+  }
+
+  .hero h1 {
+    margin: 26px 0 0;
+    font-size: clamp(34px, 5.6vw, 68px);
+    line-height: 1.12;
+    letter-spacing: -0.02em;
+    font-weight: 900;
+  }
+
+  .hero h1 em {
+    font-style: normal;
+    background: linear-gradient(100deg, var(--coral-soft), var(--gold) 45%, var(--mint));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .hero-sub {
+    width: min(680px, 100%);
+    margin: 22px auto 0;
+    font-size: clamp(14.5px, 1.6vw, 17px);
+    color: rgba(255, 248, 244, 0.72);
+  }
+
+  .hero-cta {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 30px 0 0;
+  }
+
+  .hero-note {
+    margin: 16px 0 0;
+    font-size: 11.5px;
+    color: rgba(255, 248, 244, 0.42);
+    letter-spacing: 0.04em;
+  }
+
+  .hero-shot {
+    position: relative;
+    z-index: 2;
+    width: min(1240px, calc(100% - 40px));
+    margin: 44px auto 0;
+  }
+
+  .frame {
+    border-radius: var(--radius);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.04);
+    padding: 8px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  .frame img {
+    width: 100%;
+    border-radius: 15px;
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+  }
+
+  .hero-shot .frame {
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .float-stat {
+    position: absolute;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 248, 244, 0.16);
+    background: rgba(12, 18, 16, 0.82);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    box-shadow: 0 16px 34px rgba(0, 0, 0, 0.34);
+  }
+
+  .float-stat b {
+    font-family: var(--mono);
+    font-size: 20px;
+    line-height: 1;
+    color: var(--gold);
+  }
+
+  .float-stat span {
+    font-size: 11px;
+    color: rgba(255, 248, 244, 0.62);
+    line-height: 1.3;
+  }
+
+  .fs-1 { left: -16px; top: 16%; }
+  .fs-2 { right: -14px; top: 52%; }
+
+  /* ---------- Stats strip ---------- */
+  .stats {
+    position: relative;
+    z-index: 3;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1px;
+    width: min(var(--max), calc(100% - 48px));
+    margin: 30px auto 0;
+    border-radius: 18px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    background: var(--line);
+  }
+
+  .stat {
+    background: #121a17;
+    padding: 18px 14px;
+    text-align: center;
+  }
+
+  .stat b {
+    display: block;
+    font-family: var(--mono);
+    font-size: clamp(20px, 2.4vw, 27px);
+    color: var(--cream);
+    letter-spacing: -0.01em;
+  }
+
+  .stat span {
+    display: block;
+    margin-top: 2px;
+    font-size: 10.5px;
+    color: rgba(255, 248, 244, 0.5);
+    letter-spacing: 0.04em;
+  }
+
+  /* ---------- 通用 section ---------- */
+  .sec { padding: 96px 0; }
+
+  .sec-cream {
+    background: var(--cream);
+    color: #211d1d;
+  }
+
+  .sec-ink { background: #0e1412; }
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 11.5px;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--coral);
+  }
+
+  .eyebrow::before {
+    content: "";
+    width: 26px;
+    height: 2px;
+    background: currentColor;
+    opacity: 0.6;
+  }
+
+  .sec-head {
+    max-width: 720px;
+  }
+
+  .sec-head h2 {
+    margin: 14px 0 0;
+    font-size: clamp(26px, 3.6vw, 42px);
+    line-height: 1.22;
+    letter-spacing: -0.02em;
+    font-weight: 900;
+    text-wrap: balance;
+  }
+
+  /* ---------- 場景截圖 ---------- */
+  .gallery {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+    margin-top: 42px;
+  }
+
+  .shot-card {
+    overflow: hidden;
+    border-radius: 20px;
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .shot-card img {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+  }
+
+  .shot-card:hover img { transform: scale(1.03); }
+
+  .shot-body {
+    padding: 16px 18px 18px;
+  }
+
+  .shot-body b {
+    display: block;
+    font-size: 14.5px;
+    font-weight: 800;
+  }
+
+  .shot-body p {
+    margin: 4px 0 0;
+    font-size: 12px;
+    color: rgba(255, 248, 244, 0.5);
+    line-height: 1.55;
+  }
+
+  .shot-tag {
+    display: inline-block;
+    margin-bottom: 8px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: rgba(47, 127, 140, 0.18);
+    color: #8fd8c2;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+  }
+
+  .sec-head p {
+    margin: 14px 0 0;
+    font-size: 14.5px;
+    color: rgba(255, 248, 244, 0.62);
+  }
+
+  .sec-cream .sec-head p { color: #6c5f56; }
+
+  /* ---------- 痛點 ---------- */
+  .pain-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: 44px;
+  }
+
+  .pain {
+    position: relative;
+    padding: 22px 22px 20px;
+    border-radius: 18px;
+    background: #fff;
+    border: 1px solid var(--line-dark);
+    box-shadow: 0 10px 28px rgba(60, 40, 26, 0.06);
+    transition: transform 0.22s ease, box-shadow 0.22s ease;
+  }
+
+  .pain:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 44px rgba(60, 40, 26, 0.1);
+  }
+
+  .pain .num {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--coral);
+    letter-spacing: 0.1em;
+  }
+
+  .pain h3 {
+    margin: 8px 0 10px;
+    font-size: 16.5px;
+    line-height: 1.35;
+    font-weight: 800;
+  }
+
+  .pain p {
+    margin: 0;
+    font-size: 13px;
+    color: #6c5f56;
+  }
+
+  .pain .fix {
+    display: block;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px dashed rgba(16, 22, 20, 0.12);
+    font-size: 12.5px;
+    color: #1d3f3a;
+    font-weight: 600;
+  }
+
+  .pain .fix::before {
+    content: "→ ";
+    color: var(--coral);
+    font-weight: 900;
+  }
+
+  /* ---------- 功能列 ---------- */
+  .feature {
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    gap: 54px;
+    align-items: center;
+    margin-top: 74px;
+  }
+
+  .feature:nth-of-type(even) .feature-media { order: 2; }
+
+  .feature-media {
+    position: relative;
+  }
+
+  .feature-media .frame {
+    border-color: rgba(16, 22, 20, 0.12);
+    background: #fff;
+    box-shadow: 0 22px 50px rgba(50, 34, 22, 0.14);
+  }
+
+  .feature-media .frame img { aspect-ratio: 16 / 10; }
+
+  .feature-media.tall .frame img {
+    aspect-ratio: 4 / 3;
+    object-position: center;
+  }
+
+  .duo {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    align-items: start;
+  }
+
+  .duo .frame img {
+    aspect-ratio: 9 / 16;
+    object-fit: cover;
+  }
+
+  .feature-copy h3 {
+    margin: 12px 0 0;
+    font-size: clamp(21px, 2.4vw, 28px);
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    font-weight: 900;
+  }
+
+  .feature-copy p {
+    margin: 14px 0 0;
+    font-size: 14px;
+    color: rgba(255, 248, 244, 0.64);
+  }
+
+  .sec-cream .feature-copy p { color: #6c5f56; }
+
+  .ticks {
+    display: grid;
+    gap: 9px;
+    margin: 20px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .ticks li {
+    position: relative;
+    padding-left: 24px;
+    font-size: 13.5px;
+  }
+
+  .ticks li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 8px;
+    width: 12px;
+    height: 7px;
+    border-left: 2px solid var(--mint);
+    border-bottom: 2px solid var(--mint);
+    transform: rotate(-45deg);
+  }
+
+  .sec-cream .ticks li::before { border-color: #167460; }
+
+  /* ---------- 模組小卡 ---------- */
+  .mini-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-top: 34px;
+  }
+
+  .mini {
+    padding: 18px 18px 16px;
+    border-radius: 16px;
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.035);
+  }
+
+  .mini .ico {
+    font-size: 19px;
+    line-height: 1;
+  }
+
+  .mini h4 {
+    margin: 10px 0 4px;
+    font-size: 14.5px;
+    font-weight: 800;
+  }
+
+  .mini p {
+    margin: 0;
+    font-size: 12px;
+    color: rgba(255, 248, 244, 0.52);
+    line-height: 1.55;
+  }
+
+  /* ---------- 遊戲循環 ---------- */
+  .loop {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-top: 44px;
+  }
+
+  .loop-step {
+    position: relative;
+    padding: 20px 16px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.045);
+    border: 1px solid var(--line);
+    text-align: center;
+  }
+
+  .loop-step .n {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    margin: 0 auto 10px;
+    border-radius: 50%;
+    background: rgba(219, 106, 65, 0.16);
+    color: var(--coral-soft);
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 800;
+  }
+
+  .loop-step b {
+    display: block;
+    font-size: 13.5px;
+  }
+
+  .loop-step span {
+    display: block;
+    margin-top: 4px;
+    font-size: 11.5px;
+    color: rgba(255, 248, 244, 0.5);
+  }
+
+  .loop-step::after {
+    content: "→";
+    position: absolute;
+    right: -13px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(255, 248, 244, 0.28);
+    font-size: 13px;
+  }
+
+  .loop-step:last-child::after { content: "↺"; color: var(--mint); }
+
+  .formula {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 26px;
+  }
+
+  .chip {
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(122, 208, 182, 0.28);
+    background: rgba(122, 208, 182, 0.08);
+    font-size: 11.5px;
+    color: var(--mint);
+  }
+
+  /* ---------- 商業場景 ---------- */
+  .biz-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-top: 44px;
+  }
+
+  .biz {
+    padding: 24px;
+    border-radius: 20px;
+    background: #fff;
+    border: 1px solid var(--line-dark);
+    box-shadow: 0 12px 30px rgba(60, 40, 26, 0.06);
+  }
+
+  .biz-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .biz-ico {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 13px;
+    background: linear-gradient(140deg, rgba(219, 106, 65, 0.16), rgba(47, 127, 140, 0.16));
+    font-size: 20px;
+  }
+
+  .biz h3 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 800;
+    line-height: 1.3;
+  }
+
+  .biz dl {
+    margin: 16px 0 0;
+    display: grid;
+    gap: 10px;
+  }
+
+  .biz dt {
+    font-size: 10.5px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    color: var(--coral);
+  }
+
+  .biz dd {
+    margin: 2px 0 0;
+    font-size: 13px;
+    color: #5f5248;
+  }
+
+  /* ---------- 方案 ---------- */
+  .plans {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: 44px;
+  }
+
+  .plan {
+    display: flex;
+    flex-direction: column;
+    padding: 26px 22px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--line);
+  }
+
+  .plan.hot {
+    background: linear-gradient(170deg, rgba(219, 106, 65, 0.16), rgba(255, 255, 255, 0.04));
+    border-color: rgba(219, 106, 65, 0.4);
+    box-shadow: 0 20px 48px rgba(219, 106, 65, 0.14);
+  }
+
+  .plan .tag {
+    align-self: flex-start;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 10.5px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 248, 244, 0.72);
+  }
+
+  .plan.hot .tag { background: var(--coral); color: #fff; }
+
+  .plan h3 {
+    margin: 14px 0 2px;
+    font-size: 20px;
+    font-weight: 900;
+  }
+
+  .plan .for {
+    font-size: 12px;
+    color: rgba(255, 248, 244, 0.5);
+  }
+
+  .plan .price {
+    margin: 16px 0 4px;
+    font-family: var(--mono);
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--gold);
+    letter-spacing: -0.02em;
+  }
+
+  .plan .price small {
+    font-size: 11px;
+    color: rgba(255, 248, 244, 0.5);
+    font-family: var(--font);
+    font-weight: 500;
+  }
+
+  .plan ul {
+    margin: 16px 0 22px;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 8px;
+  }
+
+  .plan li {
+    position: relative;
+    padding-left: 20px;
+    font-size: 12.5px;
+    color: rgba(255, 248, 244, 0.72);
+  }
+
+  .plan li::before {
+    content: "·";
+    position: absolute;
+    left: 4px;
+    top: -2px;
+    font-size: 20px;
+    color: var(--mint);
+  }
+
+  .plan .btn { margin-top: auto; }
+
+  .price-note {
+    margin: 18px 0 0;
+    font-size: 11.5px;
+    color: rgba(255, 248, 244, 0.42);
+  }
+
+  /* ---------- Demo 流程 ---------- */
+  .timeline {
+    margin-top: 40px;
+    border-left: 2px solid rgba(219, 106, 65, 0.34);
+    padding-left: 22px;
+    display: grid;
+    gap: 22px;
+  }
+
+  .tl-item { position: relative; }
+
+  .tl-item::before {
+    content: "";
+    position: absolute;
+    left: -30px;
+    top: 6px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--coral);
+    box-shadow: 0 0 0 4px rgba(219, 106, 65, 0.16);
+  }
+
+  .tl-item b {
+    display: block;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--coral-soft);
+    letter-spacing: 0.08em;
+  }
+
+  .tl-item p {
+    margin: 4px 0 0;
+    font-size: 13.5px;
+    color: rgba(255, 248, 244, 0.66);
+  }
+
+  /* ---------- FAQ ---------- */
+  .faq {
+    margin-top: 36px;
+    display: grid;
+    gap: 10px;
+  }
+
+  details {
+    border-radius: 14px;
+    border: 1px solid var(--line-dark);
+    background: #fff;
+    padding: 16px 20px;
+  }
+
+  summary {
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 800;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  summary::-webkit-details-marker { display: none; }
+
+  summary::after {
+    content: "+";
+    color: var(--coral);
+    font-size: 18px;
+    line-height: 1;
+  }
+
+  details[open] summary::after { content: "−"; }
+
+  details p {
+    margin: 12px 0 0;
+    font-size: 13px;
+    color: #5f5248;
+  }
+
+  /* ---------- 最終 CTA ---------- */
+  .final {
+    position: relative;
+    padding: 96px 0 110px;
+    overflow: hidden;
+    background:
+      radial-gradient(900px 500px at 50% 0%, rgba(219, 106, 65, 0.24), transparent 66%),
+      linear-gradient(180deg, #0d1311, #0a0f0d);
+    text-align: center;
+  }
+
+  .final h2 {
+    margin: 18px auto 0;
+    max-width: 760px;
+    font-size: clamp(26px, 4vw, 46px);
+    line-height: 1.22;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+  }
+
+  .final p {
+    margin: 16px auto 0;
+    max-width: 560px;
+    font-size: 14px;
+    color: rgba(255, 248, 244, 0.6);
+  }
+
+  .final .hero-cta { margin-top: 30px; }
+
+  .final .contact {
+    margin-top: 26px;
+    font-size: 12px;
+    color: rgba(255, 248, 244, 0.42);
+  }
+
+  .final .contact a {
+    color: var(--mint);
+    border-bottom: 1px solid rgba(122, 208, 182, 0.4);
+  }
+
+  /* ---------- Footer ---------- */
+  footer {
+    border-top: 1px solid var(--line);
+    padding: 34px 0 96px;
+    background: #0a0f0d;
+  }
+
+  .foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px;
+    justify-content: space-between;
+  }
+
+  .foot small {
+    font-size: 11.5px;
+    color: rgba(255, 248, 244, 0.42);
+  }
+
+  .foot-links {
+    display: flex;
+    gap: 18px;
+    font-size: 12px;
+    color: rgba(255, 248, 244, 0.58);
+  }
+
+  .foot-links a:hover { color: var(--cream); }
+
+  /* ---------- 手機固定 CTA ---------- */
+  .mobile-cta {
+    display: none;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 60;
+    gap: 10px;
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+    background: rgba(10, 15, 13, 0.92);
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+    border-top: 1px solid var(--line);
+  }
+
+  .mobile-cta .btn { flex: 1; min-height: 46px; font-size: 13px; }
+
+  /* ---------- 進場動畫 ---------- */
+  .reveal {
+    opacity: 0;
+    transform: translateY(22px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+
+  .reveal.in {
+    opacity: 1;
+    transform: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .reveal { opacity: 1; transform: none; transition: none; }
+    .btn:hover, .pain:hover { transform: none; }
+  }
+
+  /* ---------- 響應式 ---------- */
+  @media (max-width: 1024px) {
+    .nav-links { display: none; }
+    .stats { grid-template-columns: repeat(3, 1fr); }
+    .stat:nth-child(4), .stat:nth-child(5) { display: none; }
+    .pain-grid { grid-template-columns: repeat(2, 1fr); }
+    .feature { gap: 34px; }
+    .loop { grid-template-columns: repeat(3, 1fr); }
+    .loop-step:nth-child(3)::after { content: ""; }
+    .plans { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 800px) {
+    .nav { padding: 10px 16px; }
+    .brand small { display: none; }
+    .nav-cta { display: none; }
+    .hero { padding-top: 112px; }
+    .wrap, .hero-inner, .hero-shot, .stats { width: min(100% - 32px, var(--max)); }
+    .hero h1 br { display: none; }
+    .hero-sub { font-size: 14px; }
+    .float-stat { display: none; }
+    .hero-shot { margin-top: 30px; }
+    .sec { padding: 68px 0; }
+    .pain-grid { grid-template-columns: 1fr; gap: 12px; margin-top: 30px; }
+    .feature {
+      grid-template-columns: 1fr;
+      gap: 22px;
+      margin-top: 52px;
+    }
+    .feature:nth-of-type(even) .feature-media { order: 0; }
+    .biz-grid { grid-template-columns: 1fr; }
+    .mini-grid { grid-template-columns: 1fr 1fr; }
+    .loop { grid-template-columns: 1fr 1fr; }
+    .loop-step::after { display: none; }
+    .gallery { grid-template-columns: 1fr; gap: 12px; margin-top: 28px; }
+    .duo { gap: 10px; }
+    .mobile-cta { display: flex; }
+    footer { padding-bottom: 110px; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 10px; }
+  }
+
+  @media (max-width: 480px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .stat:nth-child(3) { display: none; }
+    .mini-grid { grid-template-columns: 1fr; }
+    .hero-cta .btn { width: 100%; }
+    .plan .price { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="nav" id="nav">
+  <a class="brand" href="#top" aria-label="澳門城市島首頁">
+    <span class="brand-mark" aria-hidden="true">澳</span>
+    <span>
+      <b>澳門城市島</b>
+      <small>Macao 3D Civic Island</small>
+    </span>
+  </a>
+  <nav class="nav-links" aria-label="主要導覽">
+    <a href="#pain">痛點與解法</a>
+    <a href="#features">核心功能</a>
+    <a href="#screens">場景截圖</a>
+    <a href="#loop">遊戲循環</a>
+    <a href="#biz">商業場景</a>
+    <a href="#plans">方案</a>
+    <a href="#demo">示範流程</a>
+  </nav>
+  <a class="btn btn-primary nav-cta" href="https://city.nexuslinktech.com/" target="_blank" rel="noopener">立即遊玩</a>
+</header>
+
+<main id="top">
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-inner">
+      <span class="badge"><span class="dot" aria-hidden="true"></span>澳門製造 · 官方開放數據基準 · 免下載</span>
+      <h1>把一座城市<br /><em>變成可玩的 3D 沙盤</em></h1>
+      <p class="hero-sub">
+        23 個分區、82 個地標、四條跨海大橋與三條輕軌，全部即時 3D。
+        政府用來講施政，學校用來教地理，商場與品牌用來做活動——
+        一個連結，電腦與手機都開得。
+      </p>
+      <div class="hero-cta">
+        <a class="btn btn-primary" href="https://city.nexuslinktech.com/" target="_blank" rel="noopener">立即體驗 3D 城市 →</a>
+        <a class="btn btn-ghost" href="mailto:paul@ebeesnet.com?subject=%E9%A0%90%E7%B4%84%E6%BE%B3%E9%96%80%E5%9F%8E%E5%B8%82%E5%B3%B6%2015%20%E5%88%86%E9%90%98%E5%B0%8E%E8%A6%BD">預約 15 分鐘導覽</a>
+      </div>
+      <p class="hero-note">無需安裝 · 支援桌面與手機 · 可離線匯出單檔示範</p>
+    </div>
+
+    <div class="hero-shot">
+      <div class="float-stat fs-1"><b>23</b><span>個分區<br />真實地理位置</span></div>
+      <div class="float-stat fs-2"><b>82</b><span>個地標<br />可點擊看數據</span></div>
+      <div class="frame">
+        <img src="assets/sales/hero-city.jpg" alt="澳門城市島 3D 全景：23 個分區島塊、跨海大橋與分區名稱標籤" fetchpriority="high" />
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <div class="stats" role="list">
+    <div class="stat" role="listitem"><b>23</b><span>個真實分區</span></div>
+    <div class="stat" role="listitem"><b>82</b><span>個 3D 地標</span></div>
+    <div class="stat" role="listitem"><b>3</b><span>條輕軌路線</span></div>
+    <div class="stat" role="listitem"><b>1,377</b><span>個開放數據集</span></div>
+    <div class="stat" role="listitem"><b>0</b><span>個需要安裝的 App</span></div>
+  </div>
+
+  <!-- 痛點 -->
+  <section class="sec sec-cream" id="pain">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <span class="eyebrow">Why it matters</span>
+        <h2>城市數據不是無人睇，<br />係無人玩得明。</h2>
+        <p>我們把八個常見痛點，逐個變成可以即場示範的功能。</p>
+      </div>
+
+      <div class="pain-grid">
+        <article class="pain reveal">
+          <span class="num">01</span>
+          <h3>數據沉在 PDF 與表格</h3>
+          <p>市民、記者、學生要自己拼圖，睇兩眼就放棄。</p>
+          <span class="fix">分區與地標直接綁定人口、面積、工程進度，點一下即出詳情卡。</span>
+        </article>
+        <article class="pain reveal">
+          <span class="num">02</span>
+          <h3>官網只有「睇」，沒有「玩」</h3>
+          <p>停留時間短，發佈完就無人再返嚟。</p>
+          <span class="fix">探索任務、城市幣、等級與排行榜，把一次瀏覽變成每日回訪。</span>
+        </article>
+        <article class="pain reveal">
+          <span class="num">03</span>
+          <h3>展館互動裝置貴又難更新</h3>
+          <p>實體沙盤一次投入數十萬，改內容又要再付費。</p>
+          <span class="fix">網頁版 3D 沙盤，內容改資料庫即全站同步，可投影也可手機。</span>
+        </article>
+        <article class="pain reveal">
+          <span class="num">04</span>
+          <h3>旅遊內容同質化</h3>
+          <p>來來去去都是同一批照片，缺打卡話題。</p>
+          <span class="fix">四項即時城市體驗：煙花、光雕、輕軌第一視角、潮位防洪。</span>
+        </article>
+        <article class="pain reveal">
+          <span class="num">05</span>
+          <h3>社區參與只剩問卷</h3>
+          <p>回收率低、一次性，之後無從跟進。</p>
+          <span class="fix">提案牆、投票、分區建設與活力榜，形成持續參與循環。</span>
+        </article>
+        <article class="pain reveal">
+          <span class="num">06</span>
+          <h3>報名、簽到、獎勵斷裂</h3>
+          <p>表單報名、紙筆簽到，數據永遠對唔上。</p>
+          <span class="fix">城市活動模組：名額、報名、現場簽到、自動發獎同一資料庫。</span>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- 核心功能 -->
+  <section class="sec sec-ink" id="features">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <span class="eyebrow">Core features</span>
+        <h2>五個模組，覆蓋展示、數據、體驗與營運。</h2>
+        <p>每個模組都可以單獨抽出嚟用：做活動、做教材、做官網入口、做展館大屏。</p>
+      </div>
+
+      <div class="feature reveal">
+        <div class="feature-media">
+          <div class="frame"><img src="assets/sales/night-bridges.jpg" alt="夜間 3D 城市與跨海大橋，右側為政策目錄清單" loading="lazy" /></div>
+        </div>
+        <div class="feature-copy">
+          <span class="eyebrow">01 · 3D 城市沙盤</span>
+          <h3>真實澳門，即時生成</h3>
+          <p>依真實經緯度切分 23 個分區，82 個地標、四條跨海大橋、三條輕軌路線全部程序化建模，無外部模型檔。</p>
+          <ul class="ticks">
+            <li>依 Asia/Macau 真實時間自動日夜，天光、水色、窗光連續變化</li>
+            <li>旋轉、縮放、點擊分區／地標／橋樑／流線，全部有詳情卡</li>
+            <li>LOD 與幾何快取，桌上電腦與手機都保持流暢</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="feature reveal">
+        <div class="feature-media duo">
+          <div class="frame"><img src="assets/sales/card-bridge.jpg" alt="西灣大橋詳情卡：總長 2.2 公里、雙層結構、責任部門與工程特徵" loading="lazy" /></div>
+          <div class="frame"><img src="assets/sales/card-gov.jpg" alt="官方數據中心：人口 68.7 萬、面積 33.3 km²、1,377 個開放數據集與分區指標表" loading="lazy" /></div>
+        </div>
+        <div class="feature-copy">
+          <span class="eyebrow">02 · 數據與政策內容</span>
+          <h3>每一條橋、每一座地標，都有數說</h3>
+          <p>點開即見長度、車道、啟用年份、責任部門、規劃年份與三條重點數據；流線更具備證據等級。</p>
+          <ul class="ticks">
+            <li>政策主題／協作關係雙分頁，支援全文搜尋</li>
+            <li>分區詳情：人口、面積、密度、地標與跨區協作</li>
+            <li>官方數據中心：68.7 萬人口、33.3 km²、1,377 個數據集</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="feature reveal">
+        <div class="feature-media">
+          <div class="frame"><img src="assets/sales/fireworks.jpg" alt="夜間旅遊塔上空施放 3D 煙花，畫面下方可見市民公仔與名牌" loading="lazy" /></div>
+        </div>
+        <div class="feature-copy">
+          <span class="eyebrow">03 · 城市體驗</span>
+          <h3>一個按鈕，就有場景</h3>
+          <p>旅遊塔煙花、大三巴光雕、輕軌跟車第一視角、內港潮位防洪模擬，全部即時觸發，適合大屏、直播與發佈會。</p>
+          <ul class="ticks">
+            <li>節慶日（元旦、勞動節、國慶、回歸紀念日、聖誕）自動施放煙花</li>
+            <li>潮位滑桿連動防洪閘門，適合防災與氣候教育</li>
+            <li>輕軌第一視角可作交通政策與旅遊推廣素材</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="feature reveal">
+        <div class="feature-media">
+          <div class="frame"><img src="assets/sales/citizen-center.jpg" alt="市民中心面板，九個分頁包括市民檔案、探索圖鑑、建設沙盤、排行榜等" loading="lazy" /></div>
+        </div>
+        <div class="feature-copy">
+          <span class="eyebrow">04 · 市民系統與遊戲化</span>
+          <h3>由「睇」變成「每日返嚟玩」</h3>
+          <p>Google 登入即建立市民卡，探索、任務、建設、點讚、提案全部有回報，數據同時成為營運儀表板。</p>
+          <ul class="ticks">
+            <li>每日 3 項任務、連續登入獎勵、四種排行榜</li>
+            <li>82 個地標探索圖鑑，點擊即飛往該地標</li>
+            <li>城市聲望＝點讚×2＋收到的打招呼＋建設數×3</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="feature reveal">
+        <div class="feature-media duo">
+          <div class="frame"><img src="assets/sales/mobile-hud.jpg" alt="手機版 3D 城市，底部為澳門時間與功能按鈕" loading="lazy" /></div>
+          <div class="frame"><img src="assets/sales/mobile-sheet.jpg" alt="手機版彈出式功能選單，按城市體驗、顯示與視角、關於分組" loading="lazy" /></div>
+        </div>
+        <div class="feature-copy">
+          <span class="eyebrow">05 · 跨裝置體驗</span>
+          <h3>手機優先，開連結即玩</h3>
+          <p>手機底部只有澳門時間與「☰ 功能」，點擊彈出分組選單，兩欄排列、不能左右拖動，點任何功能自動收起。</p>
+          <ul class="ticks">
+            <li>清單／詳情卡打開時，底部功能列自動讓位</li>
+            <li>繁體中文／English 一鍵切換</li>
+            <li>無需下載 App，QR Code 一掃即開</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="mini-grid">
+        <div class="mini reveal">
+          <span class="ico" aria-hidden="true">🎨</span>
+          <h4>3D 公仔建構器</h4>
+          <p>16 個部位 × 8 組顏色自由組合，即時同步到 3D 地圖，天然產生分享截圖。</p>
+        </div>
+        <div class="mini reveal">
+          <span class="ico" aria-hidden="true">🏗</span>
+          <h4>分區建設沙盤</h4>
+          <p>12 格用地、10 種設施、5 級解鎖，建設成果即時以 3D 模型出現在所屬分區。</p>
+        </div>
+        <div class="mini reveal">
+          <span class="ico" aria-hidden="true">🏆</span>
+          <h4>分區活力榜</h4>
+          <p>活力＝建設＋點讚×2＋探索數；前三名有金銀銅光柱，冠軍有浮動徽章。</p>
+        </div>
+        <div class="mini reveal">
+          <span class="ico" aria-hidden="true">📣</span>
+          <h4>提案牆與投票</h4>
+          <p>六類提案、按分區與支持數排序，每人每日最多 3 篇，意見可直接匯出。</p>
+        </div>
+        <div class="mini reveal">
+          <span class="ico" aria-hidden="true">👥</span>
+          <h4>好友、社團、私訊</h4>
+          <p>打招呼、巡訪沙盤、社團共同目標，每週達標全員獲獎勵。</p>
+        </div>
+        <div class="mini reveal">
+          <span class="ico" aria-hidden="true">🗓</span>
+          <h4>城市活動與後台</h4>
+          <p>報名、名額、現場簽到、自動發獎；管理後台可調整市民與活動。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 場景截圖 -->
+  <section class="sec" id="screens">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <span class="eyebrow">Screenshots</span>
+        <h2>實機場景，不是概念圖。</h2>
+        <p>以下全部由線上版本直接截取，可即場對照操作。</p>
+      </div>
+
+      <div class="gallery">
+        <figure class="shot-card reveal">
+          <img src="assets/sales/lrt-view.jpg" alt="輕軌跟車視角：沿氹仔線跨海行駛的高空畫面" loading="lazy" />
+          <figcaption class="shot-body">
+            <span class="shot-tag">交通體驗</span>
+            <b>輕軌第一視角</b>
+            <p>跟隨列車由媽閣跨海到氹仔碼頭，適合交通政策與旅遊推廣。</p>
+          </figcaption>
+        </figure>
+
+        <figure class="shot-card reveal">
+          <img src="assets/sales/gov-data.jpg" alt="官方數據中心彈窗：總人口、面積、開放數據集與分區表格" loading="lazy" />
+          <figcaption class="shot-body">
+            <span class="shot-tag">數據展示</span>
+            <b>官方數據中心</b>
+            <p>68.7 萬人口、33.3 km²、1,377 個數據集，一頁睇完並可跳轉官方來源。</p>
+          </figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- 遊戲循環 -->
+  <section class="sec" id="loop">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <span class="eyebrow">Retention loop</span>
+        <h2>「你今日為自己嗰區做咗啲咩？」</h2>
+        <p>這個五步循環，是整個產品的回訪引擎，也是商業提案的核心。</p>
+      </div>
+
+      <div class="loop">
+        <div class="loop-step reveal"><span class="n">1</span><b>探索與任務</b><span>點地標、解每日任務</span></div>
+        <div class="loop-step reveal"><span class="n">2</span><b>賺幣與升級</b><span>城市幣 + XP + 等級</span></div>
+        <div class="loop-step reveal"><span class="n">3</span><b>建設分區</b><span>12 格、10 種設施</span></div>
+        <div class="loop-step reveal"><span class="n">4</span><b>鄰里互動</b><span>點讚、打招呼、巡訪</span></div>
+        <div class="loop-step reveal"><span class="n">5</span><b>活力上榜</b><span>金銀銅光柱與冠軍徽章</span></div>
+      </div>
+
+      <div class="formula">
+        <span class="chip">分區活力 = 建設活力 + 鄰里點讚 × 2 + 該區地標探索數</span>
+        <span class="chip">城市聲望 = 點讚 × 2 + 收到打招呼 + 建設數 × 3</span>
+        <span class="chip">新市民獲 200 城市幣，足夠首批建設</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 商業場景 -->
+  <section class="sec sec-cream" id="biz">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <span class="eyebrow">Commercial scenarios</span>
+        <h2>六個可以今季落地的場景。</h2>
+        <p>由部門展示到商場導流，每個場景都有明確做法、成果指標與合作模式。</p>
+      </div>
+
+      <div class="biz-grid">
+        <article class="biz reveal">
+          <div class="biz-top">
+            <span class="biz-ico" aria-hidden="true">🏛</span>
+            <h3>政府部門 · 施政與公眾參與</h3>
+          </div>
+          <dl>
+            <div><dt>做法</dt><dd>接入部門指標，發佈會即場點分區講解；提案牆收集意見，後台匯出。</dd></div>
+            <div><dt>成果指標</dt><dd>停留時間、互動次數、提案數、投票數、市民註冊。</dd></div>
+            <div><dt>合作模式</dt><dd>年度授權 + 每月內容維護；可長駐接待大堂大屏。</dd></div>
+          </dl>
+        </article>
+
+        <article class="biz reveal">
+          <div class="biz-top">
+            <span class="biz-ico" aria-hidden="true">🧭</span>
+            <h3>旅遊推廣 · 城市體驗式宣傳</h3>
+          </div>
+          <dl>
+            <div><dt>做法</dt><dd>以煙花、光雕、輕軌、潮位四招做主打，完成體驗獲徽章，引導到線下景點。</dd></div>
+            <div><dt>成果指標</dt><dd>體驗觸發次數、分享截圖數、到場轉化。</dd></div>
+            <div><dt>合作模式</dt><dd>活動專案或年度合作，配合節慶時間表自動煙花。</dd></div>
+          </dl>
+        </article>
+
+        <article class="biz reveal">
+          <div class="biz-top">
+            <span class="biz-ico" aria-hidden="true">🎓</span>
+            <h3>學校 · 地理與公民科教材</h3>
+          </div>
+          <dl>
+            <div><dt>做法</dt><dd>用 3D 沙盤講分區、人口密度、土地利用；分組比較不同建設組合的活力值。</dd></div>
+            <div><dt>成果指標</dt><dd>使用班級數、任務完成率、教師工作坊場次。</dd></div>
+            <div><dt>合作模式</dt><dd>校園授權（按學校數）＋ 教師培訓與教案對應。</dd></div>
+          </dl>
+        </article>
+
+        <article class="biz reveal">
+          <div class="biz-top">
+            <span class="biz-ico" aria-hidden="true">🛍</span>
+            <h3>商場與地產 · 社區導流</h3>
+          </div>
+          <dl>
+            <div><dt>做法</dt><dd>以所在分區做「本區建設挑戰」，完成任務換優惠碼或會員積分。</dd></div>
+            <div><dt>成果指標</dt><dd>活動頁訪問、會員註冊、優惠核銷、平均停留。</dd></div>
+            <div><dt>合作模式</dt><dd>季度合作＋客製獎勵接口；每週公佈活力榜。</dd></div>
+          </dl>
+        </article>
+
+        <article class="biz reveal">
+          <div class="biz-top">
+            <span class="biz-ico" aria-hidden="true">✨</span>
+            <h3>品牌聯名 · 話題與 UGC</h3>
+          </div>
+          <dl>
+            <div><dt>做法</dt><dd>冠名節慶煙花或限定建設，推品牌專屬徽章與公仔配件。</dd></div>
+            <div><dt>成果指標</dt><dd>參與人數、分享數、hashtag 使用量、會員轉化。</dd></div>
+            <div><dt>合作模式</dt><dd>4–8 週專案制，含品牌套用、活動頁與結案報告。</dd></div>
+          </dl>
+        </article>
+
+        <article class="biz reveal">
+          <div class="biz-top">
+            <span class="biz-ico" aria-hidden="true">🖥</span>
+            <h3>展館與大型活動 · 互動裝置</h3>
+          </div>
+          <dl>
+            <div><dt>做法</dt><dd>大屏觸控版可旋轉城市、點地標、放煙花；無人操作時自動導覽。</dd></div>
+            <div><dt>成果指標</dt><dd>互動人次、平均互動時長、掃碼到手機版比率。</dd></div>
+            <div><dt>合作模式</dt><dd>硬件＋軟件整合，可代購觸控屏與主機。</dd></div>
+          </dl>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- 方案 -->
+  <section class="sec sec-ink" id="plans">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <span class="eyebrow">Packages</span>
+        <h2>由一次活動，到一整年的城市平台。</h2>
+        <p>以下為建議區間，實際按客製範圍、資料量與維護期調整。</p>
+      </div>
+
+      <div class="plans">
+        <div class="plan reveal">
+          <span class="tag">體驗版</span>
+          <h3>先做一個活動</h3>
+          <span class="for">學校 · 單次活動 · 品牌試水</span>
+          <div class="price">MOP 15k–30k<small> / 單次</small></div>
+          <ul>
+            <li>現有 3D 城市 + 品牌套用</li>
+            <li>活動頁與 QR Code 素材</li>
+            <li>30 天數據與結案截圖</li>
+          </ul>
+          <a class="btn btn-ghost" href="mailto:paul@ebeesnet.com?subject=%E6%BE%B3%E9%96%80%E5%9F%8E%E5%B8%82%E5%B3%B6%E3%80%8A%E9%AB%94%E9%A9%97%E7%89%88%E3%80%8B%E6%9F%A5%E8%A9%A2">查詢體驗版</a>
+        </div>
+
+        <div class="plan hot reveal">
+          <span class="tag">最受歡迎</span>
+          <h3>城市版</h3>
+          <span class="for">政府部門 · 商場 · 展館</span>
+          <div class="price">MOP 80k–150k<small> / 年</small></div>
+          <ul>
+            <li>3D 城市 + 市民系統 + 建設沙盤</li>
+            <li>城市活動模組與管理後台</li>
+            <li>每月 1 次內容維護</li>
+            <li>季度互動數據報告</li>
+          </ul>
+          <a class="btn btn-primary" href="mailto:paul@ebeesnet.com?subject=%E6%BE%B3%E9%96%80%E5%9F%8E%E5%B8%82%E5%B3%B6%E3%80%8A%E5%9F%8E%E5%B8%82%E7%89%88%E3%80%8B%E6%9F%A5%E8%A9%A2">預約方案講解</a>
+        </div>
+
+        <div class="plan reveal">
+          <span class="tag">共創版</span>
+          <h3>城市級共創平台</h3>
+          <span class="for">大型部門 · 跨機構計劃</span>
+          <div class="price">MOP 180k–350k<small> / 年</small></div>
+          <ul>
+            <li>城市版全部功能</li>
+            <li>客製分區與資料接口</li>
+            <li>專屬活動與品牌共創</li>
+            <li>後台培訓與季度策略會議</li>
+          </ul>
+          <a class="btn btn-ghost" href="mailto:paul@ebeesnet.com?subject=%E6%BE%B3%E9%96%80%E5%9F%8E%E5%B8%82%E5%B3%B6%E3%80%8A%E5%85%B1%E5%89%B5%E7%89%88%E3%80%8B%E6%9F%A5%E8%A9%A2">洽談共創版</a>
+        </div>
+      </div>
+      <p class="price-note">加購：客製 3D 建築／新地標、雙語文案、大屏模式、KOL 素材包。所有方案均可先做 15 分鐘線上示範。</p>
+    </div>
+  </section>
+
+  <!-- Demo -->
+  <section class="sec sec-cream" id="demo">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <span class="eyebrow">15-min walkthrough</span>
+        <h2>十五分鐘，睇完全部賣點。</h2>
+        <p>帶機示範最好；現場網絡不穩時，可先開好分頁或使用離線單檔版。</p>
+      </div>
+
+      <div class="timeline">
+        <div class="tl-item reveal"><b>00:00 – 02:00</b><p>開首頁旋轉城市：介紹 23 分區與真實地理位置。</p></div>
+        <div class="tl-item reveal"><b>02:00 – 04:00</b><p>開清單點西灣大橋：長度、車道、啟用年份、連接分區。</p></div>
+        <div class="tl-item reveal"><b>04:00 – 06:00</b><p>點左上角品牌卡：68.7 萬人口、1,377 個開放數據集。</p></div>
+        <div class="tl-item reveal"><b>06:00 – 08:00</b><p>放煙花 + 光雕：示範節慶、發佈會與商場活動場景。</p></div>
+        <div class="tl-item reveal"><b>08:00 – 12:00</b><p>市民中心：排行榜、建設沙盤、公仔建構器與分享素材。</p></div>
+        <div class="tl-item reveal"><b>12:00 – 15:00</b><p>手機版實測，收尾問：「你最想先解決邊個場景？」</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="sec sec-cream" style="padding-top:0">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <span class="eyebrow">FAQ</span>
+        <h2>最常被問到的七條。</h2>
+      </div>
+
+      <div class="faq">
+        <details class="reveal">
+          <summary>我們已經有官方網站，還需要這個嗎？</summary>
+          <p>官網負責「睇」，3D 沙盤負責「玩」。可以只嵌入一個區塊或獨立活動頁，不需要取替現有網站。</p>
+        </details>
+        <details class="reveal">
+          <summary>3D 會不會很慢、手機跑得動嗎？</summary>
+          <p>全部程序化生成，沒有大型模型檔；具備 LOD 與幾何合併，桌上電腦與手機都可流暢運行，可即場用你的電話實測。</p>
+        </details>
+        <details class="reveal">
+          <summary>資料由誰維護？</summary>
+          <p>分區與地標資料在資料庫，一次更新全站同步；活動、市民、獎勵可在管理後台即時調整。亦可選擇由我們代維。</p>
+        </details>
+        <details class="reveal">
+          <summary>需要我們 IT 部門配合嗎？</summary>
+          <p>前端是一個 HTML，後端是一個 Node 服務與 PostgreSQL；可部署在你自己的雲端，我們提供部署腳本與文件。</p>
+        </details>
+        <details class="reveal">
+          <summary>同 Google Maps 有什麼分別？</summary>
+          <p>地圖告訴你「在哪裡」；我們告訴你「這裡發生什麼、有什麼政策、你可以怎樣參與」，而且可以玩。</p>
+        </details>
+        <details class="reveal">
+          <summary>市民玩兩日會不會就不再回來？</summary>
+          <p>每日任務、每週社團目標、分區活力榜三個周期同時推動回訪；節慶日自動煙花亦會帶來自然回流。</p>
+        </details>
+        <details class="reveal">
+          <summary>數據準確嗎？</summary>
+          <p>基準來自 DATA.GOV.MO、DSEC、SMG、DSOP，頁面標明更新時間；亦可接入你部門的內部數據源。</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- 最終 CTA -->
+  <section class="final">
+    <div class="wrap">
+      <span class="eyebrow" style="justify-content:center">Start a pilot</span>
+      <h2>由一個分區、一個活動開始，<br />兩星期內看到第一個版本。</h2>
+      <p>告訴我們你最想解決的場景，我們用你所在的分區做一個即場示範。</p>
+      <div class="hero-cta">
+        <a class="btn btn-primary" href="https://city.nexuslinktech.com/" target="_blank" rel="noopener">立即體驗線上 Demo</a>
+        <a class="btn btn-ghost" href="mailto:paul@ebeesnet.com?subject=%E6%BE%B3%E9%96%80%E5%9F%8E%E5%B8%82%E5%B3%B6%20%C2%B7%20%E5%90%88%E4%BD%9C%E6%9F%A5%E8%A9%A2">預約 15 分鐘導覽</a>
+      </div>
+      <p class="contact">Paul Chang · NexusLink Tech · <a href="mailto:paul@ebeesnet.com">paul@ebeesnet.com</a></p>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <small>© 2026 NexusLink Tech · 澳門城市島 v1.0 · 數據基準：DATA.GOV.MO / DSEC / SMG / DSOP</small>
+    <div class="foot-links">
+      <a href="https://city.nexuslinktech.com/" target="_blank" rel="noopener">3D 城市</a>
+      <a href="saleskit.md">Sales Kit</a>
+      <a href="mailto:paul@ebeesnet.com">聯絡我們</a>
+    </div>
+  </div>
+</footer>
+
+<div class="mobile-cta">
+  <a class="btn btn-primary" href="https://city.nexuslinktech.com/" target="_blank" rel="noopener">立即體驗</a>
+  <a class="btn btn-ghost" href="mailto:paul@ebeesnet.com?subject=%E9%A0%90%E7%B4%84%E6%BE%B3%E9%96%80%E5%9F%8E%E5%B8%82%E5%B3%B6%E5%B0%8E%E8%A6%BD">預約導覽</a>
+</div>
+
+<script>
+  (function () {
+    var nav = document.getElementById('nav');
+    var onScroll = function () {
+      if (window.scrollY > 24) nav.classList.add('is-solid');
+      else nav.classList.remove('is-solid');
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    var items = document.querySelectorAll('.reveal');
+    if (!('IntersectionObserver' in window) || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      items.forEach(function (el) { el.classList.add('in'); });
+      return;
+    }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in');
+          io.unobserve(entry.target);
+        }
+      });
+    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
+    items.forEach(function (el) { io.observe(el); });
+  })();
+</script>
+</body>
+</html>
