@@ -67,6 +67,7 @@
       inset: 0;
       z-index: 2;
       pointer-events: none;
+      overflow: hidden;
     }
 
     /* Buttons & Interactive Controls */
@@ -204,6 +205,11 @@
       align-items: center;
       gap: 4px;
       position: relative;
+      /* 覆寫全域 button 的 44px 最小高度，否則遠景小圓點會拉成白色直條 */
+      min-height: 0;
+      height: auto;
+      min-width: 0;
+      line-height: 1;
       padding: 2px 7px;
       border-radius: 999px;
       background: rgba(255, 248, 244, 0.94);
@@ -220,6 +226,12 @@
       transition: opacity 0.18s ease, transform 0.18s ease;
     }
 
+    .citizen-tag .name {
+      max-width: 92px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
     .citizen-tag:hover {
       background: #fff;
       box-shadow: 0 4px 14px rgba(40, 25, 15, 0.24);
@@ -232,7 +244,8 @@
       width: 9px;
       height: 9px;
       min-width: 0;
-      border-color: rgba(255, 255, 255, 0.9);
+      min-height: 0;
+      border: 0;
       background: transparent;
       box-shadow: none;
       opacity: 0.9;
@@ -8619,9 +8632,9 @@
 
           if (!showDistrictLabels) {
             islandLabelObjs.forEach((lbl) => { lbl.obj.visible = false; });
-            return;
+          } else {
+            islandLabelObjs.forEach((lbl) => { lbl.obj.visible = true; });
           }
-          islandLabelObjs.forEach((lbl) => { lbl.obj.visible = true; });
 
           const uiRects = [];
           const collectRect = (id) => {
@@ -8642,11 +8655,11 @@
 
           const placedRects = [...uiRects];
 
-          const sorted = [...islandLabelObjs].sort((a, b) => {
+          const sorted = showDistrictLabels ? [...islandLabelObjs].sort((a, b) => {
             if (a.islandId === selectedIslandId) return -1;
             if (b.islandId === selectedIslandId) return 1;
             return 0;
-          });
+          }) : [];
 
           const overlaps = (r1, r2, pad) => {
             return !(
@@ -8708,6 +8721,12 @@
           // 更新四條跨海大橋標籤狀態與防遮擋
           bridgeLabelObjs.forEach((bl) => {
             bl.el.classList.toggle("selected", bl.bridgeId === selectedBridgeId);
+            // 遠景收起橋樑標籤，避免在城市上方排成一條綠色膠囊列（拉近或選中才顯示）
+            const nearBridge = camera.position.distanceTo(bl.obj.position) < 9;
+            if (bl.bridgeId !== selectedBridgeId && !nearBridge) {
+              bl.el.classList.add("collide-hidden");
+              return;
+            }
             projVec.copy(bl.obj.position).project(camera);
             if (projVec.z > 1) {
               bl.el.classList.add("collide-hidden");
@@ -9178,18 +9197,20 @@
           const bareArms = cfg.top === "tank" || isDress;
           const bareLegs = isDress || cfg.bottom === "skirt" || cfg.bottom === "shorts";
 
-          // ---- 鞋 ----
+          // ---- 鞋與腿：左右各一組，繞髖部擺動做出自然步態 ----
           const shoeH = cfg.shoes === "boots" ? 0.015 : cfg.shoes === "sandals" ? 0.005 : 0.01;
           const shoeGeo = figGeo("shoe-" + shoeH, () => new THREE.BoxGeometry(0.018, shoeH, cfg.shoes === "dress" ? 0.03 : 0.028));
-          [-0.0105, 0.0105].forEach((x) => {
-            figPart(body, shoeGeo, shoeMat, [x, shoeH / 2 + 0.001, 0.003]);
-          });
-
-          // ---- 腿 ----
           const legGeo = figGeo("leg", () => new THREE.CapsuleGeometry(0.008, 0.022, 3, 8));
           const legMat = bareLegs ? skinMat : bottomMat;
+          const hipY = 0.030;
+          const legGroups = [];
           [-0.0105, 0.0105].forEach((x) => {
-            figPart(body, legGeo, legMat, [x, 0.030, 0]);
+            const legGroup = new THREE.Group();
+            legGroup.position.set(x, hipY, 0);
+            figPart(legGroup, legGeo, legMat, [0, 0, 0]);
+            figPart(legGroup, shoeGeo, shoeMat, [0, shoeH / 2 + 0.001 - hipY, 0.003]);
+            body.add(legGroup);
+            legGroups.push(legGroup);
           });
 
           // ---- 下身 ----
@@ -9434,6 +9455,8 @@
           halo.userData.ownMaterial = true;
           g.add(halo);
           g.userData.halo = halo;
+          g.userData.body = body;
+          g.userData.legs = legGroups;
           return g;
         }
 
@@ -9449,73 +9472,165 @@
           citizens.length = 0;
         }
 
+        // 市民繞行半徑：避開分區中央的建設沙盤平台（約 1.5 × 1.1）與建築
+        const CITIZEN_ORBIT_R = 1.02;
+        const CITIZEN_ORBIT_LANE = 0.14;
+        const citizenProjVec = new THREE.Vector3();
+
+        function citizenSignature(c) {
+          return [c.level || 1, c.gender || "", c.figureColor || "", c.figureStyle || "", JSON.stringify(c.avatar || null)].join("|");
+        }
+
+        function disposeCitizenFigure(fig) {
+          fig.traverse((o) => {
+            if (o.isMesh && o.userData.merged) o.geometry.dispose();
+            if (o.isMesh && o.userData.ownMaterial) o.material.dispose();
+          });
+        }
+
+        // 建立單一市民的 3D 公仔與頭頂名牌
+        function createCitizenNode(c) {
+          const fig = buildCitizenFigure(c.level || 1, {
+            gender: c.gender,
+            figureColor: c.figureColor,
+            figureStyle: c.figureStyle,
+            avatar: c.avatar,
+          });
+          fig.scale.setScalar(CITIZEN_SCALE);
+          fig.userData.citizenId = c.id;
+          fig.traverse((o) => {
+            if (o.isMesh) o.userData.citizenId = c.id;
+          });
+
+          const tag = document.createElement("button");
+          tag.type = "button";
+          tag.className = "citizen-tag citizen-tag-compact";
+          const dotEl = document.createElement("span");
+          dotEl.className = c.online ? "online" : "offline";
+          const nameEl = document.createElement("span");
+          nameEl.className = "name";
+          nameEl.textContent = (c.avatarEmoji ? `${c.avatarEmoji} ` : "") + c.nickname;
+          const lvEl = document.createElement("span");
+          lvEl.className = "lv";
+          lvEl.textContent = `Lv.${c.level}` + (c.buildings ? ` · ${c.buildings}建` : "");
+          tag.append(dotEl, nameEl, lvEl);
+          tag.addEventListener("pointerup", (e) => {
+            e.stopPropagation();
+            hoveredTagId = null;
+            window.dispatchEvent(new CustomEvent("macao:citizen", { detail: { userId: c.id } }));
+          });
+          tag.addEventListener("pointerenter", () => { if (!isMobile) hoveredTagId = c.id; });
+          tag.addEventListener("pointerleave", () => { if (hoveredTagId === c.id) hoveredTagId = null; });
+          const tagObj = new CSS2DObject(tag);
+          tagObj.position.set(0, 0.21, 0);
+          fig.add(tagObj);
+
+          const emoteEl = document.createElement("div");
+          emoteEl.className = "citizen-emote";
+          const emoteObj = new CSS2DObject(emoteEl);
+          emoteObj.position.set(0, 0.27, 0);
+          emoteObj.visible = false;
+          fig.add(emoteObj);
+
+          return { fig, tag, tagObj, dotEl, nameEl, lvEl, emoteEl, emoteObj };
+        }
+
+        function updateCitizenLabel(entry, c) {
+          entry.online = !!c.online;
+          const dotClass = c.online ? "online" : "offline";
+          if (entry.dotEl.className !== dotClass) entry.dotEl.className = dotClass;
+          const nameText = (c.avatarEmoji ? `${c.avatarEmoji} ` : "") + c.nickname;
+          if (entry.nameEl.textContent !== nameText) entry.nameEl.textContent = nameText;
+          const lvText = `Lv.${c.level}` + (c.buildings ? ` · ${c.buildings}建` : "");
+          if (entry.lvEl.textContent !== lvText) entry.lvEl.textContent = lvText;
+        }
+
+        // 增量更新：以 id 比對，保留既有公仔的走動狀態，避免每次刷新都「跳位」
         function renderCitizens(list) {
-          clearCitizens();
-          if (!Array.isArray(list)) return 0;
-          list.forEach((c, idx) => {
+          if (!Array.isArray(list)) {
+            clearCitizens();
+            return 0;
+          }
+          const valid = list.filter((c) => worldData.islandMap.get(c.districtId));
+          const alive = new Set(valid.map((c) => c.id));
+
+          for (let i = citizens.length - 1; i >= 0; i--) {
+            const gone = citizens[i];
+            if (alive.has(gone.id)) continue;
+            citizenGroup.remove(gone.fig);
+            disposeCitizenFigure(gone.fig);
+            if (hoveredTagId === gone.id) hoveredTagId = null;
+            citizens.splice(i, 1);
+          }
+
+          const laneByDistrict = new Map();
+          citizens.forEach((e) => {
+            laneByDistrict.set(e.districtId, (laneByDistrict.get(e.districtId) || 0) + 1);
+          });
+
+          valid.forEach((c) => {
             const isl = worldData.islandMap.get(c.districtId);
-            if (!isl) return;
-            const fig = buildCitizenFigure(c.level || 1, {
-              gender: c.gender,
-              figureColor: c.figureColor,
-              figureStyle: c.figureStyle,
-              avatar: c.avatar,
-            });
-            const radius = 0.33 + (idx % 3) * 0.05;
-            fig.scale.setScalar(CITIZEN_SCALE);
-            fig.position.set(isl.worldPos.x, TOP + 0.02, isl.worldPos.z);
-            fig.userData.citizenId = c.id;
-            fig.traverse((o) => {
-              if (o.isMesh) o.userData.citizenId = c.id;
-            });
+            const sig = citizenSignature(c);
+            let entry = citizens.find((x) => x.id === c.id);
 
-            const tag = document.createElement("button");
-            tag.type = "button";
-            tag.className = "citizen-tag citizen-tag-compact";
-            const dotEl = document.createElement("span");
-            dotEl.className = c.online ? "online" : "offline";
-            const nameEl = document.createElement("span");
-            nameEl.className = "name";
-            nameEl.textContent = (c.avatarEmoji ? `${c.avatarEmoji} ` : "") + c.nickname;
-            const lvEl = document.createElement("span");
-            lvEl.className = "lv";
-            lvEl.textContent = `Lv.${c.level}` + (c.buildings ? ` · ${c.buildings}建` : "");
-            tag.append(dotEl, nameEl, lvEl);
-            tag.addEventListener("pointerup", (e) => {
-              e.stopPropagation();
-              window.dispatchEvent(new CustomEvent("macao:citizen", { detail: { userId: c.id } }));
-            });
-            tag.addEventListener("pointerenter", () => { hoveredTagId = c.id; });
-            tag.addEventListener("pointerleave", () => { if (hoveredTagId === c.id) hoveredTagId = null; });
-            const tagObj = new CSS2DObject(tag);
-            tagObj.position.set(0, 0.21, 0);
-            fig.add(tagObj);
+            // 造型／等級有變：只重建公仔，保留原有位置、角度與節奏
+            if (entry && entry.sig !== sig) {
+              const pos = entry.fig.position.clone();
+              const ry = entry.fig.rotation.y;
+              citizenGroup.remove(entry.fig);
+              disposeCitizenFigure(entry.fig);
+              const node = createCitizenNode(c);
+              node.fig.position.copy(pos);
+              node.fig.rotation.y = ry;
+              citizenGroup.add(node.fig);
+              Object.assign(entry, node, { sig, compact: true });
+            }
 
-            const emoteEl = document.createElement("div");
-            emoteEl.className = "citizen-emote";
-            const emoteObj = new CSS2DObject(emoteEl);
-            emoteObj.position.set(0, 0.27, 0);
-            emoteObj.visible = false;
-            fig.add(emoteObj);
-
-            citizenGroup.add(fig);
-            citizens.push({
-              id: c.id,
-              districtId: c.districtId,
-              online: !!c.online,
-              fig,
-              tag,
-              tagObj,
-              emoteEl,
-              emoteObj,
-              emoteHideAt: 0,
-              cheerUntil: 0,
-              center: new THREE.Vector3(isl.worldPos.x, TOP + 0.02, isl.worldPos.z),
-              radius,
-              angle: (idx / Math.max(1, list.length)) * Math.PI * 2,
-              speed: 0.16 + (idx % 4) * 0.03,
-              phase: idx * 1.7,
-            });
+            if (!entry) {
+              const lane = laneByDistrict.get(c.districtId) || 0;
+              laneByDistrict.set(c.districtId, lane + 1);
+              const node = createCitizenNode(c);
+              const center = new THREE.Vector3(isl.worldPos.x, TOP + 0.02, isl.worldPos.z);
+              // 黃金角分配起始位置，同一分區多人時自然散開、不互相重疊
+              const angle = lane * 2.399963229728653;
+              const radius = CITIZEN_ORBIT_R + (lane % 3) * CITIZEN_ORBIT_LANE;
+              node.fig.position.set(
+                center.x + Math.cos(angle) * radius,
+                center.y,
+                center.z + Math.sin(angle) * radius
+              );
+              node.fig.rotation.y = -angle;
+              citizenGroup.add(node.fig);
+              entry = Object.assign(node, {
+                id: c.id,
+                districtId: c.districtId,
+                sig,
+                online: !!c.online,
+                compact: true,
+                emoteHideAt: 0,
+                cheerUntil: 0,
+                center,
+                radius,
+                angle,
+                speed: 0.3 + (lane % 3) * 0.04,
+                phase: Math.random() * Math.PI * 2,
+                walkPhase: Math.random() * Math.PI * 2,
+                idleUntil: 0,
+                nextIdleAt: performance.now() + 4000 + Math.random() * 9000,
+              });
+              citizens.push(entry);
+            } else if (entry.districtId !== c.districtId) {
+              // 搬區：保留角度，改以新分區中心重新定位
+              entry.districtId = c.districtId;
+              entry.center.set(isl.worldPos.x, TOP + 0.02, isl.worldPos.z);
+              entry.fig.position.set(
+                entry.center.x + Math.cos(entry.angle) * entry.radius,
+                entry.center.y,
+                entry.center.z + Math.sin(entry.angle) * entry.radius
+              );
+            }
+            entry.sig = sig;
+            updateCitizenLabel(entry, c);
           });
           return citizens.length;
         }
@@ -9662,14 +9777,40 @@
         function updateCitizensAndEffects(dt, t) {
           const nowMs = performance.now();
           citizens.forEach((c) => {
-            c.angle += c.speed * dt;
+            const cheering = c.cheerUntil > nowMs;
+            let moving = false;
+            if (!cheering) {
+              // 走一段、停一段，避免一直繞圈像在轉盤上
+              if (nowMs >= c.idleUntil && nowMs >= c.nextIdleAt) {
+                c.idleUntil = nowMs + 1600 + Math.random() * 2600;
+                c.nextIdleAt = c.idleUntil + 7000 + Math.random() * 12000;
+              }
+              moving = nowMs >= c.idleUntil;
+              if (moving) {
+                c.angle += c.speed * dt;
+                c.walkPhase += dt * 7.4;
+              }
+            }
             const x = c.center.x + Math.cos(c.angle) * c.radius;
             const z = c.center.z + Math.sin(c.angle) * c.radius;
-            const cheering = c.cheerUntil > nowMs;
-            const hopHeight = cheering ? 0.1 : 0.025;
-            const hopSpeed = cheering ? 7.5 : 3.2;
-            c.fig.position.set(x, c.center.y + Math.abs(Math.sin(t * hopSpeed + c.phase)) * hopHeight, z);
-            c.fig.rotation.y = -c.angle + Math.PI / 2;
+            const bob = cheering
+              ? Math.abs(Math.sin(t * 7.5 + c.phase)) * 0.09
+              : (moving ? Math.abs(Math.sin(c.walkPhase)) * 0.006 : (Math.sin(t * 1.6 + c.phase) * 0.5 + 0.5) * 0.002);
+            c.fig.position.set(x, c.center.y + bob, z);
+            // 面向移動方向：切線方向即 -angle，不再側身行走
+            c.fig.rotation.y = -c.angle;
+            // 手腳擺動 + 輕微前傾與左右擺，做出自然步態
+            const legs = c.fig.userData.legs;
+            if (legs) {
+              const swing = !moving || cheering ? 0 : Math.sin(c.walkPhase) * 0.5;
+              legs[0].rotation.x = swing;
+              legs[1].rotation.x = -swing;
+            }
+            const body = c.fig.userData.body;
+            if (body) {
+              body.rotation.z = moving ? Math.sin(c.walkPhase) * 0.03 : 0;
+              body.rotation.x = moving ? 0.045 : 0;
+            }
             if (c.fig.userData.halo) {
               c.fig.userData.halo.material.opacity = 0.28 + Math.sin(t * 2.4 + c.phase) * 0.18;
             }
@@ -9678,13 +9819,17 @@
               c.emoteObj.visible = false;
               c.emoteHideAt = 0;
             }
-            // 名牌 LOD：相機遠時只留一顆小圓點，靠近或滑鼠移到名牌上才展開全名
-            const near = camera.position.distanceTo(c.fig.position) < 11;
-            const compact = !near && hoveredTagId !== c.id;
+            // 名牌 LOD：相機遠時只留一顆小圓點；桌面靠近或懸停才展開全名
+            // 手機畫面小，只保留小圓點，點一下直接打開市民沙盤
+            const near = !isMobile && camera.position.distanceTo(c.fig.position) < 11;
+            const compact = isMobile || (!near && hoveredTagId !== c.id);
             if (compact !== c.compact) {
               c.compact = compact;
               c.tag.classList.toggle("citizen-tag-compact", compact);
             }
+            // 錨點投影到畫面外時隱藏名牌，避免長名牌溢出邊緣或黏在奇怪位置
+            citizenProjVec.copy(c.fig.position).project(camera);
+            c.tagObj.visible = citizenProjVec.z < 1 && Math.abs(citizenProjVec.x) < 1.02 && Math.abs(citizenProjVec.y) < 1.02;
           });
 
           // 市民隨機冒出互動氣泡，讓街區看起來有人氣
