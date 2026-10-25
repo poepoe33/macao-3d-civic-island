@@ -1313,6 +1313,125 @@
       gap: 10px;
     }
 
+    /* ---- 首次到訪歡迎卡 ---- */
+    .welcome-card {
+      max-width: 460px;
+      gap: 15px;
+    }
+
+    .welcome-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .welcome-badge {
+      width: 46px;
+      height: 46px;
+      border-radius: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      background: linear-gradient(135deg, rgba(0, 117, 98, 0.16), rgba(219, 106, 65, 0.16));
+      border: 1px solid rgba(0, 117, 98, 0.18);
+      flex-shrink: 0;
+    }
+
+    .welcome-lead {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.65;
+      color: #5a4d43;
+    }
+
+    .welcome-points {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .welcome-point {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      background: #ffffff;
+      border: 1px solid rgba(33, 29, 29, 0.08);
+      border-radius: 13px;
+      padding: 10px 12px;
+    }
+
+    .welcome-point .ico {
+      font-size: 16px;
+      line-height: 1.35;
+    }
+
+    .welcome-point b {
+      display: block;
+      font-size: 12.5px;
+      font-weight: 800;
+      color: var(--ink);
+    }
+
+    .welcome-point .desc {
+      display: block;
+      font-size: 11.5px;
+      line-height: 1.5;
+      color: #6b5c51;
+      margin-top: 2px;
+    }
+
+    .welcome-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .welcome-login {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      min-height: 46px;
+      border-radius: 12px;
+      background: var(--macao-green);
+      color: var(--cream) !important;
+      font-size: 13.5px;
+      font-weight: 800;
+      text-decoration: none;
+      box-shadow: 0 6px 16px rgba(0, 117, 98, 0.22);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .welcome-login:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 9px 20px rgba(0, 117, 98, 0.28);
+    }
+
+    .welcome-browse {
+      width: 100%;
+      min-height: 44px;
+      border-radius: 12px;
+      background: transparent;
+      border: 1px dashed rgba(33, 29, 29, 0.22);
+      color: #5a4d43;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .welcome-browse:hover {
+      background: rgba(0, 117, 98, 0.06);
+      border-color: rgba(0, 117, 98, 0.4);
+      color: var(--macao-green);
+    }
+
+    .welcome-note {
+      font-size: 11px;
+      line-height: 1.55;
+      color: #7d6d61;
+      text-align: center;
+    }
+
     .gov-stat-card {
       background: #ffffff;
       border-radius: 14px;
@@ -2328,43 +2447,48 @@
       </div>
     </div>
 
-    <!-- 3-Step Onboarding Modal -->
+    <!-- 首次到訪歡迎卡 -->
     <div id="help-modal" class="hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-      <div class="modal-card">
-        <div>
-          <div class="eyebrow" data-en="MACAO 3D GUIDE">操作說明</div>
-          <h3 id="modal-title" style="font-size:20px;font-weight:800;margin-top:4px;" data-en="Welcome to Macao SAR 3D Policy & Data Island">歡迎來到澳門 3D 政策與城市數據島</h3>
-        </div>
-        <div class="guide-steps">
-          <div class="guide-step">
-            <div class="step-badge">1</div>
-            <div>
-              <div style="font-weight:800;font-size:14px;" data-en="True North-to-South Macao Geography">真實北至南地理拼圖：半島、新城A區、氹仔、路氹、橫琴澳大與路環</div>
-              <div style="font-size:12.5px;color:#5a4d43;margin-top:2px;" data-en="Explore 23 finely subdivided Macao geographic zones (Peninsula 11, Zone A & HZMB Port 2, Taipa 4, Cotai & Hengqin UM 3, Coloane 3) connected 1-to-1 by the 4 Cross-Sea Bridges and Macau LRT.">依真實經緯度細分為 23 座澳門地理方格（半島 11 區、新城 A 區與人工島 2 區、氹仔 4 區、路氹與橫琴澳大 3 區、路環 3 區），由四條跨海大橋一對一精準跨海相連。</div>
-            </div>
-          </div>
-          <div class="guide-step">
-            <div class="step-badge">2</div>
-            <div>
-              <div style="font-weight:800;font-size:14px;" data-en="Official Macao Government Open Data (DATA.GOV.MO / DSEC / SMG)">串接澳門特區政府官方統計與實時數據</div>
-              <div style="font-size:12.5px;color:#5a4d43;margin-top:2px;" data-en="Click any landmark, LRT train, or the 'Gov Data' button to inspect DSEC demographics, DSOP public works, and SMG weather/tide data.">點擊任一地標建物或左上方「📊 官方數據」，檢視統計局人口密度、公共建設局工程進度與氣象局潮位數據。</div>
-            </div>
-          </div>
-          <div class="guide-step">
-            <div class="step-badge">3</div>
-            <div>
-              <div style="font-weight:800;font-size:14px;" data-en="Interactive Fireworks, LRT Ride, Ruins Lightshow & Floodgate">體驗旅遊塔煙花、輕軌跟車、大三巴光雕與內港防洪模擬</div>
-              <div style="font-size:12.5px;color:#5a4d43;margin-top:2px;" data-en="Use the interactive sandbox bar above the bottom HUD to launch fireworks, ride the LRT train, project lightshows on St. Paul's Ruins, or test storm surge gates.">使用底部互動體驗列施放旅遊塔 3D 煙花、切換輕軌列車第一視角、點亮大三巴光雕，或拉動滑桿測試內港防洪閘門。</div>
-            </div>
+      <div class="modal-card welcome-card">
+        <div class="welcome-head">
+          <div class="welcome-badge" aria-hidden="true">🏝️</div>
+          <div>
+            <div class="eyebrow" data-en="WELCOME TO MACAO ISLAND">歡迎來到澳門島</div>
+            <h3 id="modal-title" style="font-size:19px;font-weight:800;margin-top:3px;line-height:1.35;" data-en="A 3D Macao sandbox you can play with">可以轉、可以點、可以一齊玩的澳門 3D 城市沙盤</h3>
           </div>
         </div>
-        <div style="background:rgba(0,117,98,0.09);border:1px solid rgba(0,117,98,0.22);border-radius:12px;padding:10px 12px;font-size:11.5px;line-height:1.5;color:#1b433b;">
-          <strong>✅ 本專案 3D 引擎狀態：0 錯誤（WebGL 2.0 + Three.js r160 正常運作）</strong><br/>
-          註：若你在瀏覽器 F12 Console 看到 <code>BardChatUi/manifest.json</code>、<code>worker-src (editor.main.js)</code> 或 <code>google-analytics ERR_BLOCKED_BY_CLIENT</code>，皆來自<strong>外層 Gemini 網頁介面與瀏覽器廣告攔截器</strong>，並非本 3D 程式的錯誤。可點擊上方「<strong>💾 獨立檔</strong>」下載單一 HTML 於獨立分頁開啟，即可獲得 100% 零雜訊的純淨 Console。
+        <p class="welcome-lead" data-en="Spin the map, explore 23 districts and 82 landmarks. Sign in as a citizen to build your own district, collect badges and meet neighbours.">轉動地圖，探索 23 個分區與 82 個地標。登入成為市民，就可以建設自己的分區、收集徽章、同鄰里互動。</p>
+        <div class="welcome-points">
+          <div class="welcome-point">
+            <div class="ico" aria-hidden="true">🗺️</div>
+            <div>
+              <b data-en="Explore 23 districts · 82 landmarks">探索 23 個分區 · 82 個地標</b>
+              <span class="desc" data-en="Click landmarks to collect badges, and inspect official population, works and weather data.">點擊地標即可登錄圖鑑，仲可以睇官方人口、工程與氣象數據。</span>
+            </div>
+          </div>
+          <div class="welcome-point">
+            <div class="ico" aria-hidden="true">🏗️</div>
+            <div>
+              <b data-en="Build your own district">建設你的居住分區</b>
+              <span class="desc" data-en="12 plots, 10 facility types — raise your district vitality and climb the board.">12 格用地、10 種設施，提升分區活力，同其他市民一齊上榜。</span>
+            </div>
+          </div>
+          <div class="welcome-point">
+            <div class="ico" aria-hidden="true">👥</div>
+            <div>
+              <b data-en="Co-create with neighbours">同鄰里共創城市</b>
+              <span class="desc" data-en="Share proposals, vote, send greetings and visit friends' sandboxes.">提案、投票、打招呼同巡訪好友沙盤，一齊令城市更好玩。</span>
+            </div>
+          </div>
         </div>
-        <div style="display:flex;justify-content:flex-end;">
-          <button id="btn-close-help" type="button" class="active" style="min-width:120px;" data-en="Explore Macao">開始探索城市</button>
+        <div class="welcome-actions">
+          <a class="welcome-login" href="/api/auth/google">
+            <svg width="16" height="16" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.6l6.7-6.7C35.6 2.4 30.2 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.8 6.1C12.3 13.2 17.6 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 3-2.2 5.5-4.6 7.2l7.1 5.5c4.2-3.9 6.6-9.6 6.6-17.2z"/><path fill="#FBBC05" d="M10.4 28.7a14.6 14.6 0 0 1 0-9.4l-7.8-6.1a24 24 0 0 0 0 21.6l7.8-6.1z"/><path fill="#34A853" d="M24 48c6.2 0 11.4-2 15.2-5.6l-7.1-5.5c-2 1.4-4.7 2.2-8.1 2.2-6.4 0-11.7-3.7-13.6-8.9l-7.8 6.1C6.5 42.6 14.6 48 24 48z"/></svg>
+            <span data-en="Sign in with Google · Become a citizen">使用 Google 登入 · 成為澳門島市民</span>
+          </a>
+          <button id="btn-close-help" type="button" class="welcome-browse" data-en="Just look around (no sign-in)">隨便逛逛（免登入）</button>
         </div>
+        <div class="welcome-note" data-en="You can browse the 3D map and official data without signing in; progress is saved to your citizen profile once you sign in.">免登入都可以瀏覽全圖同官方數據；登入後探索與建設進度會保存到你的市民檔案。</div>
       </div>
     </div>
   </div>
@@ -10833,16 +10957,37 @@
         );
 
         const helpModal = document.getElementById("help-modal");
+        const WELCOME_SEEN_KEY = "policy_island_seen_guide_v1";
+        const markWelcomeSeen = () => safeStorageSet(WELCOME_SEEN_KEY, "1");
         document.getElementById("btn-open-help").addEventListener("click", () => {
           helpModal.classList.remove("hidden");
         });
         document.getElementById("btn-close-help").addEventListener("click", () => {
           helpModal.classList.add("hidden");
-          safeStorageSet("policy_island_seen_guide_v1", "1");
+          markWelcomeSeen();
         });
-        if (!safeStorageGet("policy_island_seen_guide_v1")) {
+        // 按「登入」即代表已決定成為市民，先記錄已看過，登入回來不再彈卡
+        const welcomeLogin = helpModal.querySelector(".welcome-login");
+        if (welcomeLogin) welcomeLogin.addEventListener("click", markWelcomeSeen);
+
+        // 首次到訪才顯示；已登入的市民略過。等社交層確認身分後再決定，避免已登入用戶閃一下
+        let welcomeShown = false;
+        const maybeShowWelcome = () => {
+          if (welcomeShown || safeStorageGet(WELCOME_SEEN_KEY)) return;
+          if (document.documentElement.dataset.macaoAuth === "1") return;
+          welcomeShown = true;
           helpModal.classList.remove("hidden");
-        }
+        };
+        window.addEventListener("macao:authstate", (e) => {
+          if (e.detail && e.detail.authenticated) {
+            helpModal.classList.add("hidden");
+            markWelcomeSeen();
+          } else {
+            maybeShowWelcome();
+          }
+        });
+        if (document.documentElement.dataset.macaoAuth) maybeShowWelcome();
+        else setTimeout(maybeShowWelcome, 1500);
 
         const searchInput = document.getElementById("search-input");
         searchInput.addEventListener("input", (e) => {
@@ -11010,6 +11155,7 @@
               govModal.classList.add("hidden");
             } else if (!helpModal.classList.contains("hidden")) {
               helpModal.classList.add("hidden");
+              safeStorageSet(WELCOME_SEEN_KEY, "1");
             } else {
               clearSelection(false);
             }

@@ -2147,6 +2147,12 @@
     } catch {
       state.me = { authenticated: false };
     }
+    // 通知 3D 主頁面登入狀態（用於首次到訪歡迎卡：已登入就不再彈）
+    const authed = !!(state.me && state.me.authenticated);
+    document.documentElement.dataset.macaoAuth = authed ? '1' : '0';
+    try {
+      window.dispatchEvent(new CustomEvent('macao:authstate', { detail: { authenticated: authed } }));
+    } catch { /* 舊瀏覽器忽略 */ }
     paintHead();
     return state.me;
   }
