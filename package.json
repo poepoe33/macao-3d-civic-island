@@ -1,0 +1,17 @@
+{
+  "name": "nexusisland-mo",
+  "private": true,
+  "type": "module",
+  "description": "開發期護欄腳本（零相依）。前端仍然維持單一 HTML、無需安裝。",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "serve": "node scripts/serve.mjs",
+    "dev": "node scripts/build.mjs && node scripts/serve.mjs",
+    "collect": "node scripts/collect-server.mjs",
+    "compare": "node scripts/compare-fingerprints.mjs",
+    "gen:spec": "node scripts/extract-data.mjs",
+    "gen:archetypes": "node scripts/gen-archetypes.mjs",
+    "gen:seed": "node scripts/gen-seed.mjs",
+    "check": "node scripts/build.mjs --check && node scripts/extract-data.mjs --check && node scripts/gen-archetypes.mjs --check && node scripts/gen-seed.mjs --check && node scripts/validate-spec.mjs src/world/world.spec.json --archetypes src/world/archetypes.json --trees src/world/trees.json"
+  }
+}

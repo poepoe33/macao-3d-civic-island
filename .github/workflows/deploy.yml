@@ -16,6 +16,20 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node 22（檢查腳本用 import.meta.dirname，需 20.11+）
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: 檢查 src/ 與已提交的產物同步
+        # 根目錄 HTML 是 npm run build 的產物，src/ 才是原始碼。
+        # 這裡先擋一次：若有人改了 src/ 卻沒重新打包（或改了規格沒重跑 gen:seed），
+        # 線上就會拿到舊世界 —— 寧可紅燈也不要靜默上線。
+        run: npm run check
+
       - name: Deploy over SSH
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
@@ -31,7 +45,14 @@ jobs:
             git reset --hard origin/main
             git clean -fd -e server/node_modules
             REV=$(git rev-parse --short HEAD)
-            sed -i "s|social.js?v=dev|social.js?v=$REV|; s|social.css?v=dev|social.css?v=$REV|" 3d_macao_3d_civic_island.html
+            # 所有外部引用（social.css／social.js／世界規格／零件表）都由 build 戳上 ?v=dev，
+            # 這裡一次換成 commit hash；sed 若落空會在下一個 grep 被抓到。
+            sed -i "s|?v=dev|?v=$REV|g" 3d_macao_3d_civic_island.html
+            if grep -q "v=dev" 3d_macao_3d_civic_island.html; then
+              echo "❌ 仍有 ?v=dev 未換成 $REV";
+              grep -o "[^\"]*v=dev[^\"]*" 3d_macao_3d_civic_island.html;
+              exit 1;
+            fi
             cd server
             npm ci --omit=dev --no-audit --no-fund
             export DATABASE_URL="$(sudo -n grep '^DATABASE_URL=' /etc/macao-city.env | cut -d= -f2-)"

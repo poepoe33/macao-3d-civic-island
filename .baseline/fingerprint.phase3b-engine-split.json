@@ -1,0 +1,323 @@
+{
+ "label": "phase3b-engine-split",
+ "seed": 20261023,
+ "data": {
+  "city": "澳門特別行政區",
+  "districts": 23,
+  "landmarks": 82,
+  "bridges": 7,
+  "flows": 12,
+  "modelKinds": 38,
+  "modelDist": [
+   "arch:1",
+   "arena:2",
+   "bikerack:2",
+   "book:1",
+   "busdepot:8",
+   "busstop:3",
+   "campsite:1",
+   "carecenter:1",
+   "classroom:4",
+   "clinic:3",
+   "clock:2",
+   "coin:1",
+   "cottage:5",
+   "court:3",
+   "datacenter:1",
+   "farm:2",
+   "foodbank:1",
+   "footprint:2",
+   "globe:4",
+   "guia:5",
+   "gym:1",
+   "library:1",
+   "lotus:2",
+   "lrtstation:11",
+   "macautower:2",
+   "market:2",
+   "park:5",
+   "pavilion:6",
+   "riverbridge:3",
+   "ruins:2",
+   "school:2",
+   "sensor:1",
+   "socialhousing:2",
+   "solar:1",
+   "stage:4",
+   "theater:1",
+   "townhall:6",
+   "waterplant:1"
+  ],
+  "districtIds": [
+   "childcare",
+   "cotaieast",
+   "culture",
+   "digital",
+   "education",
+   "eldercare",
+   "environment",
+   "faichikei",
+   "greenspace",
+   "hacsa",
+   "hortacosta",
+   "hzmbport",
+   "ilahverde",
+   "namvan",
+   "pacon",
+   "portascerco",
+   "safety",
+   "senado",
+   "sports",
+   "taipaocean",
+   "tourism",
+   "transport",
+   "youth"
+  ],
+  "qHash": {
+   "n": 23,
+   "h": "128d8c52"
+  },
+  "groundTypes": {
+   "n": 23,
+   "h": "f3f88046"
+  },
+  "copyHash": {
+   "n": 23,
+   "h": "712a4d7c"
+  }
+ },
+ "kit": {
+  "total": 3559,
+  "byKind": {
+   "cylinder": {
+    "n": 777,
+    "h": "b8e10b1c"
+   },
+   "glowsphere": {
+    "n": 432,
+    "h": "392e610e"
+   },
+   "rbox": {
+    "n": 1067,
+    "h": "95416bee"
+   },
+   "ico": {
+    "n": 377,
+    "h": "73bc02c6"
+   },
+   "sphere": {
+    "n": 224,
+    "h": "2c6cd71b"
+   },
+   "torus": {
+    "n": 65,
+    "h": "eaf96c96"
+   },
+   "cone": {
+    "n": 49,
+    "h": "32ed1488"
+   },
+   "dome": {
+    "n": 30,
+    "h": "6475f589"
+   },
+   "box": {
+    "n": 437,
+    "h": "2f430438"
+   },
+   "glowbox": {
+    "n": 59,
+    "h": "faa8deab"
+   },
+   "hip": {
+    "n": 34,
+    "h": "551af113"
+   },
+   "prism": {
+    "n": 8,
+    "h": "63d8e0a9"
+   }
+  }
+ },
+ "instanced": [
+  {
+   "geo": "BoxGeometry",
+   "verts": 900,
+   "n": 91,
+   "h": "0effef73"
+  },
+  {
+   "geo": "BoxGeometry",
+   "verts": 900,
+   "n": 91,
+   "h": "34a7d22e"
+  },
+  {
+   "geo": "BoxGeometry",
+   "verts": 900,
+   "n": 22,
+   "h": "4a05e96a"
+  },
+  {
+   "geo": "BufferGeometry",
+   "verts": 93,
+   "n": 450,
+   "h": "1b3c94e7"
+  },
+  {
+   "geo": "BufferGeometry",
+   "verts": 240,
+   "n": 450,
+   "h": "efd75a01"
+  },
+  {
+   "geo": "CapsuleGeometry",
+   "verts": 162,
+   "n": 91,
+   "h": "15b60714"
+  },
+  {
+   "geo": "CapsuleGeometry",
+   "verts": 162,
+   "n": 91,
+   "h": "15b60714"
+  },
+  {
+   "geo": "CapsuleGeometry",
+   "verts": 162,
+   "n": 91,
+   "h": "8f6dd31b"
+  },
+  {
+   "geo": "CapsuleGeometry",
+   "verts": 162,
+   "n": 91,
+   "h": "8f6dd31b"
+  },
+  {
+   "geo": "CapsuleGeometry",
+   "verts": 338,
+   "n": 91,
+   "h": "8f6dd31b"
+  },
+  {
+   "geo": "CircleGeometry",
+   "verts": 14,
+   "n": 91,
+   "h": "ee369486"
+  },
+  {
+   "geo": "ConeGeometry",
+   "verts": 51,
+   "n": 91,
+   "h": "7a5988e9"
+  },
+  {
+   "geo": "SphereGeometry",
+   "verts": 165,
+   "n": 91,
+   "h": "358049d5"
+  },
+  {
+   "geo": "SphereGeometry",
+   "verts": 81,
+   "n": 91,
+   "h": "42c910e5"
+  },
+  {
+   "geo": "SphereGeometry",
+   "verts": 81,
+   "n": 91,
+   "h": "42c910e5"
+  },
+  {
+   "geo": "SphereGeometry",
+   "verts": 49,
+   "n": 90,
+   "h": "51d57bcf"
+  },
+  {
+   "geo": "SphereGeometry",
+   "verts": 195,
+   "n": 91,
+   "h": "ddbd3675"
+  },
+  {
+   "geo": "TorusGeometry",
+   "verts": 135,
+   "n": 91,
+   "h": "42c910e5"
+  },
+  {
+   "geo": "TorusGeometry",
+   "verts": 135,
+   "n": 91,
+   "h": "42c910e5"
+  }
+ ],
+ "instancedAnimated": [],
+ "terrain": {
+  "verts": 25921,
+  "bbox": [
+   -87.4907,
+   82.5093,
+   -0.55,
+   8.3881,
+   -86.518,
+   83.482
+  ],
+  "position": {
+   "n": 25921,
+   "h": "3d6c00e3"
+  },
+  "attrs": {
+   "normal": {
+    "n": 25921,
+    "h": "919f6cd6"
+   },
+   "uv": {
+    "n": 25921,
+    "h": "181bce25"
+   },
+   "color": {
+    "n": 25921,
+    "h": "3c364fbc"
+   }
+  }
+ },
+ "meshTypes": {
+  "SphereGeometry:32": 1,
+  "CircleGeometry": 24,
+  "PlaneGeometry:160": 1,
+  "CylinderGeometry": 56,
+  "SphereGeometry:12": 65,
+  "ConeGeometry": 2,
+  "IcosahedronGeometry": 6,
+  "BoxGeometry:5": 35,
+  "BufferGeometry": 5,
+  "ShapeGeometry": 92,
+  "PlaneGeometry:1": 161,
+  "BoxGeometry:1": 12,
+  "TubeGeometry": 12
+ },
+ "routes": {
+  "n": 253,
+  "h": "8e8c53f6"
+ },
+ "render": {
+  "W": 640,
+  "H": 400,
+  "stable": true,
+  "a": {
+   "px": "726a8b4e",
+   "meanLum": 152.54,
+   "coverage": 0.9996
+  },
+  "b": {
+   "px": "726a8b4e",
+   "meanLum": 152.54,
+   "coverage": 0.9996
+  }
+ },
+ "sceneChildren": 620
+}

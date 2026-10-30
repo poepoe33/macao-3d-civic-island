@@ -1,0 +1,2704 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>澳門政策與城市數據島 — 3D 互動微縮城市模型 (Macao 3D Civic Island)</title>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+  <style>
+    :root {
+      --coral: #db6a41;
+      --ink: #211d1d;
+      --cream: #fff8f4;
+      --yellow: #fcea8b;
+      --stone: #c5b5a7;
+      --green: #71806a;
+      --glass: #86a8a6;
+      --wood: #b48560;
+      --teal: #3e7c8c;
+      --macao-green: #007562;
+      --font-sans: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --font-serif: Georgia, "Times New Roman", serif;
+      --shadow-soft: 0 12px 32px rgba(45, 28, 16, 0.10), 0 4px 12px rgba(45, 28, 16, 0.06), 0 1px 2px rgba(45, 28, 16, 0.05);
+      --shadow-chip: 0 2px 8px #4a2a1414;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: var(--font-sans);
+      color: var(--ink);
+      background: radial-gradient(circle at 50% 42%, #fffdf9 0%, #edddcf 100%);
+      user-select: none;
+    }
+
+    #app {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+    }
+
+    #webgl-container {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+    }
+
+    #css2d-container {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    /* Buttons & Interactive Controls */
+    button, .btn {
+      font-family: var(--font-sans);
+      min-height: 44px;
+      border-radius: 9px;
+      border: 1px solid rgba(33, 29, 29, 0.12);
+      background: rgba(255, 248, 244, 0.92);
+      color: var(--ink);
+      padding: 0 14px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background 0.16s ease, color 0.16s ease, transform 0.12s ease, box-shadow 0.16s ease;
+      box-shadow: var(--shadow-chip);
+      flex-shrink: 0;
+    }
+
+    @media (hover: hover) {
+      button:hover, .btn:hover {
+        background: var(--yellow);
+        color: var(--ink);
+      }
+      .chip:hover {
+        background: var(--yellow);
+      }
+    }
+
+    button:active, button.active, button[aria-pressed="true"], .btn.active,
+    .hud-btn.active, .hud-btn[aria-pressed="true"] {
+      background: var(--ink) !important;
+      color: var(--cream) !important;
+      border-color: var(--ink) !important;
+    }
+
+    button:focus-visible, .btn:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible {
+      outline: 3px solid var(--coral);
+      outline-offset: 2px;
+    }
+
+    .chip {
+      border-radius: 999px;
+      background: var(--cream);
+      box-shadow: var(--shadow-chip);
+      padding: 5px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink);
+      border: 1px solid rgba(33, 29, 29, 0.08);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      min-height: 32px;
+      transition: background 0.15s ease, transform 0.12s ease;
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+
+    .chip.active, .chip[aria-pressed="true"] {
+      background: var(--ink) !important;
+      color: var(--cream) !important;
+    }
+
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #6e5e53;
+    }
+
+    .big-num {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-weight: 700;
+      font-size: 24px;
+      line-height: 1.1;
+      color: var(--coral);
+    }
+
+    /* Top-left Brand Card & Toolbar */
+    #top-left-zone {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      pointer-events: auto;
+      flex-wrap: wrap;
+      max-width: calc(100vw - 360px);
+    }
+
+    .brand-card {
+      background: rgba(255, 248, 244, 0.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: 18px;
+      padding: 10px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.75);
+      box-shadow: var(--shadow-soft);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .brand-card:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 14px 34px rgba(45, 28, 16, 0.18);
+    }
+
+    .brand-card:focus-visible {
+      outline: 2px solid var(--teal);
+      outline-offset: 3px;
+    }
+
+    /* 暫時隱藏的工具列項目（可由後續版本恢復） */
+    .ui-hidden {
+      display: none !important;
+    }
+
+    /* 市民小人頭頂名牌：遠景自動收成小圓點，避免遮擋地圖與人物 */
+    .citizen-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      position: relative;
+      /* 覆寫全域 button 的 44px 最小高度，否則遠景小圓點會拉成白色直條 */
+      min-height: 0;
+      height: auto;
+      min-width: 0;
+      line-height: 1;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: rgba(255, 248, 244, 0.94);
+      border: 1px solid rgba(33, 29, 29, 0.14);
+      box-shadow: 0 3px 10px rgba(40, 25, 15, 0.16);
+      font-family: var(--font-sans);
+      font-size: 10px;
+      font-weight: 700;
+      color: #211d1d;
+      white-space: nowrap;
+      pointer-events: auto;
+      cursor: pointer;
+      user-select: none;
+      transition: opacity 0.18s ease, transform 0.18s ease;
+    }
+
+    .citizen-tag .name {
+      max-width: 92px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .citizen-tag:hover {
+      background: #fff;
+      box-shadow: 0 4px 14px rgba(40, 25, 15, 0.24);
+    }
+
+    /* 遠景精簡態：只剩一顆在線／離線小圓點 */
+    .citizen-tag.citizen-tag-compact {
+      padding: 0;
+      gap: 0;
+      width: 9px;
+      height: 9px;
+      min-width: 0;
+      min-height: 0;
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+      opacity: 0.9;
+    }
+
+    .citizen-tag.citizen-tag-compact .name,
+    .citizen-tag.citizen-tag-compact .lv {
+      display: none;
+    }
+
+    .citizen-tag.citizen-tag-compact .online,
+    .citizen-tag.citizen-tag-compact .offline {
+      width: 9px;
+      height: 9px;
+    }
+
+    /* 精簡態放大小圓點的點擊範圍，方便手機點選 */
+    .citizen-tag.citizen-tag-compact::after {
+      content: "";
+      position: absolute;
+      inset: -8px;
+      border-radius: 50%;
+    }
+
+    .citizen-tag .lv {
+      font-size: 9px;
+      color: #007562;
+      font-family: var(--font-mono);
+    }
+
+    .citizen-tag .online {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #4caf50;
+      box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.22);
+    }
+
+    .citizen-tag .offline {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #b9aca0;
+    }
+
+    /* 市民互動氣泡（愛心、對話、施工） */
+    .citizen-emote {
+      font-size: 15px;
+      line-height: 1;
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(6px) scale(0.7);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      filter: drop-shadow(0 2px 6px rgba(40, 25, 15, 0.28));
+    }
+
+    .citizen-emote.show {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    /* 分區活力冠軍徽章 */
+    .district-champion {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: linear-gradient(120deg, rgba(242, 193, 78, 0.96), rgba(219, 106, 65, 0.94));
+      color: #fff8f4;
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      box-shadow: 0 6px 18px rgba(120, 70, 20, 0.3);
+      font-family: var(--font-sans);
+      font-size: 10.5px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .brand-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #007562 0%, #3e7c8c 100%);
+      color: var(--cream);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 17px;
+      box-shadow: 0 4px 10px rgba(0, 117, 98, 0.32);
+      flex-shrink: 0;
+    }
+
+    .brand-title {
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      line-height: 1.2;
+      white-space: nowrap;
+    }
+
+    .brand-sub {
+      font-size: 11px;
+      font-weight: 600;
+      color: #5b4d42;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .gov-live-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 2px 7px;
+      border-radius: 99px;
+      background: rgba(0, 117, 98, 0.14);
+      color: #006655;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .top-toolbar {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    #perf-badge {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 0 10px;
+      min-height: 44px;
+      border-radius: 9px;
+      background: rgba(255, 248, 244, 0.85);
+      border: 1px solid rgba(33, 29, 29, 0.10);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #4d3f35;
+      white-space: nowrap;
+    }
+
+    /* Interactive Sandbox Bar (Above HUD) */
+    #interactive-sandbox-bar {
+      background: rgba(255, 248, 244, 0.92);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-radius: 999px;
+      padding: 5px 14px;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid rgba(255, 255, 255, 0.85);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .tide-slider-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 99px;
+      background: rgba(62, 124, 140, 0.12);
+      color: var(--ink);
+      flex-shrink: 0;
+    }
+
+    .tide-slider-wrap input[type="range"] {
+      width: 74px;
+      accent-color: var(--teal);
+      cursor: pointer;
+    }
+
+    /* Left Detail Card */
+    #detail-card {
+      position: absolute;
+      top: 86px;
+      left: 16px;
+      width: 340px;
+      max-height: calc(100vh - 210px);
+      background: rgba(255, 248, 244, 0.95);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-radius: 22px;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid rgba(255, 255, 255, 0.82);
+      z-index: 25;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.22s ease;
+      pointer-events: auto;
+    }
+
+    #detail-card.hidden {
+      transform: translateX(-370px);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .sheet-handle {
+      display: none;
+      width: 100%;
+      padding: 10px 0 4px;
+      justify-content: center;
+      cursor: grab;
+      touch-action: none;
+      flex-shrink: 0;
+    }
+
+    .sheet-handle-bar {
+      width: 42px;
+      height: 5px;
+      border-radius: 99px;
+      background: rgba(33, 29, 29, 0.24);
+    }
+
+    .card-header {
+      padding: 14px 18px 10px;
+      border-bottom: 1px solid rgba(33, 29, 29, 0.08);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .card-close-btn {
+      min-height: 40px;
+      min-width: 40px;
+      padding: 0;
+      border-radius: 9px;
+      font-size: 15px;
+      flex-shrink: 0;
+    }
+
+    .card-body {
+      padding: 14px 18px 20px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      user-select: text;
+    }
+
+    .geo-meta-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      background: rgba(0, 117, 98, 0.08);
+      padding: 8px 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(0, 117, 98, 0.16);
+      font-size: 11.5px;
+      color: #21403a;
+    }
+
+    .thumb-wrap {
+      width: 160px;
+      height: 160px;
+      margin: 0 auto;
+      border-radius: 16px;
+      background: radial-gradient(circle at 50% 38%, #fffdf9 0%, #ead9c8 100%);
+      border: 1px solid rgba(33, 29, 29, 0.1);
+      box-shadow: inset 0 2px 8px rgba(33, 29, 29, 0.06);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    #item-thumb-canvas {
+      width: 160px;
+      height: 160px;
+      display: block;
+    }
+
+    .stat-bricks {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .stat-brick {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 10px 8px;
+      border: 1px solid rgba(33, 29, 29, 0.08);
+      box-shadow: var(--shadow-chip);
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .stat-brick-label {
+      font-size: 11px;
+      color: #5c4e44;
+      line-height: 1.25;
+    }
+
+    .timeline-bar {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      background: rgba(197, 181, 167, 0.25);
+      padding: 5px;
+      border-radius: 12px;
+    }
+
+    .timeline-step {
+      text-align: center;
+      padding: 7px 4px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #6e5e53;
+    }
+
+    .timeline-step.active {
+      background: var(--coral);
+      color: var(--cream);
+      box-shadow: 0 2px 6px rgba(219, 106, 65, 0.35);
+    }
+
+    .fact-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .fact-list li {
+      font-size: 13px;
+      line-height: 1.5;
+      padding-left: 14px;
+      position: relative;
+      color: #38302c;
+    }
+
+    .fact-list li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 7px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--coral);
+    }
+
+    .card-item-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .card-item-row {
+      width: 100%;
+      text-align: left;
+      justify-content: flex-start;
+      padding: 8px 12px;
+      min-height: 44px;
+      border-radius: 9px;
+      background: #ffffff;
+    }
+
+    .item-idx-circle {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--coral);
+      color: var(--cream);
+      font-size: 12px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    /* Right List Sidebar */
+    #right-sidebar {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 318px;
+      max-height: calc(100vh - 136px);
+      background: rgba(255, 248, 244, 0.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: 22px;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid rgba(255, 255, 255, 0.78);
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.22s ease;
+      pointer-events: auto;
+    }
+
+    #right-sidebar.collapsed {
+      transform: translateX(350px);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .sidebar-top {
+      padding: 12px 14px 10px;
+      border-bottom: 1px solid rgba(33, 29, 29, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .search-box {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .search-box input {
+      width: 100%;
+      height: 40px;
+      border-radius: 10px;
+      border: 1px solid rgba(33, 29, 29, 0.15);
+      background: rgba(255, 255, 255, 0.92);
+      padding: 0 12px;
+      font-size: 13px;
+      font-family: var(--font-sans);
+      color: var(--ink);
+    }
+
+    #btn-close-sidebar-mobile {
+      display: none;
+      min-height: 40px;
+      min-width: 40px;
+      padding: 0;
+    }
+
+    .tab-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .sidebar-content {
+      padding: 10px 14px 16px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    details.island-group {
+      background: rgba(255, 255, 255, 0.82);
+      border-radius: 12px;
+      border: 1px solid rgba(33, 29, 29, 0.08);
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    details.island-group summary {
+      list-style: none;
+      padding: 10px 12px;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 13px;
+      transition: background 0.15s ease;
+    }
+
+    details.island-group summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .island-summary-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .island-color-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .details-items {
+      padding: 4px 8px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      border-top: 1px solid rgba(33, 29, 29, 0.06);
+    }
+
+    .sidebar-item-btn {
+      width: 100%;
+      justify-content: flex-start;
+      text-align: left;
+      min-height: 42px;
+      padding: 6px 10px;
+      font-size: 12px;
+      background: transparent;
+      box-shadow: none;
+      border-color: transparent;
+    }
+
+    /* City Log Panel (Top-Right) */
+    #city-log-panel {
+      position: absolute;
+      top: 16px;
+      right: 346px;
+      width: 294px;
+      max-height: 320px;
+      background: rgba(255, 248, 244, 0.94);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: 18px;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid rgba(255, 255, 255, 0.78);
+      z-index: 22;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      pointer-events: auto;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    #city-log-panel.hidden {
+      opacity: 0;
+      transform: translateY(-10px);
+      pointer-events: none;
+    }
+
+    .log-header {
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(33, 29, 29, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 700;
+      color: #267347;
+      background: rgba(46, 160, 95, 0.14);
+      padding: 3px 8px;
+      border-radius: 99px;
+    }
+
+    .live-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #2ea05f;
+      animation: pulseLive 1.6s infinite ease-in-out;
+    }
+
+    @keyframes pulseLive {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.35); opacity: 0.55; }
+    }
+
+    .log-filter-bar {
+      padding: 6px 12px;
+      border-bottom: 1px solid rgba(33, 29, 29, 0.06);
+    }
+
+    .log-filter-bar select {
+      width: 100%;
+      height: 34px;
+      border-radius: 8px;
+      border: 1px solid rgba(33, 29, 29, 0.15);
+      background: #fff;
+      font-size: 12px;
+      font-family: var(--font-sans);
+      padding: 0 8px;
+    }
+
+    .log-list {
+      padding: 8px 12px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 210px;
+    }
+
+    .log-entry {
+      font-size: 11.5px;
+      line-height: 1.4;
+      padding: 6px 8px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.78);
+      border-left: 3px solid var(--coral);
+      cursor: pointer;
+    }
+
+    .log-time {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: #7c6b5e;
+      margin-right: 4px;
+    }
+
+    /* Bottom HUD Pill Toolbar */
+    #hud-wrapper {
+      position: absolute;
+      bottom: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 24;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 6px;
+      pointer-events: auto;
+      width: max-content;
+      max-width: calc(100vw - 20px);
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(255, 248, 244, 0.92);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(255, 255, 255, 0.85);
+      box-shadow: var(--shadow-soft);
+      overflow-x: auto;
+      scrollbar-width: none;
+      transition: opacity 0.22s ease, transform 0.22s ease;
+    }
+
+    #hud-wrapper::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* 兩組 HUD 合併為同一條，子容器不再各自帶底色 */
+    #interactive-sandbox-bar,
+    #hud-bar {
+      background: transparent;
+      border: 0;
+      box-shadow: none;
+      padding: 0;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      flex-wrap: nowrap;
+      flex-shrink: 0;
+    }
+
+    #flow-legend {
+      background: rgba(255, 248, 244, 0.92);
+      backdrop-filter: blur(12px);
+      border-radius: 999px;
+      padding: 6px 16px;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid rgba(33, 29, 29, 0.1);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: 11.5px;
+      font-weight: 600;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    #flow-legend.hidden {
+      display: none !important;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .legend-line {
+      width: 24px;
+      height: 3px;
+      background: var(--coral);
+      border-radius: 2px;
+    }
+
+    .legend-line.dashed {
+      background: repeating-linear-gradient(90deg, var(--coral) 0 6px, transparent 6px 10px);
+    }
+
+    .legend-line.dotted {
+      background: repeating-linear-gradient(90deg, var(--coral) 0 3px, transparent 3px 7px);
+    }
+
+    #hud-bar {
+      background: rgba(255, 248, 244, 0.92);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-radius: 999px;
+      padding: 6px 12px;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid rgba(255, 255, 255, 0.85);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .hud-clock-box {
+      padding: 0 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      border-right: 1px solid rgba(33, 29, 29, 0.1);
+      flex-shrink: 0;
+    }
+
+    #hud-clock-time {
+      font-family: var(--font-mono);
+      font-weight: 800;
+      font-size: 14px;
+      letter-spacing: 0.5px;
+    }
+
+    #hud-clock-period {
+      font-size: 10px;
+      color: var(--coral);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .hud-time-group {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding-right: 6px;
+      border-right: 1px solid rgba(33, 29, 29, 0.1);
+    }
+
+    .hud-toggle-group {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* HUD 分組：桌面以 display:contents 併回單列，手機（≤800px）改為分組彈出選單 */
+    .hud-group { display: contents; }
+
+    .hud-group-label { display: none; }
+
+    .hud-about-row { display: contents; }
+
+    .hud-sheet-head { display: none; }
+
+    /* 手機底部精簡功能列（桌面隱藏） */
+    #hud-mobile-dock { display: none; }
+
+    #hud-sheet-backdrop { display: none; }
+
+    .hud-btn {
+      min-height: 44px;
+      padding: 4px 10px;
+      border-radius: 9px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      font-size: 11px;
+      line-height: 1.1;
+      background: transparent;
+      border-color: transparent;
+      box-shadow: none;
+      white-space: nowrap;
+    }
+
+    .hud-btn .ico {
+      font-size: 15px;
+      line-height: 1;
+    }
+
+    #mobile-time-trigger {
+      display: none;
+    }
+
+    /* CSS2D Labels */
+    .island-label {
+      pointer-events: auto;
+      cursor: pointer;
+      border-radius: 999px;
+      background: rgba(255, 248, 244, 0.95);
+      color: var(--ink);
+      padding: 4px 11px;
+      font-size: 12px;
+      font-weight: 800;
+      box-shadow: 0 3px 10px rgba(33, 29, 29, 0.16);
+      border: 1.5px solid rgba(33, 29, 29, 0.12);
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      min-height: 30px;
+      transition: opacity 0.18s ease, background 0.18s ease, color 0.18s ease;
+    }
+
+    .island-label .code {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--coral);
+    }
+
+    .island-label.selected {
+      background: var(--ink) !important;
+      color: var(--cream) !important;
+      border-color: var(--ink) !important;
+    }
+
+    .island-label.selected .code {
+      color: var(--yellow);
+    }
+
+    .island-label.dimmed {
+      opacity: 0.45;
+    }
+
+    .island-label.compact .name-text {
+      display: none !important;
+    }
+
+    .island-label.collide-hidden {
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+
+    .bridge-label {
+      pointer-events: auto;
+      cursor: pointer;
+      border-radius: 999px;
+      background: rgba(0, 117, 98, 0.94);
+      color: var(--cream);
+      padding: 3px 10px;
+      font-size: 11px;
+      font-weight: 800;
+      box-shadow: 0 3px 10px rgba(0, 56, 46, 0.28);
+      border: 1.5px solid rgba(255, 248, 244, 0.65);
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      min-height: 26px;
+      transition: transform 0.16s ease, background 0.16s ease, opacity 0.18s ease;
+    }
+
+    .bridge-label:hover, .bridge-label.selected {
+      background: var(--coral) !important;
+      color: var(--cream) !important;
+      transform: scale(1.08);
+    }
+
+    .bridge-label.collide-hidden {
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+
+    .grid-coord-label {
+      pointer-events: none;
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      font-weight: 700;
+      color: rgba(33, 64, 58, 0.68);
+      background: rgba(255, 248, 244, 0.68);
+      padding: 1px 5px;
+      border-radius: 4px;
+      border: 1px solid rgba(0, 117, 98, 0.22);
+      white-space: nowrap;
+    }
+
+    .grid-coord-label.hidden {
+      display: none !important;
+    }
+
+    .item-pin {
+      pointer-events: auto;
+      cursor: pointer;
+      width: 26px;
+      height: 26px;
+      min-height: 26px;
+      padding: 0;
+      border-radius: 50%;
+      background: var(--cream);
+      color: var(--ink);
+      border: 2px solid var(--coral);
+      font-weight: 800;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(33, 29, 29, 0.22);
+      transition: transform 0.14s ease, background 0.14s ease;
+    }
+
+    .item-pin:hover, .item-pin.selected {
+      background: var(--coral) !important;
+      color: var(--cream) !important;
+      transform: scale(1.15);
+    }
+
+    .walker-bubble {
+      pointer-events: auto;
+      cursor: pointer;
+      background: rgba(33, 29, 29, 0.92);
+      color: var(--cream);
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.22);
+      border: 1px solid rgba(255, 248, 244, 0.25);
+    }
+
+    /* CRITICAL FIX: Ensure CSS2DRenderer cannot override hidden state on walker bubbles */
+    .walker-bubble.hidden {
+      display: none !important;
+      opacity: 0 !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+    }
+
+    /* Loading & Onboarding & Official Data Modal Overlay */
+    #loading-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: radial-gradient(circle at 50% 42%, #fffdf9 0%, #edddcf 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 24px;
+      text-align: center;
+      transition: opacity 0.4s ease;
+    }
+
+    #loading-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .loading-title {
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      color: var(--ink);
+    }
+
+    .loading-status {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--coral);
+    }
+
+    #error-box {
+      display: none;
+      max-width: 440px;
+      background: #fff2ee;
+      border: 2px solid var(--coral);
+      border-radius: 16px;
+      padding: 16px 20px;
+      color: var(--ink);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    #help-modal, #gov-data-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 90;
+      background: rgba(33, 29, 29, 0.45);
+      backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+    }
+
+    #help-modal.hidden, #gov-data-modal.hidden {
+      display: none !important;
+    }
+
+    .modal-card {
+      width: 100%;
+      max-width: 520px;
+      max-height: 88vh;
+      overflow-y: auto;
+      background: var(--cream);
+      border-radius: 24px;
+      padding: 22px;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .guide-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .guide-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      background: #ffffff;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(33, 29, 29, 0.08);
+    }
+
+    .step-badge {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--coral);
+      color: var(--cream);
+      font-weight: 800;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .gov-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    /* ---- 首次到訪歡迎卡 ---- */
+    .welcome-card {
+      max-width: 460px;
+      gap: 15px;
+    }
+
+    .welcome-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .welcome-badge {
+      width: 46px;
+      height: 46px;
+      border-radius: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      background: linear-gradient(135deg, rgba(0, 117, 98, 0.16), rgba(219, 106, 65, 0.16));
+      border: 1px solid rgba(0, 117, 98, 0.18);
+      flex-shrink: 0;
+    }
+
+    .welcome-lead {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.65;
+      color: #5a4d43;
+    }
+
+    .welcome-points {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .welcome-point {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      background: #ffffff;
+      border: 1px solid rgba(33, 29, 29, 0.08);
+      border-radius: 13px;
+      padding: 10px 12px;
+    }
+
+    .welcome-point .ico {
+      font-size: 16px;
+      line-height: 1.35;
+    }
+
+    .welcome-point b {
+      display: block;
+      font-size: 12.5px;
+      font-weight: 800;
+      color: var(--ink);
+    }
+
+    .welcome-point .desc {
+      display: block;
+      font-size: 11.5px;
+      line-height: 1.5;
+      color: #6b5c51;
+      margin-top: 2px;
+    }
+
+    .welcome-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .welcome-login {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      min-height: 46px;
+      border-radius: 12px;
+      background: var(--macao-green);
+      color: var(--cream) !important;
+      font-size: 13.5px;
+      font-weight: 800;
+      text-decoration: none;
+      box-shadow: 0 6px 16px rgba(0, 117, 98, 0.22);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .welcome-login:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 9px 20px rgba(0, 117, 98, 0.28);
+    }
+
+    .welcome-browse {
+      width: 100%;
+      min-height: 44px;
+      border-radius: 12px;
+      background: transparent;
+      border: 1px dashed rgba(33, 29, 29, 0.22);
+      color: #5a4d43;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .welcome-browse:hover {
+      background: rgba(0, 117, 98, 0.06);
+      border-color: rgba(0, 117, 98, 0.4);
+      color: var(--macao-green);
+    }
+
+    .welcome-note {
+      font-size: 11px;
+      line-height: 1.55;
+      color: #7d6d61;
+      text-align: center;
+    }
+
+    .gov-stat-card {
+      background: #ffffff;
+      border-radius: 14px;
+      padding: 12px;
+      border: 1px solid rgba(33, 29, 29, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .gov-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      background: #ffffff;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .gov-table th, .gov-table td {
+      padding: 8px 10px;
+      text-align: left;
+      border-bottom: 1px solid rgba(33, 29, 29, 0.07);
+    }
+
+    .gov-table th {
+      background: rgba(0, 117, 98, 0.10);
+      font-weight: 800;
+      color: #163d35;
+    }
+
+    /* =======================================================================
+       Mobile Responsive <= 800px (Comprehensive Polish)
+       ======================================================================= */
+    @media (max-width: 800px) {
+      #top-left-zone {
+        top: 10px;
+        left: 10px;
+        right: 10px;
+        max-width: calc(100vw - 20px);
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: nowrap;
+        gap: 6px;
+      }
+
+      .brand-card {
+        padding: 6px 10px;
+        border-radius: 14px;
+        gap: 8px;
+        min-width: 0;
+        flex-shrink: 1;
+      }
+
+      .brand-badge {
+        width: 30px;
+        height: 30px;
+        font-size: 14px;
+        border-radius: 9px;
+      }
+
+      .brand-title {
+        font-size: 13.5px;
+      }
+
+      .brand-sub {
+        font-size: 10px;
+      }
+
+      .gov-live-pill, #perf-badge {
+        display: none !important;
+      }
+
+      .top-toolbar {
+        flex-direction: row;
+        flex-wrap: nowrap;
+        gap: 4px;
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+      .top-toolbar::-webkit-scrollbar {
+        display: none;
+      }
+
+      .top-toolbar button {
+        min-height: 38px;
+        padding: 0 9px;
+        font-size: 12px;
+        border-radius: 8px;
+      }
+
+      .sheet-handle {
+        display: flex;
+      }
+
+      #btn-close-sidebar-mobile {
+        display: inline-flex;
+      }
+
+      #right-sidebar {
+        top: auto;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        height: 52vh;
+        max-height: 86vh;
+        border-radius: 22px 22px 0 0;
+        z-index: 32;
+        box-shadow: 0 -8px 30px rgba(33, 29, 29, 0.18);
+      }
+
+      #right-sidebar.collapsed {
+        transform: translateY(105%);
+        opacity: 0;
+      }
+
+      #detail-card {
+        top: auto;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        height: 46vh;
+        max-height: 88vh;
+        border-radius: 22px 22px 0 0;
+        z-index: 35;
+        box-shadow: 0 -8px 30px rgba(33, 29, 29, 0.20);
+      }
+
+      #detail-card.hidden {
+        transform: translateY(105%);
+        opacity: 0;
+      }
+
+      /* 清單／詳情卡開啟時收起底部 HUD，避免重疊 */
+      body.mobile-sheet-open #hud-wrapper,
+      body.mobile-sheet-open #hud-mobile-dock {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      #city-log-panel {
+        right: 10px;
+        left: 10px;
+        top: 58px;
+        width: auto;
+        max-height: 210px;
+        z-index: 28;
+      }
+
+      #mobile-time-trigger {
+        display: flex;
+      }
+
+      .hud-time-group {
+        display: none;
+        position: absolute;
+        bottom: 58px;
+        left: 8px;
+        background: rgba(255, 248, 244, 0.98);
+        backdrop-filter: blur(16px);
+        padding: 6px;
+        border-radius: 14px;
+        box-shadow: var(--shadow-soft);
+        border: 1px solid rgba(33, 29, 29, 0.14);
+        z-index: 40;
+      }
+
+      .hud-time-group.mobile-open {
+        display: flex;
+      }
+
+      /* 手機：HUD 改為分組彈出式面板，不可左右拖動 */
+      #hud-wrapper {
+        position: fixed;
+        left: 8px;
+        right: 8px;
+        bottom: calc(72px + env(safe-area-inset-bottom));
+        width: auto;
+        max-width: none;
+        max-height: calc(100dvh - 160px);
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+        padding: 12px 12px 14px;
+        border-radius: 20px;
+        overflow-x: hidden;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        z-index: 40;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transform: translateY(18px);
+      }
+
+      body.hud-sheet-open #hud-wrapper {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+        transform: translateY(0);
+      }
+
+      body.hud-sheet-open #hud-mobile-dock {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .hud-sheet-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .hud-sheet-title {
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        color: #8a7566;
+      }
+
+      .hud-sheet-close {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: 1px solid rgba(33, 29, 29, 0.12);
+        background: rgba(255, 255, 255, 0.7);
+        color: var(--ink);
+        font-size: 15px;
+        line-height: 1;
+        cursor: pointer;
+        flex: 0 0 auto;
+      }
+
+      .hud-group { display: block; }
+
+      .hud-group + .hud-group {
+        border-top: 1px solid rgba(33, 29, 29, 0.08);
+        padding-top: 10px;
+      }
+
+      .hud-group-label {
+        display: block;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        color: #8a7566;
+        margin-bottom: 6px;
+      }
+
+      #interactive-sandbox-bar,
+      .hud-toggle-group,
+      .hud-about-row {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px;
+        width: 100%;
+        max-width: none;
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+        overflow: visible;
+        padding: 0;
+        border-radius: 0;
+      }
+
+      /* 讓 #hud-bar 的按鈕直接參與分組排版，避免多一層 grid 壓縮寬度 */
+      #hud-bar { display: contents; }
+
+      .hud-clock-box,
+      #mobile-time-trigger,
+      .hud-time-group {
+        display: none !important;
+      }
+
+      .hud-btn,
+      .chip {
+        width: 100%;
+        min-height: 44px;
+        padding: 6px 10px;
+        flex-direction: row;
+        justify-content: flex-start;
+        gap: 8px;
+        font-size: 12px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.66);
+        border: 1px solid rgba(33, 29, 29, 0.1);
+        box-shadow: none;
+      }
+
+      .hud-btn .ico { font-size: 15px; }
+
+      /* 手機底部精簡功能列 */
+      #hud-mobile-dock {
+        position: fixed;
+        left: 8px;
+        right: 8px;
+        bottom: 8px;
+        z-index: 26;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 6px 8px calc(6px + env(safe-area-inset-bottom)) 14px;
+        border-radius: 16px;
+        background: rgba(255, 248, 244, 0.94);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        border: 1px solid rgba(255, 255, 255, 0.85);
+        box-shadow: var(--shadow-soft);
+        transition: opacity 0.18s ease;
+      }
+
+      .hud-dock-clock {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.15;
+        min-width: 0;
+      }
+
+      #hud-clock-time-m {
+        font-family: var(--font-mono);
+        font-weight: 800;
+        font-size: 15px;
+        letter-spacing: 0.5px;
+        color: var(--ink);
+      }
+
+      #hud-clock-period-m {
+        font-size: 10px;
+        font-weight: 700;
+        color: var(--coral);
+      }
+
+      #hud-sheet-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        min-height: 42px;
+        padding: 0 16px;
+        border-radius: 12px;
+        background: var(--ink);
+        color: var(--cream);
+        border: 1px solid var(--ink);
+        font-family: var(--font-sans);
+        font-size: 12.5px;
+        font-weight: 800;
+        cursor: pointer;
+        flex: 0 0 auto;
+      }
+
+      #hud-sheet-backdrop {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 38;
+        background: rgba(18, 14, 12, 0.34);
+        backdrop-filter: blur(2px);
+        -webkit-backdrop-filter: blur(2px);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.18s ease;
+      }
+
+      body.hud-sheet-open #hud-sheet-backdrop {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .island-label {
+        padding: 3px 8px;
+        font-size: 11px;
+        min-height: 26px;
+      }
+
+      .gov-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .stat-bricks {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .big-num {
+        font-size: 19px;
+      }
+    }
+
+    /* ============ 底部浮動頁尾 ============ */
+    #site-footer {
+      position: absolute;
+      right: 16px;
+      bottom: 74px;
+      z-index: 23;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+      pointer-events: none;
+    }
+
+    #site-footer > * { pointer-events: auto; }
+
+    .sf-card {
+      width: min(420px, calc(100vw - 32px));
+      max-height: min(62vh, 520px);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      background: rgba(255, 248, 244, 0.97);
+      -webkit-backdrop-filter: blur(18px);
+      backdrop-filter: blur(18px);
+      border: 1px solid rgba(33, 29, 29, 0.1);
+      border-radius: 18px;
+      box-shadow: var(--shadow-soft);
+      padding: 18px 18px 0;
+      animation: sf-card-in 0.18s ease;
+    }
+
+    .sf-card[hidden] { display: none; }
+
+    @keyframes sf-card-in {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .sf-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 18px;
+    }
+
+    .sf-col-contact {
+      border-left: 1px solid rgba(33, 29, 29, 0.1);
+      padding-left: 18px;
+    }
+
+    .sf-title {
+      font-size: 10.5px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #8a7566;
+      margin-bottom: 7px;
+    }
+
+    .sf-team {
+      font-size: 13px;
+      line-height: 1.7;
+      color: #4a3f36;
+      user-select: text;
+    }
+
+    .sf-link {
+      color: #2563eb;
+      font-weight: 700;
+      text-decoration: none;
+      border-radius: 4px;
+    }
+
+    .sf-link:hover { text-decoration: underline; }
+
+    .sf-link:focus-visible {
+      outline: 2px solid #2563eb;
+      outline-offset: 3px;
+    }
+
+    .sf-text {
+      font-size: 12px;
+      line-height: 1.65;
+      color: #7c6b5e;
+      margin-bottom: 10px;
+    }
+
+    .sf-btn {
+      appearance: none;
+      border: 0;
+      border-radius: 10px;
+      padding: 9px 14px;
+      background: #2563eb;
+      color: #fff;
+      font-family: var(--font-sans);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 8px 18px rgba(37, 99, 235, 0.24);
+      transition: background 0.16s ease, transform 0.16s ease;
+    }
+
+    .sf-btn:hover { background: #1d4ed8; transform: translateY(-1px); }
+
+    .sf-btn:focus-visible {
+      outline: 2px solid #2563eb;
+      outline-offset: 3px;
+    }
+
+    .sf-bottom {
+      margin: 14px -18px 0;
+      padding: 10px 18px;
+      border-top: 1px solid rgba(33, 29, 29, 0.08);
+      background: rgba(255, 255, 255, 0.5);
+      text-align: center;
+      font-size: 10.5px;
+      color: #8a7566;
+    }
+
+    /* ============ 意見反映彈出卡片 ============ */
+    .sf-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(17, 24, 39, 0.56);
+      -webkit-backdrop-filter: blur(4px);
+      backdrop-filter: blur(4px);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.18s ease, visibility 0.18s ease;
+    }
+
+    .sf-modal.is-open { opacity: 1; visibility: visible; }
+
+    .sf-dialog {
+      position: relative;
+      width: 100%;
+      max-width: 480px;
+      max-height: min(86vh, 720px);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 30px 70px rgba(17, 24, 39, 0.32);
+      padding: 24px 22px 22px;
+      transform: translateY(12px) scale(0.98);
+      transition: transform 0.2s ease;
+    }
+
+    .sf-modal.is-open .sf-dialog { transform: translateY(0) scale(1); }
+
+    .sf-close {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 34px;
+      height: 34px;
+      border: 0;
+      border-radius: 9px;
+      background: transparent;
+      color: #6b7280;
+      font-size: 18px;
+      line-height: 1;
+      cursor: pointer;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .sf-close:hover { background: #f3f4f6; color: var(--ink); }
+
+    .sf-close:focus-visible {
+      outline: 2px solid #2563eb;
+      outline-offset: 2px;
+    }
+
+    .sf-modal-title {
+      font-size: 19px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      margin-bottom: 5px;
+      padding-right: 34px;
+    }
+
+    .sf-modal-sub {
+      font-size: 12px;
+      line-height: 1.6;
+      color: #7c6b5e;
+      margin-bottom: 18px;
+    }
+
+    .sf-field { margin-bottom: 14px; }
+
+    .sf-label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #4a3f36;
+    }
+
+    .sf-input {
+      display: block;
+      width: 100%;
+      font-family: var(--font-sans);
+      font-size: 13px;
+      color: var(--ink);
+      background: #fbfcfe;
+      border: 1px solid #e5e7eb;
+      border-radius: 11px;
+      padding: 10px 12px;
+      user-select: text;
+      -webkit-user-select: text;
+      transition: border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+    }
+
+    .sf-input::placeholder { color: #9ca3af; }
+
+    .sf-input:focus {
+      outline: none;
+      background: #fff;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+    }
+
+    textarea.sf-input {
+      min-height: 96px;
+      resize: vertical;
+      line-height: 1.6;
+    }
+
+    .sf-status {
+      display: none;
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1.6;
+      margin-bottom: 12px;
+    }
+
+    .sf-status.is-visible { display: block; }
+    .sf-status.is-loading { color: #6b7280; }
+    .sf-status.is-success { color: #15803d; }
+    .sf-status.is-error { color: #b91c1c; }
+
+    .sf-submit {
+      width: 100%;
+      border: 0;
+      border-radius: 11px;
+      padding: 12px 18px;
+      background: #2563eb;
+      color: #fff;
+      font-family: var(--font-sans);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 10px 22px rgba(37, 99, 235, 0.26);
+      transition: background 0.16s ease;
+    }
+
+    .sf-submit:hover { background: #1d4ed8; }
+    .sf-submit:disabled { opacity: 0.62; cursor: not-allowed; box-shadow: none; }
+
+    .sf-submit:focus-visible {
+      outline: 2px solid #2563eb;
+      outline-offset: 3px;
+    }
+
+    @media (max-width: 720px) {
+      #site-footer {
+        left: 8px;
+        right: 8px;
+        bottom: calc(72px + env(safe-area-inset-bottom));
+        align-items: stretch;
+        z-index: 45;
+      }
+      .sf-card {
+        width: 100%;
+        max-height: 60vh;
+      }
+      .sf-col-contact {
+        border-left: 0;
+        border-top: 1px solid rgba(33, 29, 29, 0.1);
+        padding-left: 0;
+        padding-top: 16px;
+      }
+      .sf-btn { width: 100%; }
+      .sf-modal { padding: 12px; align-items: flex-end; }
+      .sf-dialog {
+        max-height: 90vh;
+        border-radius: 18px;
+        padding: 20px 16px 16px;
+      }
+      .sf-modal-title { font-size: 17px; }
+    }
+  </style>
+  <link rel="stylesheet" href="../web/social.css?v=dev">
+</head>
+<body>
+  <div id="app">
+    <div id="webgl-container"></div>
+    <div id="css2d-container"></div>
+
+    <!-- Top-Left Brand Card & Toolbar -->
+    <div id="top-left-zone">
+      <div class="brand-card" id="brand-card" role="button" tabindex="0" title="開啟澳門官方數據">
+        <div class="brand-badge">澳</div>
+        <div>
+          <div class="brand-title" id="brand-city-title" data-en="Macao SAR">澳門特別行政區</div>
+          <div class="brand-sub">
+            <span data-en="Real Geo & Official Data 3D Island">真實地理・官方數據政策島</span>
+            <span class="gov-live-pill" id="gov-sync-pill" title="Connected to Macao Official Open Data Baseline"><span class="live-dot"></span>DATA.GOV.MO</span>
+          </div>
+        </div>
+      </div>
+      <div class="top-toolbar" role="toolbar" aria-label="View Controls">
+        <button id="btn-reset-view" type="button" data-en="Panorama">全景</button>
+        <button id="btn-toggle-list" type="button" aria-pressed="false" data-en="Districts">清單</button>
+        <button id="btn-open-gov-data" type="button" data-en="Gov Data" class="ui-hidden">📊 官方數據</button>
+        <button id="btn-export-html" type="button" title="Download Standalone HTML (Zero Host Console Noise)" data-en="💾 Standalone" class="ui-hidden">💾 獨立檔</button>
+        <button id="btn-open-help" type="button" aria-label="Help" class="ui-hidden">?</button>
+        <button id="btn-lang-toggle" type="button" title="Switch Language">EN</button>
+        <div id="perf-badge" class="ui-hidden" title="Real-time WebGL Performance">60 FPS</div>
+      </div>
+    </div>
+
+    <!-- Left Detail Card -->
+    <aside id="detail-card" class="hidden" aria-live="polite">
+      <div class="sheet-handle" id="detail-sheet-handle"><div class="sheet-handle-bar"></div></div>
+      <div class="card-header">
+        <div>
+          <div class="eyebrow" id="detail-eyebrow">MACAO DISTRICT</div>
+          <h2 id="detail-title" style="font-size:18px;font-weight:800;margin-top:2px;">分區名稱</h2>
+        </div>
+        <button id="btn-close-detail" class="card-close-btn" type="button" aria-label="Close">✕</button>
+      </div>
+      <div class="card-body" id="detail-body"></div>
+    </aside>
+
+    <!-- Top-Right City Log Panel -->
+    <section id="city-log-panel" class="hidden" aria-label="City Log">
+      <div class="log-header">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-weight:800;font-size:13px;" data-en="Macao Civic Log">澳門城市脈動日誌</span>
+          <span class="live-badge"><span class="live-dot"></span>LIVE</span>
+        </div>
+        <button id="btn-close-log" type="button" style="min-height:32px;padding:0 8px;font-size:12px;">✕</button>
+      </div>
+      <div class="log-filter-bar">
+        <select id="log-flow-filter" aria-label="Filter by collaboration flow">
+          <option value="all" data-en="All Cross-District Flows">全部跨區走廊</option>
+        </select>
+      </div>
+      <div class="log-list" id="log-list"></div>
+    </section>
+
+    <!-- Right Sidebar Directory -->
+    <aside id="right-sidebar" class="collapsed" aria-label="Policy Directory">
+      <div class="sheet-handle" id="sidebar-sheet-handle"><div class="sheet-handle-bar"></div></div>
+      <div class="sidebar-top">
+        <div class="search-box">
+          <input id="search-input" type="search" placeholder="搜尋澳門堂區、地標、輕軌、施政指標…" data-en-placeholder="Search Macao parishes, landmarks, LRT, stats..." />
+          <button id="btn-close-sidebar-mobile" type="button" aria-label="Close Directory">✕</button>
+        </div>
+        <div class="tab-row" role="tablist">
+          <button id="tab-themes" class="active" type="button" role="tab" aria-selected="true" data-en="23 Sub-Districts">政策主題</button>
+          <button id="tab-flows" type="button" role="tab" aria-selected="false" data-en="Cross-Sea Flows">協作關係</button>
+        </div>
+      </div>
+      <div class="sidebar-content" id="sidebar-content"></div>
+    </aside>
+
+    <!-- Bottom HUD Toolbar：桌面為合併單列，手機（≤800px）為分組彈出式選單 -->
+    <div id="hud-wrapper">
+      <div class="hud-sheet-head">
+        <span class="hud-sheet-title" data-en="City Functions">城市功能</span>
+        <button id="hud-sheet-close" class="hud-sheet-close" type="button" aria-label="關閉功能選單">✕</button>
+      </div>
+
+      <div id="flow-legend" class="hidden ui-hidden">
+        <span class="eyebrow" data-en="EVIDENCE">數據與規劃等級</span>
+        <span class="legend-item"><span class="legend-line"></span><span data-en="Official">施政報告已落實／營運中 (official)</span></span>
+        <span class="legend-item"><span class="legend-line dashed"></span><span data-en="Thematic">二五／三五規劃建設中 (thematic)</span></span>
+        <span class="legend-item"><span class="legend-line dotted"></span><span data-en="Pending">跨區研究與深化階段 (pending)</span></span>
+      </div>
+
+      <!-- 城市體驗 -->
+      <div class="hud-group">
+        <div class="hud-group-label" data-en="City Experiences">城市體驗</div>
+        <div id="interactive-sandbox-bar" role="group" aria-label="Macao Interactive Experiences">
+          <button id="btn-bridges-tour" class="chip ui-hidden" type="button" title="Inspect Macao's 4 Cross-Sea Bridges">
+            <span>🌉</span>
+            <span data-en="4 Cross-Sea Bridges">四條跨海大橋</span>
+          </button>
+          <button id="btn-geo-grid" class="chip active ui-hidden" type="button" aria-pressed="true" title="Toggle Authentic Geographic Coordinate Grid">
+            <span>🗺️</span>
+            <span data-en="Geo Grid">真實地理方格</span>
+          </button>
+          <button id="btn-fireworks" class="chip" type="button" title="Launch Macau Tower Fireworks">
+            <span>🎆</span>
+            <span data-en="Tower Fireworks">旅遊塔煙花匯演</span>
+          </button>
+          <button id="btn-lrt-follow" class="chip" type="button" aria-pressed="false" title="Follow Macau LRT Train">
+            <span>🚝</span>
+            <span data-en="Ride LRT">輕軌跟車視角</span>
+          </button>
+          <button id="btn-lightshow" class="chip" type="button" aria-pressed="false" title="Toggle Ruins of St. Paul Light Projection">
+            <span>✨</span>
+            <span data-en="Ruins Lightshow">大三巴光雕夜演</span>
+          </button>
+          <div class="tide-slider-wrap ui-hidden" title="Simulate Inner Harbour Storm Surge & Floodgates (SMG Tide Level)">
+            <span>🌊 <span data-en="Tide/Floodgate">內港潮位防洪</span></span>
+            <input id="slider-tide" type="range" min="0" max="2.5" step="0.1" value="0" aria-label="Storm surge tide simulation" />
+            <span id="tide-val-label" style="font-family:var(--font-mono);min-width:38px;">+0.0m</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 顯示與視角 -->
+      <div class="hud-group">
+        <div class="hud-group-label" data-en="View & Display">顯示與視角</div>
+        <div id="hud-bar" role="toolbar" aria-label="Simulation Controls">
+          <div class="hud-clock-box">
+            <span id="hud-clock-time">10:00</span>
+            <span id="hud-clock-period" data-en="Morning">上午服務</span>
+          </div>
+          <button id="mobile-time-trigger" class="hud-btn ui-hidden" type="button">
+            <span class="ico">◷</span>
+            <span data-en="Time">時間</span>
+          </button>
+          <div class="hud-time-group ui-hidden" id="hud-time-group">
+            <button class="hud-btn time-preset-btn" type="button" data-min="360">
+              <span class="ico">🌅</span>
+              <span data-en="06 Dawn">清晨 06</span>
+            </button>
+            <button class="hud-btn time-preset-btn" type="button" data-min="720">
+              <span class="ico">☀️</span>
+              <span data-en="12 Noon">白天 12</span>
+            </button>
+            <button class="hud-btn time-preset-btn" type="button" data-min="1080">
+              <span class="ico">🌇</span>
+              <span data-en="18 Dusk">黃昏 18</span>
+            </button>
+            <button class="hud-btn time-preset-btn" type="button" data-min="1260">
+              <span class="ico">🌙</span>
+              <span data-en="21 Night">夜晚 21</span>
+            </button>
+          </div>
+          <div class="hud-toggle-group">
+            <button id="tog-district-labels" class="hud-btn" type="button" aria-pressed="false">
+              <span class="ico">🏷</span>
+              <span data-en="District Names">地區名</span>
+            </button>
+            <button id="tog-nameplate" class="hud-btn ui-hidden" type="button" aria-pressed="false">
+              <span class="ico">💬</span>
+              <span data-en="Tags">名牌</span>
+            </button>
+            <button id="tog-cargo" class="hud-btn ui-hidden" type="button" aria-pressed="false">
+              <span class="ico">📦</span>
+              <span data-en="Cargo">搬運</span>
+            </button>
+            <button id="tog-flows" class="hud-btn ui-hidden" type="button" aria-pressed="false">
+              <span class="ico">🔗</span>
+              <span data-en="Flows">協作線</span>
+            </button>
+            <button id="tog-pause" class="hud-btn ui-hidden" type="button" aria-pressed="false">
+              <span class="ico">⏸</span>
+              <span data-en="Pause">暫停</span>
+            </button>
+            <button id="tog-bird" class="hud-btn" type="button" aria-pressed="false">
+              <span class="ico">🦅</span>
+              <span data-en="Bird's-Eye">鳥瞰</span>
+            </button>
+            <button id="tog-log" class="hud-btn" type="button" aria-pressed="false">
+              <span class="ico">📋</span>
+              <span data-en="Log">日誌</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 關於 -->
+      <div class="hud-group">
+        <div class="hud-group-label" data-en="About">關於</div>
+        <div class="hud-about-row">
+          <button id="btn-about-site" class="hud-btn" type="button" aria-expanded="false" aria-controls="sf-card">
+            <span class="ico">ℹ️</span>
+            <span data-en="About This Site">關於本站</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 手機底部精簡功能列（桌面隱藏） -->
+    <div id="hud-mobile-dock">
+      <div class="hud-dock-clock">
+        <span id="hud-clock-time-m">10:00</span>
+        <span id="hud-clock-period-m" data-en="Morning">上午服務</span>
+      </div>
+      <button id="hud-sheet-toggle" type="button" aria-expanded="false" aria-controls="hud-wrapper">
+        <span class="ico">☰</span>
+        <span data-en="Functions">功能</span>
+      </button>
+    </div>
+    <div id="hud-sheet-backdrop" aria-hidden="true"></div>
+
+    <!-- 底部浮動頁尾 -->
+    <section id="site-footer" aria-label="頁尾">
+      <div class="sf-card" id="sf-card" hidden>
+        <div class="sf-grid">
+          <div>
+            <h3 class="sf-title">製作團隊</h3>
+            <p class="sf-team">
+              <a class="sf-link" href="mailto:paul@ebeesnet.com" title="聯絡 Paul Chang">Paul Chang</a>
+              @ NexusLink Tech
+            </p>
+          </div>
+          <div class="sf-col-contact">
+            <h3 class="sf-title">聯絡我哋</h3>
+            <p class="sf-text">有建議或者遇到問題？話畀我哋知。</p>
+            <button class="sf-btn" id="sf-open-feedback" type="button" aria-haspopup="dialog">打開意見表</button>
+          </div>
+        </div>
+        <div class="sf-bottom">© 2026 NexusLink Tech · 澳門城市島 v1.0</div>
+      </div>
+    </section>
+
+    <!-- 意見反映彈出卡片 -->
+    <div class="sf-modal" id="sf-feedback-modal" aria-hidden="true">
+      <div class="sf-dialog" role="dialog" aria-modal="true" aria-labelledby="sf-feedback-title">
+        <button class="sf-close" id="sf-close-feedback" type="button" aria-label="關閉">✕</button>
+        <h2 class="sf-modal-title" id="sf-feedback-title">聯絡我哋</h2>
+        <p class="sf-modal-sub">留下電郵與意見，我哋會盡快跟進。</p>
+        <form id="sf-feedback-form" novalidate>
+          <div class="sf-field">
+            <label class="sf-label" for="sf-email">電郵</label>
+            <input class="sf-input" id="sf-email" name="email" type="email"
+                   inputmode="email" autocomplete="email" placeholder="you@example.com" required>
+          </div>
+          <div class="sf-field">
+            <label class="sf-label" for="sf-message">意見內容</label>
+            <textarea class="sf-input" id="sf-message" name="message" rows="4"
+                      placeholder="講下你嘅建議或者遇到嘅問題…" required></textarea>
+          </div>
+          <p class="sf-status" id="sf-status" role="status" aria-live="polite"></p>
+          <button class="sf-submit" id="sf-submit" type="submit">送出意見</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay">
+      <div class="brand-badge" style="width:54px;height:54px;font-size:24px;border-radius:16px;">澳</div>
+      <div class="loading-title" data-en="Macao SAR 3D Civic Island">澳門特別行政區・政策與城市數據島</div>
+      <div class="loading-status" id="loading-status" data-en="Building Macao Peninsula, Taipa, Cotai & Coloane 3D miniature…">正在依真實地理組裝澳門半島、新城A區、氹仔、路氹與路環…</div>
+      <div id="error-box"></div>
+    </div>
+
+    <!-- Official Macao Government Open Data Modal -->
+    <div id="gov-data-modal" class="hidden" role="dialog" aria-modal="true" aria-labelledby="gov-modal-title">
+      <div class="modal-card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div>
+            <div class="eyebrow">DATA.GOV.MO · DSEC · SMG · DSAT · DSOP</div>
+            <h3 id="gov-modal-title" style="font-size:19px;font-weight:800;margin-top:4px;" data-en="Macao SAR Official Data & Real-Time Telemetry">澳門特區政府官方數據與實時監測中心</h3>
+          </div>
+          <button id="btn-close-gov-data" type="button" class="card-close-btn">✕</button>
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(0,117,98,0.10);padding:10px 14px;border-radius:12px;gap:8px;flex-wrap:wrap;">
+          <div style="font-size:12.5px;font-weight:700;color:#005a4b;" id="gov-api-status-text">
+            已連結澳門特區政府開放數據基準（1,377 個數據集 / 463 組 API）
+          </div>
+          <button id="btn-refresh-gov-api" type="button" class="chip" style="min-height:32px;" data-en="Sync Live Data">🔄 同步實時數據</button>
+        </div>
+
+        <div class="gov-grid">
+          <div class="gov-stat-card">
+            <span class="eyebrow" data-en="TOTAL POPULATION (DSEC)">全澳總人口 (DSEC)</span>
+            <span class="big-num" id="gov-stat-pop">68.7 萬</span>
+            <span style="font-size:11.5px;color:#5c4e44;" data-en="Density ~20,600 / km²">人口密度約 20,630 人/km²</span>
+          </div>
+          <div class="gov-stat-card">
+            <span class="eyebrow" data-en="LAND AREA (DSEC/DSCC)">全澳陸地面積 (DSCC)</span>
+            <span class="big-num" id="gov-stat-area">33.3 km²</span>
+            <span style="font-size:11.5px;color:#5c4e44;" data-en="Peninsula + Taipa + Cotai + Coloane + Zone A">含半島、氹仔、路氹、路環及新城A區</span>
+          </div>
+          <div class="gov-stat-card">
+            <span class="eyebrow" data-en="OPEN DATA PLATFORM">開放數據平台 (DATA.GOV.MO)</span>
+            <span class="big-num">1,377 組</span>
+            <span style="font-size:11.5px;color:#5c4e44;" data-en="44 Departments · 463 Live APIs">涵蓋 44 個部門實體・463 個 API</span>
+          </div>
+          <div class="gov-stat-card">
+            <span class="eyebrow" data-en="WEATHER & AQI (SMG)">氣象與空氣質量 (SMG)</span>
+            <span class="big-num" id="gov-stat-weather">26.4°C · 良好</span>
+            <span style="font-size:11.5px;color:#5c4e44;" id="gov-stat-aqi-sub">大潭山觀測站 · AQI 38 · 濕度 74%</span>
+          </div>
+        </div>
+
+        <div>
+          <div class="eyebrow" style="margin-bottom:6px;" data-en="DSEC PARISH & ZONE STATISTICS">各堂區與新區官方統計指標（點擊可飛往該分區）</div>
+          <table class="gov-table">
+            <thead>
+              <tr>
+                <th data-en="Zone / Parish">地理分區／堂區</th>
+                <th data-en="Area">面積</th>
+                <th data-en="Pop / Scale">常住人口／規模</th>
+                <th data-en="Dept">主責部門</th>
+              </tr>
+            </thead>
+            <tbody id="gov-zone-tbody"></tbody>
+          </table>
+        </div>
+
+        <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:space-between;align-items:center;">
+          <div style="display:flex;flex-wrap:wrap;gap:6px;">
+            <a class="chip" href="https://data.gov.mo/" target="_blank" rel="noopener noreferrer">🔗 data.gov.mo 開放數據</a>
+            <a class="chip" href="https://www.dsec.gov.mo/" target="_blank" rel="noopener noreferrer">🔗 DSEC 統計暨普查局</a>
+            <a class="chip" href="https://www.smg.gov.mo/" target="_blank" rel="noopener noreferrer">🔗 SMG 地球物理氣象局</a>
+            <a class="chip" href="https://www.dsop.gov.mo/" target="_blank" rel="noopener noreferrer">🔗 DSOP 公共建設局</a>
+          </div>
+          <button id="btn-close-gov-bottom" type="button" class="active" data-en="Close">完成檢視</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 首次到訪歡迎卡 -->
+    <div id="help-modal" class="hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal-card welcome-card">
+        <div class="welcome-head">
+          <div class="welcome-badge" aria-hidden="true">🏝️</div>
+          <div>
+            <div class="eyebrow" data-en="WELCOME TO MACAO ISLAND">歡迎來到澳門島</div>
+            <h3 id="modal-title" style="font-size:19px;font-weight:800;margin-top:3px;line-height:1.35;" data-en="A 3D Macao sandbox you can play with">可以轉、可以點、可以一齊玩的澳門 3D 城市沙盤</h3>
+          </div>
+        </div>
+        <p class="welcome-lead" data-en="Spin the map, explore 23 districts and 82 landmarks. Sign in as a citizen to build your own district, collect badges and meet neighbours.">轉動地圖，探索 23 個分區與 82 個地標。登入成為市民，就可以建設自己的分區、收集徽章、同鄰里互動。</p>
+        <div class="welcome-points">
+          <div class="welcome-point">
+            <div class="ico" aria-hidden="true">🗺️</div>
+            <div>
+              <b data-en="Explore 23 districts · 82 landmarks">探索 23 個分區 · 82 個地標</b>
+              <span class="desc" data-en="Click landmarks to collect badges, and inspect official population, works and weather data.">點擊地標即可登錄圖鑑，仲可以睇官方人口、工程與氣象數據。</span>
+            </div>
+          </div>
+          <div class="welcome-point">
+            <div class="ico" aria-hidden="true">🏗️</div>
+            <div>
+              <b data-en="Build your own district">建設你的居住分區</b>
+              <span class="desc" data-en="12 plots, 10 facility types — raise your district vitality and climb the board.">12 格用地、10 種設施，提升分區活力，同其他市民一齊上榜。</span>
+            </div>
+          </div>
+          <div class="welcome-point">
+            <div class="ico" aria-hidden="true">👥</div>
+            <div>
+              <b data-en="Co-create with neighbours">同鄰里共創城市</b>
+              <span class="desc" data-en="Share proposals, vote, send greetings and visit friends' sandboxes.">提案、投票、打招呼同巡訪好友沙盤，一齊令城市更好玩。</span>
+            </div>
+          </div>
+        </div>
+        <div class="welcome-actions">
+          <a class="welcome-login" href="/api/auth/google">
+            <svg width="16" height="16" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.6l6.7-6.7C35.6 2.4 30.2 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.8 6.1C12.3 13.2 17.6 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 3-2.2 5.5-4.6 7.2l7.1 5.5c4.2-3.9 6.6-9.6 6.6-17.2z"/><path fill="#FBBC05" d="M10.4 28.7a14.6 14.6 0 0 1 0-9.4l-7.8-6.1a24 24 0 0 0 0 21.6l7.8-6.1z"/><path fill="#34A853" d="M24 48c6.2 0 11.4-2 15.2-5.6l-7.1-5.5c-2 1.4-4.7 2.2-8.1 2.2-6.4 0-11.7-3.7-13.6-8.9l-7.8 6.1C6.5 42.6 14.6 48 24 48z"/></svg>
+            <span data-en="Sign in with Google · Become a citizen">使用 Google 登入 · 成為澳門島市民</span>
+          </a>
+          <button id="btn-close-help" type="button" class="welcome-browse" data-en="Just look around (no sign-in)">隨便逛逛（免登入）</button>
+        </div>
+        <div class="welcome-note" data-en="You can browse the 3D map and official data without signing in; progress is saved to your citizen profile once you sign in.">免登入都可以瀏覽全圖同官方數據；登入後探索與建設進度會保存到你的市民檔案。</div>
+      </div>
+    </div>
+  </div>
+  <!-- 世界規格（classic script：file:// 也能載入；內容由 scripts/extract-data.mjs 產生） -->
+  <script src="./world/world.spec.generated.js"></script>
+  <!-- 建物／樹種零件表（內容由 scripts/gen-archetypes.mjs 產生） -->
+  <script src="./world/archetypes.generated.js"></script>
+  <!-- 打包入口：dev 直接載入 ESM；npm run build 會把整個模組圖 inline 回單一 HTML -->
+  <script type="module" src="./main.js"></script>
+  <script src="../web/social.js?v=dev" defer></script>
+  <script>
+  // ===== 頁尾與意見反映 =====
+  (function () {
+    'use strict';
+
+    var APP_NAME = '澳門城市島';
+    var WEBHOOK_URL = 'https://n8n.nexuslinktech.com/webhook/ebees_app_website_contact';
+
+    var aboutBtn = document.getElementById('btn-about-site');
+    var card = document.getElementById('sf-card');
+    var openBtn = document.getElementById('sf-open-feedback');
+    var modal = document.getElementById('sf-feedback-modal');
+    var dialog = modal.querySelector('.sf-dialog');
+    var closeBtn = document.getElementById('sf-close-feedback');
+    var form = document.getElementById('sf-feedback-form');
+    var emailInput = document.getElementById('sf-email');
+    var messageInput = document.getElementById('sf-message');
+    var statusEl = document.getElementById('sf-status');
+    var submitBtn = document.getElementById('sf-submit');
+
+    if (!card || !modal) return;
+
+    var lastFocused = null;
+    var hideTimer = null;
+    var hudSheet = document.getElementById('hud-wrapper');
+    var hudSheetToggle = document.getElementById('hud-sheet-toggle');
+    var hudSheetClose = document.getElementById('hud-sheet-close');
+    var hudSheetBackdrop = document.getElementById('hud-sheet-backdrop');
+
+    // ---- 手機底部 HUD 彈出式分組選單 ----
+    function setHudSheet(open) {
+      document.body.classList.toggle('hud-sheet-open', !!open);
+      if (hudSheetToggle) hudSheetToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+
+    if (hudSheetToggle) {
+      hudSheetToggle.addEventListener('click', function () {
+        setHudSheet(!document.body.classList.contains('hud-sheet-open'));
+      });
+    }
+    if (hudSheetClose) {
+      hudSheetClose.addEventListener('click', function () { setHudSheet(false); });
+    }
+    if (hudSheetBackdrop) {
+      hudSheetBackdrop.addEventListener('click', function () { setHudSheet(false); });
+    }
+
+    // 手機：點選任何功能後自動收起選單，讓畫面回到 3D 場景
+    if (hudSheet) {
+      hudSheet.addEventListener('click', function (e) {
+        if (window.innerWidth > 800) return;
+        var btn = e.target.closest('button');
+        if (!btn || btn.id === 'hud-sheet-close') return;
+        setHudSheet(false);
+      });
+    }
+
+    // ---- 頁尾卡片展開／收起（由 HUD「關於本站」控制） ----
+    function setExpanded(open) {
+      card.hidden = !open;
+      if (aboutBtn) aboutBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+
+    if (aboutBtn) {
+      aboutBtn.addEventListener('click', function () {
+        setExpanded(card.hidden);
+      });
+    }
+
+    document.addEventListener('click', function (e) {
+      if (card.hidden) return;
+      if (e.target.closest('#site-footer') || e.target.closest('#btn-about-site')) return;
+      setExpanded(false);
+    });
+
+    // ---- 意見彈窗 ----
+    function setStatus(text, state) {
+      statusEl.textContent = text || '';
+      statusEl.className = 'sf-status' + (text ? ' is-visible' : '') + (state ? ' is-' + state : '');
+    }
+
+    function openModal() {
+      clearTimeout(hideTimer);
+      lastFocused = document.activeElement;
+      modal.classList.add('is-open');
+      modal.setAttribute('aria-hidden', 'false');
+      window.setTimeout(function () { emailInput.focus(); }, 60);
+    }
+
+    function closeModal() {
+      clearTimeout(hideTimer);
+      modal.classList.remove('is-open');
+      modal.setAttribute('aria-hidden', 'true');
+      if (lastFocused && typeof lastFocused.focus === 'function') lastFocused.focus();
+    }
+
+    function resetForm() {
+      form.reset();
+      setStatus('', null);
+      submitBtn.disabled = false;
+      submitBtn.textContent = '送出意見';
+    }
+
+    openBtn.addEventListener('click', openModal);
+    closeBtn.addEventListener('click', closeModal);
+
+    modal.addEventListener('click', function (e) {
+      if (!dialog.contains(e.target)) closeModal();
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') return;
+      if (modal.classList.contains('is-open')) { closeModal(); return; }
+      if (document.body.classList.contains('hud-sheet-open')) { setHudSheet(false); return; }
+      if (!card.hidden) setExpanded(false);
+    });
+
+    // Tab 焦點鎖在彈窗內
+    modal.addEventListener('keydown', function (e) {
+      if (e.key !== 'Tab') return;
+      var focusable = dialog.querySelectorAll('button:not([disabled]), input:not([disabled]), textarea:not([disabled]), a[href]');
+      if (!focusable.length) return;
+      var first = focusable[0];
+      var last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    });
+
+    // ---- 送出 ----
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (submitBtn.disabled) return;
+
+      var email = emailInput.value.trim();
+      var message = messageInput.value.trim();
+
+      emailInput.setCustomValidity('');
+      messageInput.setCustomValidity('');
+      if (!email) {
+        emailInput.setCustomValidity('請輸入電郵');
+        emailInput.reportValidity();
+        return;
+      }
+      if (!message) {
+        messageInput.setCustomValidity('請輸入意見內容');
+        messageInput.reportValidity();
+        return;
+      }
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+
+      var payload = {
+        event: 'feedback',
+        app_name: APP_NAME,
+        name: email,
+        userId: email,
+        content: '【' + APP_NAME + '】' + message,
+        timestamp: new Date().toISOString()
+      };
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = '傳送緊…';
+      setStatus('傳送緊…', 'loading');
+
+      fetch(WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+        .then(function (res) {
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          return res;
+        })
+        .then(function () {
+          setStatus('多謝你嘅意見！', 'success');
+          form.reset();
+          submitBtn.textContent = '已送出';
+          hideTimer = window.setTimeout(function () {
+            closeModal();
+            resetForm();
+          }, 1400);
+        })
+        .catch(function () {
+          setStatus('傳送失敗，請稍後再試。', 'error');
+          submitBtn.disabled = false;
+          submitBtn.textContent = '送出意見';
+        });
+    });
+
+    [emailInput, messageInput].forEach(function (el) {
+      el.addEventListener('input', function () { el.setCustomValidity(''); });
+    });
+  })();
+  </script>
+</body>
+</html>
